@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { studentStatusLabels } from "@/content/labels";
 import type { StudentListRow } from "../server/queries";
+import { StudentRowActions } from "./student-row-actions";
 
 /**
  * Yer tutucu öğrenci listesi (flat). Satır eylemleri (şifre sıfırlama, davet kodu, koç atama,
@@ -9,9 +10,12 @@ import type { StudentListRow } from "../server/queries";
 export function StudentTable({
   students,
   viewerRole,
+  coaches,
 }: {
   students: StudentListRow[];
-  viewerRole: "coach" | "owner" | "student" | "parent";
+  viewerRole: "coach" | "owner";
+  /** Owner için koç seçenekleri (koç ata diyaloğu); koçta boş. */
+  coaches: { id: string; fullName: string }[];
 }) {
   if (students.length === 0) {
     return (
@@ -38,6 +42,7 @@ export function StudentTable({
             <th className="px-4 py-3 font-medium">Sezon</th>
             <th className="px-4 py-3 font-medium">Durum</th>
             {viewerRole === "owner" ? <th className="px-4 py-3 font-medium">Koç</th> : null}
+            <th className="px-4 py-3 text-right font-medium">Eylemler</th>
           </tr>
         </thead>
         <tbody>
@@ -50,6 +55,13 @@ export function StudentTable({
               {viewerRole === "owner" ? (
                 <td className="px-4 py-3 text-ink-700">{s.coachName ?? "—"}</td>
               ) : null}
+              <td className="px-4 py-3">
+                <StudentRowActions
+                  student={{ profileId: s.profileId, fullName: s.fullName, coachId: s.coachId }}
+                  viewerRole={viewerRole}
+                  coaches={coaches}
+                />
+              </td>
             </tr>
           ))}
         </tbody>

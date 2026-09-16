@@ -12,3 +12,4 @@ export { StudentTable } from "./components/student-table";
 export { createStudent } from "./server/student-actions";
 export { listStudents, listCoaches, type StudentListRow, type CoachOption } from "./server/queries";
 export { createStudentSchema, type CreateStudentInput } from "./schemas";
+export { assignCoach, deleteStudent, resetStudentPassword } from "./server/student-admin-actions";

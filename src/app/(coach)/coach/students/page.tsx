@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StudentTable, listStudents } from "@/features/core";
+import { StudentTable, listCoaches, listStudents } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Öğrenciler" };
@@ -10,7 +10,10 @@ export const metadata: Metadata = { title: "Öğrenciler" };
 /** Basit liste + eylemler; kabuk ve gerçek liste Faz 1c'de. */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
-  const students = await listStudents();
+  const [students, coaches] = await Promise.all([
+    listStudents(),
+    profile.role === "owner" ? listCoaches() : Promise.resolve([]),
+  ]);
 
   return (
     <>
@@ -30,7 +33,13 @@ export default async function StudentsPage() {
           </Link>
         </Button>
       </header>
-      <StudentTable students={students} viewerRole={profile.role} />
+      <StudentTable
+        students={students}
+        viewerRole={profile.role}
+        coaches={coaches
+          .filter((c) => c.role === "coach")
+          .map((c) => ({ id: c.id, fullName: c.fullName }))}
+      />
     </>
   );
 }

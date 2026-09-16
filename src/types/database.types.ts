@@ -380,6 +380,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_coach: {
+        Args: { p_coach_id: string; p_student_id: string }
+        Returns: undefined
+      }
       can_delete_student: { Args: { p_student_id: string }; Returns: boolean }
       can_manage_student: { Args: { p_student_id: string }; Returns: boolean }
       create_student_account: {

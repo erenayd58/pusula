@@ -26,8 +26,14 @@ export async function requireUser(): Promise<AuthenticatedUser> {
  * Sunucu tarafında kesin rol kontrolü (02-mimari Bölüm 4.3, katman 2). Rol uymuyorsa kullanıcı
  * kendi ana sayfasına gider; oturum yoksa /login.
  */
-export async function requireRole(...roles: Role[]): Promise<AuthenticatedUser> {
+export async function requireRole<R extends Role>(
+  ...roles: R[]
+): Promise<AuthenticatedUser & { profile: Profile & { role: R } }> {
   const user = await requireUser();
-  if (!roles.includes(user.profile.role)) redirect(homeFor(user.profile.role));
-  return user;
+  if (!hasRole(user.profile, roles)) redirect(homeFor(user.profile.role));
+  return { ...user, profile: user.profile };
+}
+
+function hasRole<R extends Role>(profile: Profile, roles: R[]): profile is Profile & { role: R } {
+  return (roles as Role[]).includes(profile.role);
 }
