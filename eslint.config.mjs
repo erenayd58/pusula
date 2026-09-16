@@ -12,6 +12,7 @@ import boundaries from "eslint-plugin-boundaries";
  * - modules (src/modules/** diğer)         : features'a bakamaz
  * - shared (lib, components, types, content, config): features'a bakamaz
  * - app (src/app/**)                       : feature-index + registry + shared
+ * - proxy (src/proxy.ts, dosya kategorisi) : sadece shared
  */
 const FEATURE_DEEP_IMPORT_MESSAGE =
   "@/features/<modül> yalnızca index üzerinden import edilir (02-mimari 3.4).";
@@ -52,6 +53,8 @@ const eslintConfig = defineConfig([
       "boundaries/files": [
         { category: "feature-index", pattern: "src/features/*/index.ts" },
         { category: "registry", pattern: "src/modules/(registry|widgets).ts" },
+        // Next.js proxy dosyası tek dosyadır; klasör tabanlı element değil, dosya kategorisi.
+        { category: "proxy", pattern: "src/proxy.ts" },
       ],
     },
     rules: {
@@ -76,6 +79,11 @@ const eslintConfig = defineConfig([
             {
               from: { file: { categories: "registry" } },
               allow: [toIndex, toElements("shared", "modules")],
+            },
+            // proxy.ts: sadece shared (lib) — features'a bakmaz.
+            {
+              from: { file: { categories: "proxy" } },
+              allow: toElements("shared"),
             },
             // app: feature index'leri + registry + shared.
             {

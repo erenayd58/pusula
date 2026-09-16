@@ -1,5 +1,12 @@
+import type { Enums, Tables } from "@/types/database.types";
+
 /**
- * Sık kullanılan tablo satır tipleri. `database.types.ts` `pnpm db:types` ile üretildikten
- * sonra (Faz 1a) buraya `Tables<"students">` gibi kısayollar eklenir.
+ * Sık kullanılan tablo satır tipleri. `database.types.ts` elle düzenlenmez (`pnpm db:types`).
  */
-export type Role = "owner" | "coach" | "student" | "parent";
+export type Role = Enums<"user_role">;
+export type Profile = Tables<"profiles">;
+export type Student = Tables<"students">;
+export type Invitation = Tables<"invitations">;
+export type Consent = Tables<"consents">;
+export type ParentRelation = Enums<"parent_relation">;
+export type ConsentType = Enums<"consent_type">;
