@@ -6,7 +6,7 @@
 
 - Tüm tablolar `public` şemasında; yardımcı güvenlik fonksiyonları `private` şemasında.
 - Birincil anahtar: `id uuid primary key default gen_random_uuid()` (bağlantı tabloları hariç, onlarda bileşik anahtar).
-- Her tabloda `created_at timestamptz not null default now()`; değişebilen tablolarda `updated_at` + `set_updated_at` tetikleyicisi.
+- Her tabloda `created_at timestamptz not null default now()`; değişebilen tablolarda `updated_at` + `private.set_updated_at()` tetikleyicisi (trigger fonksiyonu `private`'tadır: API'ye açık değildir, hiçbir role execute verilmez; tetiklenirken execute denetlenmez).
 - Tablo ve kolon adları İngilizce, `snake_case`, tablo adları çoğul.
 - Enum değerleri İngilizce; Türkçe karşılıkları `src/content/labels.ts` içinde.
 - Öğrenciye bağlı her tablo `student_id uuid not null references students(profile_id) on delete cascade` içerir → öğrenci silinince tüm verisi gider (KVKK silme hakkı).
@@ -84,7 +84,7 @@ profiles (
   organization_id uuid not null references organizations(id),
   role user_role not null,
   full_name text not null,
-  username text unique,                   -- sadece öğrenciler için dolu, küçük harf, [a-z0-9._]
+  username text unique,                   -- check: ~ '^[a-z0-9._]{3,30}$' ve (role = 'student') = (username is not null)
   avatar_url text,
   phone text,
   last_seen_at timestamptz,
@@ -95,7 +95,7 @@ students (
   profile_id uuid pk references profiles(id) on delete cascade,
   organization_id uuid not null references organizations(id),
   coach_id uuid not null references profiles(id),
-  curriculum_template_id uuid not null references curriculum_templates(id),
+  curriculum_template_id uuid,            -- Faz 1a: nullable, FK yok; Faz 2'de not null + references curriculum_templates(id)
   season text not null,                   -- '2026-2027'
   grade smallint not null default 8,
   school_name text,
@@ -120,7 +120,7 @@ invitations (
   organization_id uuid not null references organizations(id),
   code text unique not null,              -- 8 karakter, karışması kolay karakterler hariç
   role user_role not null check (role in ('coach', 'parent')),
-  student_id uuid references students(profile_id) on delete cascade,  -- veli davetinde dolu
+  student_id uuid references students(profile_id) on delete cascade,  -- check: (role = 'parent') = (student_id is not null)
   created_by uuid not null references profiles(id),
   expires_at timestamptz not null,
   used_by uuid references profiles(id),
@@ -132,11 +132,12 @@ consents (
   id uuid pk,
   student_id uuid not null references students(profile_id) on delete cascade,
   given_by uuid references profiles(id),  -- veli; kâğıt onayda null + recorded_by dolu
-  recorded_by uuid references profiles(id),
+  recorded_by uuid references profiles(id),  -- check: given_by is not null or recorded_by is not null
   type consent_type not null,
   document_version text not null,         -- 'aydinlatma-v1'
   given_at timestamptz not null default now(),
-  revoked_at timestamptz
+  revoked_at timestamptz,
+  created_at
 )
 
 student_modules (
@@ -148,6 +149,8 @@ student_modules (
   primary key (student_id, module_id)
 )
 ```
+
+Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`.
 
 Yeni Auth kullanıcısı oluştuğunda `profiles` satırı Server Action içinde (secret key ile) transaction olarak oluşturulur; `auth.users` üzerinde tetikleyici kullanılmaz (hata ayıklaması zor).
 
@@ -638,8 +641,29 @@ as $$
       or private.is_coach_of(p_student_id)
 $$;
 
-grant execute on all functions in schema private to authenticated;
+-- Profil görünürlüğü: kendisi; owner kendi kurumundaki herkes; koç kendi
+-- öğrencileri ve onların velileri; öğrenci kendi koçu ve kendi velileri;
+-- veli kendi çocuğu ve çocuğun koçu.
+create or replace function private.can_see_profile(p_target uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$ ... $$;  -- tam gövde: supabase/migrations/*_faz1a_private_helpers.sql
+
+-- Hedef, oturum sahibinin kurumunda role = 'parent' bir profil mi?
+-- student_parents INSERT/UPDATE with check'inde kullanılır.
+create or replace function private.is_parent_profile_in_my_org(p_profile uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$ ... $$;
 ```
+
+**Yetki sertleştirme** (`faz1a_privileges`; RLS asıl güvenlik, bunlar ikinci katman):
+
+- `revoke all on schema private from public, anon; grant usage on schema private to authenticated;`
+- Postgres yeni fonksiyonlara yerleşik olarak PUBLIC execute verir. Bu yerleşik varsayılan şema düzeyindeki `alter default privileges ... in schema` ile **kaldırılamaz** (şema girdileri globale eklenir); bu yüzden global ifade kullanılır: `alter default privileges for role postgres revoke execute on functions from public;`. `private` fonksiyonlarına execute **fonksiyon başına** `authenticated`'a verilir (`grant execute on all functions` değil; cron fonksiyonları kapalı kalır). `set_updated_at`'a hiçbir role execute verilmez.
+- `anon`'un `public` tablolarında hiçbir yetkisi yok: mevcut tablolarda `revoke all ... from anon`; gelecektekiler için `alter default privileges for role postgres in schema public revoke all on tables from anon; ... revoke all on sequences from anon; ... revoke execute on functions from anon, authenticated;`. Yeni `public` fonksiyonlarında `authenticated` execute'u fonksiyon başına açıkça verilir.
+- Kolon düzeyi UPDATE (bkz. 5.3 seçenek (c)): `profiles` → sadece `full_name, avatar_url, phone`; `students` → `curriculum_template_id, season, grade, school_name, class_section, exam_date, target_percentile, status` (`profile_id`, `organization_id`, `coach_id` API'den değişmez; koç ataması Faz 1b'de owner kontrollü RPC ile).
+- Bu kurallar `supabase/tests/090_schema_guards.test.sql` ile katalog üzerinden her tablo/fonksiyon için otomatik doğrulanır.
 
 ### 5.2 Standart politika kalıbı (öğrenci verisi)
 
@@ -671,11 +695,11 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | Tablo | Öğrenci | Koç (kendi öğrencileri) | Veli | Owner (kurum) |
 |---|---|---|---|---|
 | organizations | S (kendi) | S | S | S U |
-| profiles | S U (kendi, sınırlı kolon) | S (öğrenci + velileri) | S (kendi + çocuk + koç adı) | S I U |
-| students | S (kendi) | S U | S (çocuk) | S I U D |
-| student_parents | S (kendi) | S I U D | S (kendi) | Tümü |
-| invitations | – | S I D | – | Tümü |
-| consents | S | S I | S I (kendi çocuğu) | S |
+| profiles | S U (kendi; kolon: full_name, avatar_url, phone) + S (koçu, velileri) | S (kendi + öğrencileri + velileri) | S (kendi + çocuk + çocuğun koçu) | S U (kurum, aynı kolon kısıtı); I yok → secret key |
+| students | S (kendi) | S U (sınırlı kolon; kurum dışına taşınamaz) | S (çocuk) | S U; I/D yok → secret key + yetki kontrolü (Faz 1b) |
+| student_parents | S (kendi) | S I U D (parent_id aynı kurumda role=parent olmalı) | S (kendi bağlantısı) | Tümü |
+| invitations | – | S I D (kendi oluşturdukları; veli daveti sadece kendi öğrencisi için; koç daveti oluşturamaz) | – | Tümü (koç daveti sadece owner) |
+| consents | S | S I (recorded_by = kendisi) | S I (kendi çocuğu; given_by = kendisi, recorded_by boş) | S I (recorded_by = kendisi; is_coach_of owner'ı kapsar). U/D yok |
 | student_modules | S | S I U D | S | Tümü |
 | curriculum_templates, subjects, topics | S (kendi şablonu) | S | S | Tümü |
 | student_topic_progress | S I U | S I U | S | Tümü |
@@ -696,7 +720,7 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | study_sessions, reading_logs, school_exam_grades | S I U D | S | S | Tümü |
 | daily_checkins | S I U | S | S (can_view_details) | Tümü |
 
-Kolon düzeyinde kısıt gereken yerlerde (öğrencinin `plan_items` üzerinde sadece `completed_at` ve `student_note` güncelleyebilmesi gibi) iki yol vardır: (a) `update` yetkisini tabloya değil fonksiyona vermek (`public.complete_plan_item(item_id, note)` security definer), (b) tetikleyiciyle diğer kolonların değişmediğini doğrulamak. **Tercih: (a) fonksiyon**, çünkü niyeti açık.
+Kolon düzeyinde kısıt gereken yerlerde (öğrencinin `plan_items` üzerinde sadece `completed_at` ve `student_note` güncelleyebilmesi gibi) iki yol vardır: (a) `update` yetkisini tabloya değil fonksiyona vermek (`public.complete_plan_item(item_id, note)` security definer), (b) tetikleyiciyle diğer kolonların değişmediğini doğrulamak. Üçüncü yol (c) **kolon düzeyi GRANT** (`revoke update on table … from authenticated; grant update (kolonlar) … to authenticated`): kısıt satır politikasından bağımsız ve rol bazlıdır, güncellemeye çalışan 42501 alır. **Tercih:** kolon kümesi sabit ve rolden bağımsızsa (c) — `profiles`, `students` böyle yapıldı; koşula bağlı kısıtlarda (a) fonksiyon, çünkü niyeti açık.
 
 ### 5.4 RLS test kalıbı (pgTAP)
 
@@ -706,7 +730,11 @@ Her tablo için en az şu testler yazılır:
 2. Öğrenci A, öğrenci B'nin satırını **göremez** ve ekleyemez.
 3. Koç X kendi öğrencisinin satırını görür, başka koçun öğrencisini göremez.
 4. Veli sadece kendi çocuğunun satırını görür; `can_view_details=false` ise detay tablolarını göremez.
-5. Oturumsuz (`anon`) kullanıcı hiçbir şey göremez.
+5. Oturumsuz (`anon`) kullanıcı hiçbir şey göremez (tablo yetkisi olmadığı için `42501`).
+
+Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır).
+
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 
@@ -772,5 +800,5 @@ Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevril
 
 ## 9. Seed Verisi
 
-- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli, LGS 2027 şablonu, 2 kaynak, 1 oynatma listesi, 3 haftalık rastgele soru kaydı, 4 deneme sonucu. Kullanıcı şifreleri `.env.example` içinde belirtilen demo değer.
+- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); LGS 2027 şablonu, 2 kaynak, 1 oynatma listesi, 3 haftalık rastgele soru kaydı, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
 - `supabase/seeds/lgs-2027-template.sql`: Üretimde bir kez çalıştırılan sistem şablonu (`05-lgs-2027-sablonu.md` içeriği).

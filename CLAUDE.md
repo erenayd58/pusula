@@ -60,6 +60,7 @@ Bir görevi "bitti" saymadan önce `pnpm check` ve (şema değiştiyse) `pnpm db
 - Öğrenci verisi tabloları `student_id … on delete cascade`.
 - Yabancı anahtar kolonlarına indeks.
 - Migration sonrası `pnpm db:types` çalıştır ve üretilen dosyayı commit'le.
+- Varsayılan yetkiler kapalıdır: `anon`'un `public`'te hiçbir yetkisi yok, `public` ve `private` fonksiyonlarında `authenticated` execute'u **fonksiyon başına** açıkça verilir (`grant execute on function … to authenticated`); `090_schema_guards` testi bunu her tablo/fonksiyon için denetler.
 
 ## Kod Stili
 
@@ -70,6 +71,7 @@ Bir görevi "bitti" saymadan önce `pnpm check` ve (şema değiştiyse) `pnpm db
 - Zod şemaları `schemas.ts` içinde, form ve action aynı şemayı kullanır.
 - Saf iş mantığı (net, hedef ilerlemesi, tekrar tarihi, seri) `lib/` altında ve birim testli.
 - Yeni bağımlılık eklemeden önce sor; kabul edilirse `02-mimari.md` karar kaydına ekle.
+- `lib/format` çıktıları sayı ile birim arasında U+00A0 (NBSP) içerir; e2e ve birim testlerinde metin karşılaştırmalarında NBSP'yi hesaba kat (`NBSP` sabiti `@/lib/format`'ta).
 
 ## Arayüz Kuralları
 
