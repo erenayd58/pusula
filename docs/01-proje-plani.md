@@ -185,14 +185,19 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] RLS politikaları (03 §5.3) ve pgTAP testleri: tablo başına 5 senaryo, yetki/kolon testleri, katalog tabanlı şema koruma (225 test)
 - [x] `supabase/seed.sql` (1 kurum, 1 owner, 1 koç, 3 öğrenci, 2 veli) ve `database.types.ts`
 
-**1b. Kimlik doğrulama akışları**
-- Giriş (kullanıcı adı veya e-posta), çıkış, şifre sıfırlama
-- Koç: öğrenci oluşturma (secret key; `profiles` + `students` satırları), davet kodu üretme; veli: davetle kayıt + KVKK onayı; owner: koç ataması (RPC)
+**1b. Kimlik doğrulama akışları — ✅ 2026-09-17 (dal: `faz-1b-kimlik`)**
+- [x] Faz 1a sağlamlaştırma: tablo yetkileri açıkça (`faz1b_table_grants`), `090` yetki matrisi; sentetik e-posta deneyi (karar #19)
+- [x] Altyapı: `lib/supabase` (client, server, admin, proxy), `src/proxy.ts` (oturum yenileme + rol claim'iyle yönlendirme), `lib/auth` (`getClaims` + profil, `requireRole`), `createAction`, `custom_access_token_hook`, `pnpm env:local`
+- [x] Giriş (kullanıcı adı veya e-posta, tek genel hata), çıkış, profil-yok sayfası, rol yer tutucuları
+- [x] Koç: öğrenci oluşturma (admin API + `create_student_account` RPC + telafi), şifre sıfırlama, veli davet kodu; owner: koç ataması (`assign_coach`), öğrenci silme (cascade doğrulandı); basit `/coach/students` listesi
+- [x] Veli: davetle kayıt (açık kayıt + davete bağlı profil, karar #20) → e-posta doğrulama (Mailpit) → `accept_invitation` → KVKK onayı (taslak metin, sürüm `config/constants`)
+- [x] Testler: birim (username, davet kodu, createAction, telafi), pgTAP (5 yeni dosya), Playwright (giriş, öğrenci oluşturma, owner yönetimi, veli daveti); CI e2e yerel Supabase + seed ile
+- Ertelenen: koçun kâğıt onayı sisteme işlemesi (Faz 7 veli paneli ile), `before_user_created` hook değerlendirmesi (karar #20)
 
 **1c. Modül sistemi ve uygulama kabukları**
 - Modül kayıt sistemi (`defineModule`, registry), role göre uygulama kabuğu (öğrenci alt menü, koç yan menü)
 
-- **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor; bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi ✅).
+- **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor (e2e ✅); bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi ✅).
 
 ### Faz 2: Müfredat Şablonları ve Konu Takibi (M)
 - `curriculum_templates`, `subjects`, `topics`, `student_topic_progress`

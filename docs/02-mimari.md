@@ -49,8 +49,11 @@ pusula/
 │   ├── tasarim/                     # Claude Design çıktıları (görsel referans) + ekran görüntüleri
 │   ├── 05-lgs-2027-sablonu.md
 │   └── 06-claude-code-rehberi.md
+├── scripts/
+│   └── write-local-env.mjs          # pnpm env:local: supabase status → .env.local
 ├── supabase/
 │   ├── config.toml
+│   ├── templates/confirmation.html  # e-posta doğrulama şablonu (üretimde dashboard'a girilir)
 │   ├── migrations/                  # YYYYMMDDHHMMSS_aciklama.sql (tek doğruluk kaynağı)
 │   ├── seed.sql                     # Yerel geliştirme verisi (demo kurum, koç, 3 öğrenci)
 │   ├── seeds/
@@ -74,12 +77,16 @@ pusula/
     │   ├── not-found.tsx
     │   ├── dev/layout.tsx           # /dev altı sadece geliştirme ortamı (üretimde notFound)
     │   ├── dev/design/page.tsx      # Tasarım sistemi sayfası: token'lar ve bileşenler, clay | flat yan yana
-    │   ├── (auth)/
+    │   ├── (auth)/                  # clay yüzeyli, tek sütun (Faz 1b)
     │   │   ├── layout.tsx
     │   │   ├── login/page.tsx
-    │   │   ├── invite/[code]/page.tsx
+    │   │   ├── profile-missing/page.tsx   # oturum var, profil yok
+    │   │   ├── invite/page.tsx            # davet kodu girişi
+    │   │   ├── invite/[code]/page.tsx     # veli kaydı (signUp)
+    │   │   ├── invite/check-email/page.tsx
+    │   │   ├── invite/accept/page.tsx     # e-posta doğrulandı → accept_invitation
     │   │   └── consent/page.tsx     # KVKK onay ekranı
-    │   ├── auth/callback/route.ts
+    │   ├── auth/confirm/route.ts    # e-posta doğrulama: token_hash → verifyOtp (Supabase SSR kalıbı)
     │   ├── (student)/
     │   │   └── student/
     │   │       ├── layout.tsx       # Mobil kabuk: üst bar + alt menü; requireRole('student')
@@ -127,6 +134,7 @@ pusula/
     │           ├── page.tsx         # Çocuk seçimi (tek çocuksa doğrudan yönlendirir)
     │           └── [studentId]/…
     ├── features/                    # MODÜLLER (bkz. Bölüm 3)
+    │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay (module.ts Faz 1c)
     │   ├── topics/
     │   ├── question-log/
     │   ├── goals/
@@ -163,11 +171,15 @@ pusula/
     │   │   ├── admin.ts             # Secret key'li istemci — "server-only", sadece koç işlemleri
     │   │   └── proxy.ts             # proxy.ts için oturum yenileme yardımcı fonksiyonu
     │   ├── auth/
-    │   │   ├── get-session-user.ts  # Kullanıcı + profil + rol (React cache ile)
+    │   │   ├── get-session-user.ts  # Kullanıcı + profil + rol (React cache ile; getClaims)
     │   │   ├── require-role.ts
+    │   │   ├── routes.ts            # rol ↔ ana sayfa/bölge eşlemesi (proxy ve requireRole ortak)
     │   │   └── username.ts          # kullanıcı adı ↔ sentetik e-posta dönüşümü
     │   ├── actions/
     │   │   └── create-action.ts     # Server Action sarmalayıcısı (auth + zod + Result)
+    │   ├── invitations/
+    │   │   └── code.ts              # davet kodu üretici (8 karakter, kriptografik)
+    │   ├── env.ts                   # ortam değişkenleri tek yerden
     │   ├── dates/
     │   │   └── index.ts             # todayInIstanbul(), weekStart()…
     │   ├── format/
@@ -328,7 +340,7 @@ export const questionLogWidgets = defineWidgets({
 
 - Varsayılan: **Sunucu Bileşeni** içinde `features/<modul>/server/queries.ts` fonksiyonu çağrılır.
 - Sorgular `lib/supabase/server.ts` istemcisini kullanır; bu istemci kullanıcının oturumuyla çalıştığı için **RLS otomatik uygulanır**.
-- Oturum ve profil bilgisi `getSessionUser()` ile alınır; React `cache()` ile istek başına bir kez çalışır.
+- Oturum ve profil bilgisi `getSessionUser()` ile alınır; React `cache()` ile istek başına bir kez çalışır. Kimlik `supabase.auth.getClaims()` ile doğrulanır (Supabase SSR önerisi; `getSession()` sunucuda güvenilmez), rol her istekte `profiles`'tan okunur (karar #21).
 - İstemci tarafında sık güncellenen tek tük ekranlar (odak sayacı gibi) dışında istemci tarafı veri çekme kütüphanesi kullanılmaz.
 
 ### 4.2 Yazma
@@ -366,7 +378,7 @@ export type Result<T> =
 
 ### 4.3 Yetki katmanları
 
-1. `proxy.ts`: Oturum yoksa `/login`'e; rol yanlış bölgeye girmeye çalışıyorsa kendi ana sayfasına yönlendirir. (Bu sadece kullanıcı deneyimi içindir, güvenlik değildir.)
+1. `proxy.ts`: Oturum yoksa `/login`'e; rol yanlış bölgeye girmeye çalışıyorsa kendi ana sayfasına yönlendirir. Rolü JWT'deki `app_metadata.user_role` claim'inden okur (`custom_access_token_hook`, karar #21); claim yoksa kararı layout'a bırakır. (Bu sadece kullanıcı deneyimi içindir, güvenlik değildir.)
 2. `layout.tsx` içinde `requireRole()`: Sunucu tarafında kesin kontrol.
 3. `createAction` içinde `roles`: Eylem düzeyinde kontrol.
 4. **RLS:** Asıl güvenlik. Diğer katmanlar atlanmış olsa bile veri sızmaz.
@@ -375,9 +387,10 @@ export type Result<T> =
 
 `lib/supabase/admin.ts` sadece şu işlemlerde kullanılır ve dosyanın başında `import "server-only"` bulunur:
 
-- Öğrenci Auth hesabı oluşturma (sentetik e-posta ile)
-- Öğrenci şifresi sıfırlama
-- Öğrenci silme (Auth kullanıcısı + depo dosyaları)
+- Öğrenci Auth hesabı oluşturma (sentetik e-posta ile) → ardından `create_student_account` RPC (sadece `service_role`; aktör yetkisi, profil + öğrenci satırı tek transaction); RPC düşerse Auth kullanıcısı silinir (telafi)
+- Öğrenci şifresi sıfırlama (`can_manage_student` ile önce yetki)
+- Öğrenci silme (`can_delete_student`, sadece owner; cascade ile tüm veri; depo temizliği Faz 6)
+- Veli kaydında davet kodunun salt okunur ön kontrolü (signUp'tan önce)
 
 Her kullanımdan önce çağıranın o öğrencinin koçu veya kurum sahibi olduğu **veritabanı fonksiyonuyla** doğrulanır.
 
@@ -439,7 +452,20 @@ YOUTUBE_API_KEY=                     # sadece sunucu, Faz 5
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Supabase anahtar adları zaman içinde değişebildiği için (eski `anon` / `service_role` → yeni `publishable` / `secret`) kurulumda Supabase'in güncel Next.js rehberi esas alınır.
+Supabase anahtar adları zaman içinde değişebildiği için (eski `anon` / `service_role` → yeni `publishable` / `secret`) kurulumda Supabase'in güncel Next.js rehberi esas alınır. Faz 1b (2026-09) doğrulaması: rehber `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` adlarını kullanıyor; yerel `supabase status` çıktısındaki `API_URL`, `PUBLISHABLE_KEY` (`sb_publishable_…`), `SECRET_KEY` (`sb_secret_…`) değerleri `pnpm env:local` ile `.env.local`'e yazılır (README). `MAILPIT_URL` sadece e2e içindir.
+
+### Üretim Auth yapılandırması (dashboard, kod dışı)
+
+Yerel `config.toml`'daki şu ayarların üretim/staging projesinde elle yapılması gerekir; unutulursa akışlar bozulmaz ama eksik çalışır:
+
+| Ayar | Yerel | Üretim |
+|---|---|---|
+| Rol claim hook'u | `[auth.hook.custom_access_token]` | Authentication → Hooks → Customize Access Token → `public.custom_access_token_hook` (açılmazsa proxy sadece oturum kontrolü yapar) |
+| E-posta doğrulama | `enable_confirmations = true` | Confirm email **açık kalır** |
+| Onay e-postası şablonu | `supabase/templates/confirmation.html` | Email Templates → Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/invite/accept` |
+| Site URL / redirect | `site_url`, `additional_redirect_urls` | Üretim alan adı |
+| SMTP | Mailpit | Özel SMTP (Resend vb.); Supabase'in yerleşik SMTP'si sınırlıdır |
+| Öğrenci e-posta alanı | `ogrenci.pusula.local` | `STUDENT_EMAIL_DOMAIN=ogrenci.<alan-adi>`; deney staging'de tekrarlanır (karar #19) |
 
 ### package.json betikleri
 
@@ -460,6 +486,7 @@ Supabase anahtar adları zaman içinde değişebildiği için (eski `anon` / `se
   "db:reset": "supabase db reset",
   "db:test": "supabase test db",
   "db:types": "supabase gen types typescript --local > src/types/database.types.ts",
+  "env:local": "node scripts/write-local-env.mjs",
   "check": "pnpm lint && pnpm typecheck && pnpm test"
 }
 ```
@@ -506,3 +533,5 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 17 | 2026-09 | `students` INSERT/DELETE ve `profiles` INSERT için RLS politikası yok; bu işlemler secret key ile, veritabanı yetki kontrolünden sonra Server Action'da (Faz 1b) | Auth kullanıcısı + profil + öğrenci satırı tek yerde, tek transaction; owner bile API'den doğrudan öğrenci silemez | Owner'a I/D politikası |
 | 18 | 2026-09 | pgTAP yardımcıları `tests` şemasında; `000_test_helpers.sql` transaction'sız çalışıp commit eder, sabit kimlikli fixture (`tests.id`, `tests.seed_fixture`) ve `tests.authenticate_as` ile rol/JWT simülasyonu; yalnızca yerel ve CI | Her test dosyası aynı fixture'ı okunur adlarla kullanır; pg_prove alfabetik sırayla önce yardımcıları yükler | Her dosyada fixture tekrarı; harici test-helpers paketi |
 | 19 | 2026-09 | Öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`, üretimde kontrol ettiğimiz alan adının alt alanı (`ogrenci.<alan-adi>`), `STUDENT_EMAIL_DOMAIN` ile | Yerel GoTrue (CLI 2.117) admin API + şifreli giriş deneyi `.local`, `.invalid`, noktasız alan dahil hepsini kabul etti; `sb_secret_` ve eski `service_role` anahtarı aynı davrandı. Barındırılan projede e-posta doğrulama/engelleme ayarları değişebildiği için üretimde çözümlenebilir gerçek bir alt alan kullanılır ve deney staging'de tekrarlanır | `.invalid` TLD; telefon/SMS girişi |
+| 20 | 2026-09 | Veli kaydı: açık kayıt (`enable_signup` açık, e-posta doğrulama açık) + davete bağlı profil. Sunucu işlemi signUp'tan önce kodu doğrular; profil ve `student_parents` bağlantısı yalnızca e-posta doğrulandıktan sonra `accept_invitation` RPC'siyle oluşur (tek kullanımlık, `for update`). Davetsiz biri en fazla profilsiz bir Auth kaydı bırakabilir; RLS ile hiçbir veri göremez | GoTrue'nun standart doğrulama e-postası ve Mailpit ile e2e; az özel kod. Açık karar: `before_user_created` hook ile geçersiz kodlu signUp'ı Auth seviyesinde reddetmek (admin API yolunu etkileyip etkilemediği doğrulanmalı) | Kayıt kapalı + `admin.createUser` + `inviteUserByEmail`/`generateLink` (özel şifre belirleme akışı, daha fazla kod) |
+| 21 | 2026-09 | Sunucuda oturum doğrulama `getClaims()`; rol her istekte `profiles`'tan; `proxy.ts` yönlendirmesi için `custom_access_token_hook` JWT'ye `app_metadata.user_role` ekler (yalnızca UX, güvenlik kararı değil) | Supabase SSR rehberi `getClaims()` öneriyor; asimetrik anahtarda (yerel CLI dahil ES256) ağ çağrısı yok. Proxy DB'ye gitmeden yönlendirir; hook kapalıysa layout'lar yine `requireRole` ile korur | `getUser()` her istekte (ağ çağrısı); proxy'de profil sorgusu; rolü yalnızca layout'ta kontrol |
