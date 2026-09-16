@@ -68,12 +68,9 @@
   --state-error-soft: #fadfdc;
 
   /* clay gölgeler (öğrenci, veli) */
-  --clay-sm:
-    4px 4px 10px rgba(27, 36, 64, 0.1), -3px -3px 8px rgba(255, 255, 255, 0.85);
-  --clay-md:
-    8px 8px 20px rgba(27, 36, 64, 0.12), -6px -6px 16px rgba(255, 255, 255, 0.9);
-  --clay-lg:
-    16px 16px 34px rgba(27, 36, 64, 0.14), -10px -10px 24px rgba(255, 255, 255, 0.95);
+  --clay-sm: 4px 4px 10px rgba(27, 36, 64, 0.1), -3px -3px 8px rgba(255, 255, 255, 0.85);
+  --clay-md: 8px 8px 20px rgba(27, 36, 64, 0.12), -6px -6px 16px rgba(255, 255, 255, 0.9);
+  --clay-lg: 16px 16px 34px rgba(27, 36, 64, 0.14), -10px -10px 24px rgba(255, 255, 255, 0.95);
   --clay-inner:
     inset 2px 2px 4px rgba(255, 255, 255, 0.6), inset -3px -3px 8px rgba(27, 36, 64, 0.06);
   --clay-pressed:
