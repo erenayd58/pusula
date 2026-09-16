@@ -1,0 +1,3 @@
+-- Faz 0: ilk boş migration (01-proje-plani.md Faz 0).
+-- Şema tanımları Faz 1a'dan itibaren ayrı migration dosyalarında gelir;
+-- bu dosya düzenlenmez, yenisi eklenir (CLAUDE.md "Veritabanı Kuralları").

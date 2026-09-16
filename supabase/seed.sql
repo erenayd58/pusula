@@ -1,0 +1,2 @@
+-- Yerel geliştirme verisi (demo kurum, koç, öğrenciler). Faz 1a'da doldurulur.
+-- Şablon verisi (LGS 2027) supabase/seeds/lgs-2027-template.sql içinde tutulur.
