@@ -170,12 +170,12 @@ Tahmini ölçek: 30 öğrencinin bir sezonda üreteceği metin verisi birkaç on
 
 Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, sonra ana dala birleştirilir. Boyut: S (küçük), M (orta), L (büyük).
 
-### Faz 0: Temel Kurulum (S)
-- Next.js + TypeScript + Tailwind + shadcn/ui iskeleti, klasör yapısı (`02-mimari.md`)
-- Supabase CLI ile yerel geliştirme ortamı, ilk boş migration
-- ESLint, Prettier, Vitest, Playwright, GitHub Actions CI
-- Tasarım token'ları ve temel bileşenler (`04-tasarim-sistemi.md`)
-- **Kabul:** `pnpm dev` açılıyor, CI yeşil, Vercel'e deploy oluyor.
+### Faz 0: Temel Kurulum (S) — ✅ 2026-09-16 (dal: `faz-0-kurulum`)
+- [x] Next.js + TypeScript + Tailwind + shadcn/ui iskeleti, klasör yapısı (`02-mimari.md`)
+- [x] Supabase CLI ile yerel geliştirme ortamı, ilk boş migration
+- [x] ESLint, Prettier, Vitest, Playwright, GitHub Actions CI
+- [x] Tasarım token'ları ve temel bileşenler (`04-tasarim-sistemi.md`); `/dev/design` sayfası
+- **Kabul:** `pnpm dev` açılıyor ✅ · CI yeşil (ilk push'ta doğrulanacak) · Vercel'e deploy (depo bağlanınca) · Docker ile `pnpm db:start` + `pnpm db:types` yerelde doğrulanacak
 
 ### Faz 1: Kimlik, Roller ve Modül Altyapısı (L)
 - `organizations`, `profiles`, `students`, `student_parents`, `invitations`, `consents`, `student_modules` tabloları + RLS + testleri

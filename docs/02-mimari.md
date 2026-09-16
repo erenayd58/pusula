@@ -72,7 +72,8 @@ pusula/
     │   ├── globals.css              # Tailwind + tasarım token'ları
     │   ├── manifest.ts              # PWA manifest
     │   ├── not-found.tsx
-    │   ├── dev/design/page.tsx      # Sadece geliştirme ortamı: tasarım sistemi sayfası (üretimde 404)
+    │   ├── dev/layout.tsx           # /dev altı sadece geliştirme ortamı (üretimde notFound)
+    │   ├── dev/design/page.tsx      # Tasarım sistemi sayfası: token'lar ve bileşenler, clay | flat yan yana
     │   ├── (auth)/
     │   │   ├── layout.tsx
     │   │   ├── login/page.tsx
@@ -449,11 +450,13 @@ Supabase anahtar adları zaman içinde değişebildiği için (eski `anon` / `se
   "start": "next start",
   "lint": "eslint .",
   "format": "prettier --write .",
-  "typecheck": "tsc --noEmit",
+  "format:check": "prettier --check .",
+  "typecheck": "next typegen && tsc --noEmit",
   "test": "vitest run",
   "test:watch": "vitest",
   "test:e2e": "playwright test",
   "db:start": "supabase start",
+  "db:stop": "supabase stop",
   "db:reset": "supabase db reset",
   "db:test": "supabase test db",
   "db:types": "supabase gen types typescript --local > src/types/database.types.ts",
@@ -495,7 +498,7 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 9 | 2026-09 | Ders rengi `subjects.color` token öneki + `subjectVars()` CSS değişkenleri | Tailwind dinamik sınıf üretemez; yeni dersler kod değişmeden renk alır | Sabit sınıf eşleme tablosu |
 | 10 | 2026-09 | Tasarımdaki veli "Mesajlar" sekmesi "Notlar" olarak uygulanır | Mesajlaşma kapsam dışı | Mesajlaşma modülü eklemek |
 | 11 | 2026-09 | Modül sınırları `eslint-plugin-boundaries` ile denetlenir | Klasör tabanlı katman kuralları; göreli import kaçaklarını da yakalar | Sadece `no-restricted-imports` |
-| 12 | 2026-09 | shadcn/ui paketi tek seferde kabul: `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css`; semantik token'ları bizim token'lara takma ad | shadcn bileşenleri bunları bekler; hex yazmadan paletle uyum | Her bileşeni elle yeniden yazmak |
+| 12 | 2026-09 | shadcn/ui v4 (radix-nova) paketi tek seferde kabul: `radix-ui`, `class-variance-authority`, `cn` (clsx + tailwind-merge yerine shadcn'in motoru), `tw-animate-css`, `shadcn` (çalışma zamanında yalnızca `shadcn/tailwind.css` varyantları); semantik token'ları bizim token'lara takma ad. `cn` her zaman `@/lib/utils`'ten import edilir (özel `text-*`, `shadow-*`, `rounded-*` ölçekleri orada tanıtılır; ESLint kuralı) | shadcn bileşenleri bunları bekler; hex yazmadan paletle uyum | Her bileşeni elle yeniden yazmak; clsx + tailwind-merge |
 | 13 | 2026-09 | Modül manifesti (`module.ts`, metadata) ile panel kartları (`widgets.ts`, bileşen) ayrı; `registry.ts` / `widgets.ts` ayrı toplanır | Menü ve sekme üreten kod widget bileşenlerini paket boyutuna eklemesin; `registry` katmanı features'a bakan tek shared yer | Tek manifest içinde bileşen referansı |
 | 14 | 2026-09 | `typedRoutes` kapalı | Manifest `href` alanları düz string; Faz 1c'de `Route` tipine geçiş değerlendirilir | `typedRoutes: true` |
 | 15 | 2026-09 | Koç (flat) yüzeyinde `--bg-paper` (#FFFFFF) token'ı; `--focus-color` odak token'ı | Beyaz zemin ve odak rengi tek yerden değişsin (koyu tema); ders dışı öğe ders rengine bağlanmasın | Tailwind `bg-white`, `--subject-math` ile odak |
