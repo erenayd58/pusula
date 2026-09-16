@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { LogoutButton } from "@/features/core";
 import { roleLabels } from "@/content/labels";
 import { requireRole } from "@/lib/auth";
 
@@ -16,9 +15,6 @@ export default async function Page() {
       <p className="max-w-prose text-body text-ink-700">
         Bu ekran yer tutucu; menü ve modüller bir sonraki adımda geliyor.
       </p>
-      <div>
-        <LogoutButton />
-      </div>
     </>
   );
 }

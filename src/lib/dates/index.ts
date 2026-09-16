@@ -35,3 +35,14 @@ export function weekEnd(date: Date | number | string): TZDate {
 export function toDateKey(date: Date | number | string): string {
   return format(toIstanbul(date), "yyyy-MM-dd");
 }
+
+/**
+ * Öğretim yılı etiketi (`2026-2027`). Yıl temmuzda döner: temmuz-aralık → `Y-(Y+1)`,
+ * ocak-haziran → `(Y-1)-Y`. Sadece form ön dolgusu; sezon verisi öğrencide saklanır.
+ */
+export function currentSeason(now: Date = new Date()): string {
+  const d = toIstanbul(now);
+  const year = d.getFullYear();
+  const startYear = d.getMonth() + 1 >= 7 ? year : year - 1;
+  return `${startYear}-${startYear + 1}`;
+}

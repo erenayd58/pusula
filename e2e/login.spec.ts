@@ -17,11 +17,11 @@ test.describe("giriş", () => {
   });
 
   test("yanlış şifrede her durumda aynı genel hata", async ({ page }) => {
-    await login(page, accounts.student.identifier, "yanlis-sifre");
+    await login(page, accounts.student.identifier, "yanlis-sifre", { expectSuccess: false });
     await expect(formAlert(page)).toHaveText("Kullanıcı adı veya şifre hatalı.");
     await expect(page).toHaveURL(/\/login$/);
 
-    await login(page, "olmayan.kisi", "yanlis-sifre");
+    await login(page, "olmayan.kisi", "yanlis-sifre", { expectSuccess: false });
     await expect(formAlert(page)).toHaveText("Kullanıcı adı veya şifre hatalı.");
   });
 

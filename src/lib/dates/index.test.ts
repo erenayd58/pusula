@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toDateKey, todayInIstanbul, weekEnd, weekStart } from "./index";
+import { currentSeason, toDateKey, todayInIstanbul, weekEnd, weekStart } from "./index";
 
 describe("lib/dates", () => {
   it("gece 00:30 İstanbul kaydı yeni güne aittir (UTC'de bir önceki gün)", () => {
@@ -30,5 +30,11 @@ describe("lib/dates", () => {
     expect(d.getHours()).toBe(0);
     expect(d.getMinutes()).toBe(0);
     expect(toDateKey(d)).toBe("2026-09-16");
+  });
+
+  it("sezon temmuzda döner", () => {
+    expect(currentSeason(new Date("2026-09-16T10:00:00+03:00"))).toBe("2026-2027");
+    expect(currentSeason(new Date("2027-03-01T10:00:00+03:00"))).toBe("2026-2027");
+    expect(currentSeason(new Date("2027-07-01T00:30:00+03:00"))).toBe("2027-2028");
   });
 });
