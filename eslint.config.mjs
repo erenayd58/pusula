@@ -93,10 +93,20 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
+          paths: [
+            {
+              name: "cn",
+              message: "cn'i @/lib/utils'ten import et (özel ölçekler orada tanıtılır).",
+            },
+          ],
           patterns: [{ regex: "^@/features/[^/]+/.+", message: FEATURE_DEEP_IMPORT_MESSAGE }],
         },
       ],
     },
+  },
+  {
+    files: ["src/lib/utils.ts"],
+    rules: { "no-restricted-imports": "off" },
   },
   {
     // Manifest yalnızca metadata: React ve bileşen import etmez (02-mimari 3.4 madde 4).
