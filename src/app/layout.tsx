@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -20,7 +21,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="tr" className={`${lexend.variable} h-full`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <Toaster position="top-center" />
+      </body>
     </html>
   );
 }
