@@ -27,8 +27,8 @@ export default async function ProfileMissingPage() {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p>
-          Bu hesap için Pusula&apos;da bir profil bulunamadı. Veliysen davet kodunla kaydı tamamlaman
-          gerekiyor; öğrenci ya da koçsan kurumunla iletişime geç.
+          Bu hesap için Pusula&apos;da bir profil bulunamadı. Veliysen davet kodunla kaydı
+          tamamlaman gerekiyor; öğrenci ya da koçsan kurumunla iletişime geç.
         </p>
       </CardContent>
       <CardFooter>
