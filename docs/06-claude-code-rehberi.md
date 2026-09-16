@@ -61,6 +61,7 @@ GitHub'da özel bir depo açıp bu klasörü bağlayın.
 
 - **Bir oturumda bir faz, bir fazda bir katman.** Büyük fazları (1, 3, 6, 8) alt görevlere bölün ve her birini ayrı istekle yaptırın.
 - **Önce testler.** Yeni tablolar için Claude'dan önce RLS testlerini yazmasını, sonra politikaları yazmasını isteyin. Güvenlik açığını en ucuz burada yakalarsınız.
+- **Tasarımı gösterin.** Arayüz işlerinde istemde ilgili `docs/tasarim/ekran-goruntuleri/*.png` dosyasını belirtin; Claude Code görüntüyü okuyabilir. Bittiğinde uygulamanın ekran görüntüsünü alıp tasarımla karşılaştırmasını isteyin.
 - **Ekran görüntüsü paylaşın.** Arayüz beklediğiniz gibi değilse ekran görüntüsünü sohbete ekleyip neyin yanlış olduğunu söyleyin.
 - **Hata çıktısını olduğu gibi yapıştırın.** "Çalışmıyor" yerine terminal çıktısı veya tarayıcı konsol hatası.
 - **Gizli anahtarları asla sohbete yapıştırmayın.** `.env.local` dosyasını kendiniz doldurun.
@@ -75,23 +76,32 @@ Her istemi yeni bir oturumun başında kullanın. Köşeli parantez içindekiler
 
 ```
 CLAUDE.md, docs/01-proje-plani.md, docs/02-mimari.md ve docs/04-tasarim-sistemi.md
-belgelerini oku.
+belgelerini oku. docs/tasarim/ekran-goruntuleri/tasarim-sistemi.png görüntüsüne bak.
+
+Ortam: Windows, VS Code terminali PowerShell. Komutları buna göre öner.
 
 Faz 0'ı (Temel Kurulum) uygulamak için bir plan çıkar, henüz kod yazma:
-- Next.js 16 (App Router, TypeScript strict, src/ dizini) projesini pnpm ile mevcut
-  klasöre kur; docs/ ve CLAUDE.md dosyalarına dokunma.
-- Tailwind v4 + shadcn/ui kurulumu; 04-tasarim-sistemi.md içindeki renk token'larını
-  (açık/koyu tema), Lexend fontunu ve tipografi ölçeğini globals.css'e işle.
-- 02-mimari.md Bölüm 2'deki klasör yapısının iskeletini oluştur (boş klasörler için
-  .gitkeep).
-- ESLint (flat config, modül sınırı kuralları dahil), Prettier, Vitest, Playwright.
-- Supabase CLI ile supabase/ klasörünü başlat, yerel geliştirme için yapılandır.
-- package.json betikleri (02-mimari.md Bölüm 9).
-- .env.example, .github/workflows/ci.yml, dependabot.yml.
-- Tasarım token'larını gösteren geçici bir /dev/design sayfası (ders renkleri,
-  tipografi, temel bileşenler) — sadece geliştirme ortamında erişilebilir.
+- Next.js 16 (App Router, TypeScript strict, src/ dizini) projesini pnpm ile bu
+  klasörün köküne kur. create-next-app dolu klasöre kurulum yapmazsa geçici bir
+  klasörde oluşturup dosyaları köke taşı. docs/, CLAUDE.md ve README.md'ye dokunma.
+- Tailwind v4 + shadcn/ui. 04 Bölüm 3'teki token'ları (:root + iki @theme bloğu),
+  Lexend'i (next/font, latin + latin-ext, --font-lexend) ve tabular rakamları
+  globals.css'e işle. Clay yardımcılarını @utility ile tanımla.
+- data-surface="clay | clay-calm | flat" mekanizması: SurfaceRoot bileşeni ve
+  Button, Card, Input, Badge, Dialog bileşenlerinin iki yüzey varyantı.
+- subjectVars() yardımcısı ve SubjectBadge / SubjectStripe (04 Bölüm 4.2).
+- lib/format (formatPercent, formatNet, formatCount, formatDuration, formatDateTr,
+  formatWeekRange) + birim testleri.
+- 02-mimari.md Bölüm 2'deki klasör iskeleti (boş klasörlerde .gitkeep).
+- ESLint (flat config + modül sınırı kuralları), Prettier, Vitest, Playwright.
+- Supabase CLI'yi geliştirme bağımlılığı olarak ekle, supabase/ klasörünü başlat.
+- package.json betikleri (02-mimari.md Bölüm 9), supabase komutları pnpm üzerinden.
+- .env.example, .gitignore kontrolü, .github/workflows/ci.yml, dependabot.yml.
+- Sadece geliştirme ortamında açılan /dev/design sayfası: docs/tasarim/tasarim-sistemi.html
+  içindeki renkler, clay seviyeleri, tipografi ve temel bileşenler, öğrenci (clay) ve
+  koç (flat) varyantları yan yana. Tasarım dosyasıyla karşılaştırılarak doğrulanacak.
 
-Planı adım adım listele, her adımın sonunda nasıl doğrulanacağını yaz.
+Planı adım adım listele, her adımın nasıl doğrulanacağını yaz ve onayımı bekle.
 ```
 
 ### Faz 1: Kimlik, Roller ve Modül Altyapısı
@@ -148,11 +158,15 @@ CLAUDE.md ve docs/02-mimari.md (Bölüm 3) ile docs/04-tasarim-sistemi.md belgel
 Planla ve uygula:
 - src/modules: defineModule, registry, getEnabledModules, requireModule.
 - Çekirdek modül manifesti (core).
-- Öğrenci kabuğu: üst bar + alt menü (registry'den üretilir), ortada hızlı kayıt
-  düğmesi için yer tutucu.
-- Koç kabuğu: yan menü (registry'den), /coach/students listesi (şimdilik ad + durum),
-  /coach/students/[studentId] layout'u ve sekmeler (registry'den).
-- Veli kabuğu: çocuk seçimi, tek çocuksa yönlendirme.
+- Öğrenci kabuğu (data-surface="clay"): telefon ve tablette StudentBottomNav (ortada
+  taşan hızlı kayıt düğmesi için yer tutucu), masaüstünde 104 px StudentRail. Menü
+  öğeleri 04 Bölüm 8.2'deki gibi, registry'den üretilir.
+- Koç kabuğu (data-surface="flat"): 232 px CoachSidebar, telefonda soldan açılan panel;
+  /coach/students listesi (şimdilik ad + durum), /coach/students/[studentId] layout'u
+  ve sekmeler (registry'den). Görsel referans: docs/tasarim/ekran-goruntuleri/koc-masaustu.png
+- Veli kabuğu (data-surface="clay-calm"): alt menü Özet · Denemeler · Notlar; çocuk
+  seçimi, tek çocuksa yönlendirme.
+- ResponsiveSheet: < 768 px alt panel, ≥ 768 px diyalog, aynı API.
 - /coach/students/[studentId]/modules: modül aç/kapat (dependsOn kontrolü ile).
 - Boş durum ekranları (EmptyState).
 - Birim testleri: registry filtreleme, bağımlılık çözümleme.
@@ -184,7 +198,9 @@ Faz 2'yi planla:
 
 ```
 CLAUDE.md, docs/01-proje-plani.md (Bölüm 6.1), docs/03-veri-modeli.md (Bölüm 4.3, 6, 7)
-ve docs/04-tasarim-sistemi.md (Bölüm 6.1, 6.2, 6.3) belgelerini oku.
+ve docs/04-tasarim-sistemi.md (Bölüm 5, 8.2, 8.4, 10) belgelerini oku. Görsel referans:
+docs/tasarim/ekran-goruntuleri/ogrenci-telefon.png (S1, S2), ogrenci-masaustu.png (S5, S6)
+ve koc-masaustu.png (K1, K2 üst kısım).
 
 Faz 3'ü üç parçada planla:
 
@@ -193,16 +209,17 @@ A) Veri: question_logs, goals + RLS + testler; v_student_daily_summary,
    verileriyle); goal_progress ve student_streak fonksiyonları + testler.
 
 B) Öğrenci:
-   - Hızlı kayıt alt paneli (BottomSheet + NumberStepper): son ders/konu hatırlanır,
-     net anlık gösterilir, 3 dokunuşta kayıt.
+   - Hızlı kayıt (ResponsiveSheet + NumberStepper): son ders/konu hatırlanır, net
+     anlık gösterilir, telefonda 3 dokunuşta kayıt; masaüstünde Tab / ↑ ↓ / Enter / Esc
+     klavye akışı.
    - /student/log: geçmiş kayıtlar (gün gruplu), düzenleme, silme.
    - /student/goals: hedef çubukları.
-   - /student/today: geri sayım, seri, günün hedefi (ulaşınca HighlightMark), modül
-     widget'ları.
+   - /student/today: geri sayım, seri, GoalRing (ders dışı metrik: ink-900, hedefe
+     ulaşınca fosforlu + "hedef tamam"), modül widget'ları; masaüstünde iki sütun.
 
 C) Koç:
    - Hedef atama formu (metrik, dönem, ders, değer).
-   - /coach: öğrenci tablosu (v_coach_student_overview, tek sorgu).
+   - /coach: öğrenci tablosu (v_coach_student_overview, tek sorgu); telefonda kart listesi.
    - Öğrenci genel bakış: son 14 gün soru grafiği, ders dağılımı, hedef durumu.
    - Sorular sekmesi: filtrelenebilir kayıt tablosu.
 
@@ -212,16 +229,20 @@ Playwright: öğrenci hızlı kayıt → hedef çubuğu güncellenir → koç li
 ### Faz 4: Haftalık Plan, Notlar, Duyurular
 
 ```
-CLAUDE.md ve docs/03-veri-modeli.md (Bölüm 4.4, 5.3, 7) belgelerini oku.
+CLAUDE.md, docs/03-veri-modeli.md (Bölüm 4.4, 5.3, 7) ve docs/04-tasarim-sistemi.md
+(Bölüm 8.2 S4, 8.4 K3) belgelerini oku. Görsel referans: ogrenci-telefon.png (S4) ve
+koc-masaustu.png (K3).
 
 Faz 4'ü planla:
 - weekly_plans, plan_items, plan_templates, coach_notes, meetings, announcements
   + RLS + testler; question_logs.plan_item_id FK'sı.
 - complete_plan_item ve copy_weekly_plan fonksiyonları + testler.
 - features/planner:
-  - Koç plan oluşturucu: 7 günlük sütun, dnd-kit ile sürükle-bırak, öğe türüne göre
-    form (konu/soru/video/tekrar/serbest), taslak/yayınla, şablondan başlat,
-    şablon olarak kaydet, başka öğrencilere kopyala.
+  - Koç plan oluşturucu: 7 günlük sütun, dnd-kit ile sürükle-bırak (klavye sensörü
+    dahil), sol panelde zayıf konular / atanmış kaynaklar / video listeleri, öğe türüne
+    göre form, otomatik taslak kaydı, yayınla, şablondan başlat, şablon olarak kaydet,
+    başka öğrencilere kopyala, gün ve hafta süre toplamları. 1440 px altında sol panel
+    daraltılabilir, 1280 px altında sütunlar yatay kayar.
   - Öğrenci /student/plan: günlere göre liste; "Tamamla" soru türündeyse hızlı kayıt
     panelini plandan ön doldurulmuş açar; hafta sonu değerlendirme alanı.
   - Bugün ekranı widget'ı: bugünün görevleri.
@@ -256,7 +277,8 @@ Faz 5'i planla:
 
 ```
 CLAUDE.md, docs/03-veri-modeli.md (Bölüm 4.6, 6, 8) ve docs/04-tasarim-sistemi.md
-(Bölüm 3.3, 6.4) belgelerini oku.
+(Bölüm 9) belgelerini oku. Görsel referans: ogrenci-telefon.png (S3), ogrenci-masaustu.png
+(S7), koc-masaustu.png (K2 konu haritası ve yanlış nedeni dağılımı).
 
 Faz 6'yı dört parçada planla:
 A) Denemeler: tablolar + RLS + testler, save_mock_exam_result, v_mock_exam_trend.
@@ -268,21 +290,24 @@ B) Yanlış defteri: mistakes tablosu, storage bucket ve politikaları, istemci 
    hata nedeni dağılım grafiği.
 C) Tekrar sistemi: v_review_queue, mark_reviewed, pg_cron refresh_review_queue.
    Öğrenci /student/review ve Bugün widget'ı.
-D) Konu haritası: v_topic_mastery, TopicMasteryCell, öğrenci ve koç ekranları,
-   zayıf konular listesi.
+D) Konu haritası: v_topic_mastery, TopicMasteryCell (5 durum + seçili; doluluk, desen,
+   ikon), telefonda sarmalanan ders kartları + alt panel detayı, masaüstünde tek ızgara
+   + sağ yan panel + ok tuşlarıyla gezinme, koç için sade sürüm, zayıf konular listesi.
 ```
 
 ### Faz 7: Veli Paneli, Bildirimler, Uyarılar
 
 ```
-CLAUDE.md, docs/01-proje-plani.md (Bölüm 5, 7) ve docs/03-veri-modeli.md (Bölüm 4.7, 7)
-belgelerini oku.
+CLAUDE.md, docs/01-proje-plani.md (Bölüm 5, 7), docs/03-veri-modeli.md (Bölüm 4.7, 7)
+ve docs/04-tasarim-sistemi.md (Bölüm 8.3, 8.4 K1) belgelerini oku. Görsel referans:
+veli-telefon.png (V1). Tasarımdaki "Mesajlar" sekmesi "Notlar" olarak uygulanır.
 
 Faz 7'yi planla:
 - notifications tablosu + RLS; üst barda bildirim zili ve okundu işaretleme.
 - Olay bazlı bildirimler: plan yayınlandı, not eklendi, duyuru.
 - private.detect_alerts ve pg_cron işi; v_coach_student_overview.alerts alanını
-  kurum ayarlarındaki eşiklerle tamamla; koç ana ekranında "Dikkat gerektirenler".
+  kurum ayarlarındaki eşiklerle tamamla; koç ana ekranında "Dikkat gerektirenler" ve
+  uyarı türüne göre hızlı eylem düğmeleri.
 - Kurum ayarları sayfası: uyarı eşikleri, tekrar aralıkları, sıralama tablosu.
 - Veli paneli: her modülün parentSummary widget'ı, can_view_details'e göre detaylar,
   veliye açık notlar.

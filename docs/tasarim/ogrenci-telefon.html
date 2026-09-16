@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC; --line-strong:#BCC6DE;
+  --subject-tr:#D14B33;   --subject-tr-soft:#FAE6E1;   --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6; --subject-math-soft:#E2EAFB; --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;  --subject-sci-soft:#DBF0EA;  --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F; --subject-hist-soft:#F6EBD3; --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;  --subject-rel-soft:#EAE3FA;  --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;  --subject-eng-soft:#FAE1EE;  --subject-eng-ink:#A62A6B;
+  --accent-marker:#FFD84D; --accent-marker-soft:#FFF3C7;
+  --state-success:#1B8A66; --state-warning:#C07C0C; --state-error:#C6352A;
+  --clay-sm:4px 4px 10px rgba(27,36,64,0.10), -3px -3px 8px rgba(255,255,255,0.85);
+  --clay-md:8px 8px 20px rgba(27,36,64,0.12), -6px -6px 16px rgba(255,255,255,0.9);
+  --clay-lg:16px 16px 34px rgba(27,36,64,0.14), -10px -10px 24px rgba(255,255,255,0.95);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,0.6), inset -3px -3px 8px rgba(27,36,64,0.06);
+  --clay-pressed:inset 4px 4px 10px rgba(27,36,64,0.14), inset -3px -3px 8px rgba(255,255,255,0.75);
+  --clay-well:inset 3px 3px 8px rgba(27,36,64,0.10), inset -2px -2px 6px rgba(255,255,255,0.85);
+  --radius-xs:8px; --radius-sm:12px; --radius-md:16px; --radius-card:20px;
+  --radius-lg:28px; --radius-xl:36px; --radius-pill:999px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:#DCE2EE;color:var(--ink-900);font-family:Lexend,'Segoe UI',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4,p{margin:0;}
+a{color:var(--ink-900);text-decoration:underline;}
+a:hover{color:var(--subject-math-ink);}
+button,input,select{font:inherit;color:inherit;font-variant-numeric:tabular-nums;}
+:focus-visible{outline:3px solid #2E66D6;outline-offset:3px;}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+
+<div style="padding:40px;display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+
+  <!-- ============ S1 BUGÜN ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">S1 · Bugün</span>
+      <span style="font-size:13px;color:var(--ink-500)">390 × 844 · ana ekran</span>
+    </div>
+    <div data-screen-label="S1 Bugün" style="width:390px;height:844px;background:var(--bg-app);border-radius:44px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;position:relative;display:flex;flex-direction:column">
+      <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:600;color:var(--ink-700)">
+        <span>09.24</span>
+        <span style="display:flex;gap:5px;align-items:center"><span style="width:16px;height:9px;border:1.5px solid var(--ink-700);border-radius:3px;display:block"></span></span>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:4px 18px 110px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:48px;height:48px;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);display:grid;place-items:center;font-size:17px;font-weight:600">E</div>
+          <div style="flex:1">
+            <div style="font-size:20px;font-weight:600;line-height:1.2">Günaydın Elif</div>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:2px">Çarşamba, 16 Eylül</div>
+          </div>
+          <button aria-label="Bildirimler" style="width:44px;height:44px;border:0;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+          </button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <span style="display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 13px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);font-size:14px;font-weight:600">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#D14B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+            {{ streakText }}
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 13px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);font-size:14px;font-weight:600">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+            {{ countdownText }}
+          </span>
+        </div>
+
+        <div style="margin-top:16px;background:var(--bg-raised);border-radius:var(--radius-lg);box-shadow:var(--clay-md),var(--clay-inner);padding:18px">
+          <div style="display:flex;align-items:center;gap:18px">
+            <div style="width:108px;height:108px;flex:none;border-radius:50%;box-shadow:var(--clay-sm);display:grid;place-items:center;background:{{ ringBg }}">
+              <div style="width:80px;height:80px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-inner);display:grid;place-items:center;text-align:center">
+                <div>
+                  <div style="font-size:26px;font-weight:600;line-height:1">{{ done }}</div>
+                  <div style="font-size:12px;color:var(--ink-500);line-height:1.2">/ {{ goal }} soru</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:16px;font-weight:600">Günün hedefi</div>
+              <div style="font-size:15px;color:var(--ink-700);margin-top:6px;line-height:1.45">{{ goalLine }}</div>
+              <div style="display:flex;gap:6px;margin-top:12px">
+                <span style="font-size:13px;color:var(--ink-500)">3 sa 10 dk çalışma</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 2px 10px">
+          <h2 style="font-size:18px;font-weight:600">Planım</h2>
+          <span style="font-size:14px;color:var(--ink-700);font-weight:500">3 / 5 tamamlandı</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:12px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:{{ t.shadow }};padding:10px 14px 10px 10px;border-left:7px solid {{ t.color }}">
+              <div style="width:44px;height:44px;flex:none;border-radius:var(--radius-md);display:grid;place-items:center;background:{{ t.boxBg }};box-shadow:{{ t.boxShadow }}">
+                <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16px;font-weight:600;position:relative;display:inline-block;white-space:nowrap">{{ t.topic }}<span style="position:absolute;left:-2px;top:54%;height:7px;border-radius:4px;background:var(--accent-marker);opacity:.8;z-index:-1;width:{{ t.markerW }}"></span></div>
+                <div style="font-size:13.5px;color:var(--ink-500);margin-top:2px">{{ t.meta }}</div>
+              </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA2BC" stroke-width="2.5" stroke-linecap="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:18px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;flex:none;border-radius:var(--radius-sm);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:600">Tekrar zamanı gelenler</div>
+              <div style="font-size:13.5px;color:var(--ink-500);margin-top:2px">DNA ve Genetik Kod, Basınç ve 2 konu</div>
+            </div>
+            <span style="min-width:30px;height:30px;padding:0 9px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center;font-size:15px;font-weight:600">4</span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <div style="font-size:16px;font-weight:600">Bu hafta</div>
+            <div style="font-size:13.5px;color:var(--ink-500)">612 soru · 14 sa 20 dk</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end;height:74px;margin-top:12px">
+            <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="6">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+                <span style="font-size:11.5px;color:var(--ink-500);font-weight:500">{{ b.count }}</span>
+                <span style="width:100%;border-radius:6px 6px 3px 3px;background:{{ b.color }};height:{{ b.h }}"></span>
+                <span style="font-size:11.5px;color:var(--ink-700);font-weight:500">{{ b.short }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:0 12px 10px">
+        <div style="background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) 26px 26px;box-shadow:var(--clay-lg);padding:10px 10px 6px;display:flex;align-items:flex-end;justify-content:space-between">
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--ink-900);font-size:11.5px;font-weight:600">
+            <span style="width:36px;height:32px;border-radius:11px;background:var(--bg-surface);box-shadow:var(--clay-pressed);display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>
+            </span>Bugün
+          </button>
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--ink-500);font-size:11.5px">
+            <span style="width:36px;height:32px;display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            </span>Konular
+          </button>
+          <button aria-label="Hızlı soru kaydı" style="width:64px;height:64px;flex:none;margin:0 4px -14px;border:0;border-radius:23px;background:var(--ink-900);box-shadow:var(--clay-lg);display:grid;place-items:center;cursor:pointer;transition:transform .12s,box-shadow .12s" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+          </button>
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--ink-500);font-size:11.5px">
+            <span style="width:36px;height:32px;display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 16v-5M12 16V8M17 16v-8"></path></svg>
+            </span>Denemeler
+          </button>
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--ink-500);font-size:11.5px">
+            <span style="width:36px;height:32px;display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M5.5 21a7 7 0 0 1 13 0"></path></svg>
+            </span>Ben
+          </button>
+        </div>
+        <div style="width:120px;height:5px;border-radius:3px;background:var(--line-strong);margin:8px auto 0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ S2 HIZLI KAYIT ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">S2 · Hızlı soru kaydı</span>
+      <span style="font-size:13px;color:var(--ink-500)">alt panel · 3 dokunuşta kayıt</span>
+    </div>
+    <div data-screen-label="S2 Hızlı kayıt" style="width:390px;height:844px;background:var(--bg-app);border-radius:44px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;position:relative">
+      <div style="position:absolute;inset:0;padding:44px 18px 0;filter:saturate(.9)">
+        <div style="display:flex;align-items:center;gap:12px;opacity:.55">
+          <div style="width:48px;height:48px;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:17px;font-weight:600">E</div>
+          <div><div style="font-size:20px;font-weight:600">Günaydın Elif</div><div style="font-size:14px;color:var(--ink-500)">Çarşamba, 16 Eylül</div></div>
+        </div>
+        <div style="margin-top:16px;height:150px;border-radius:var(--radius-lg);background:var(--bg-raised);box-shadow:var(--clay-sm);opacity:.5"></div>
+      </div>
+      <div style="position:absolute;inset:0;background:rgba(27,36,64,.38)"></div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) 44px 44px;box-shadow:var(--clay-lg);padding:12px 18px 26px">
+        <div style="width:44px;height:5px;border-radius:3px;background:var(--line-strong);margin:0 auto 14px"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="font-size:20px;font-weight:600">Soru kaydı</h2>
+            <div style="font-size:13.5px;color:var(--ink-500);margin-top:3px">Çarşamba, 16 Eylül</div>
+          </div>
+          <button aria-label="Kapat" style="width:44px;height:44px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="6">
+            <button style="min-height:44px;padding:0 15px;border:0;border-radius:var(--radius-pill);font-size:15px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};box-shadow:{{ c.shadow }}" style-active="box-shadow:var(--clay-pressed);transform:scale(.96)">{{ c.short }}</button>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <div style="flex:1.4;min-width:0">
+            <div style="font-size:13.5px;color:var(--ink-500);margin-bottom:6px">Konu</div>
+            <div style="min-height:48px;padding:0 14px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Üslü İfadeler</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;color:var(--ink-500);margin-bottom:6px">Kaynak</div>
+            <div style="min-height:48px;padding:0 14px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="font-size:16px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tonguç SB</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <sc-for list="{{ steppers }}" as="s" hint-placeholder-count="3">
+            <div style="flex:1;background:var(--bg-surface);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:12px 8px 10px;text-align:center">
+              <div style="font-size:14px;font-weight:500;color:var(--ink-700)">{{ s.label }}</div>
+              <input value="{{ s.value }}" onChange="{{ s.onInput }}" inputmode="numeric" aria-label="{{ s.label }}" style="width:100%;height:44px;border:0;background:transparent;text-align:center;font-size:34px;font-weight:600;line-height:1" />
+              <div style="display:flex;gap:6px;justify-content:center;margin-top:4px">
+                <button onClick="{{ s.dec }}" aria-label="{{ s.label }} azalt" style="width:44px;height:44px;border:0;border-radius:14px;background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.94)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                <button onClick="{{ s.inc }}" aria-label="{{ s.label }} artır" style="width:44px;height:44px;border:0;border-radius:14px;background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.94)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg></button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:14px;padding:12px 16px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:15px;color:var(--ink-700)">Anlık özet</span>
+          <span style="font-size:18px;font-weight:600">{{ summary }}</span>
+        </div>
+
+        <button style="width:100%;min-height:56px;margin-top:14px;border:0;border-radius:var(--radius-lg);background:var(--ink-900);color:#fff;font-size:18px;font-weight:600;box-shadow:var(--clay-md);cursor:pointer;transition:transform .12s,box-shadow .12s" style-active="box-shadow:var(--clay-pressed);transform:scale(.98)">Kaydet</button>
+        <div style="text-align:center;font-size:13px;color:var(--ink-500);margin-top:10px">Ders ve konu son kaydından hazır geliyor — sayıyı gir, kaydet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ S3 KONU HARİTASI ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">S3 · Konu haritası</span>
+      <span style="font-size:13px;color:var(--ink-500)">54 konu · hücre 44 × 44 px</span>
+    </div>
+    <div data-screen-label="S3 Konu haritası" style="width:390px;height:844px;background:var(--bg-app);border-radius:44px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;position:relative;display:flex;flex-direction:column">
+      <div style="height:44px;flex:none;display:flex;align-items:center;padding:0 26px;font-size:13px;font-weight:600;color:var(--ink-700)">09.24</div>
+      <div style="flex:none;padding:0 18px 12px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1">
+          <h1 style="font-size:22px;font-weight:600">Konu haritası</h1>
+          <div style="font-size:14px;color:var(--ink-500);margin-top:2px">32 / 54 konu tamamlandı</div>
+        </div>
+        <button aria-label="Durum anahtarı" style="width:44px;height:44px;border:0;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-5M12 8h.01"></path></svg>
+        </button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:0 18px 260px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ mapRows }}" as="row" hint-placeholder-count="6">
+            <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:12px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="width:7px;height:20px;border-radius:4px;background:{{ row.color }}"></span>
+                <span style="font-size:16px;font-weight:600;flex:1">{{ row.name }}</span>
+                <span style="font-size:14px;font-weight:600;color:{{ row.ink }}">{{ row.pct }}</span>
+              </div>
+              <div style="height:8px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);overflow:hidden;margin-bottom:12px">
+                <div style="height:100%;border-radius:var(--radius-pill);background:{{ row.color }};width:{{ row.pct }}"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px">
+                <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7">
+                  <button aria-label="{{ c.label }}" title="{{ c.label }}" style="height:44px;border-radius:var(--radius-xs);cursor:pointer;display:grid;place-items:center;padding:0;{{ c.css }}">
+                    <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ c.isRepeat }}" hint-placeholder-val="{{ false }}">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ c.iconColor }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    </sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) 44px 44px;box-shadow:var(--clay-lg);padding:16px 18px 24px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:var(--radius-pill);background:var(--subject-sci-soft);color:var(--subject-sci-ink);font-size:13.5px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:var(--subject-sci)"></span>Fen</span>
+          <span style="font-size:19px;font-weight:600;flex:1">Basınç</span>
+          <button aria-label="Kapat" style="width:40px;height:40px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <div style="flex:1;padding:10px 12px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well)">
+            <div style="font-size:19px;font-weight:600">142</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">soru</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well)">
+            <div style="font-size:19px;font-weight:600">%78</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">başarı</div>
+          </div>
+          <div style="flex:1.2;padding:10px 12px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well)">
+            <div style="font-size:19px;font-weight:600">3 gün</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">önce çalıştın</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;color:var(--ink-700)">
+          <span style="width:20px;height:20px;border-radius:6px;border:2px dotted var(--subject-sci-ink);display:grid;place-items:center"></span>
+          Durum: tekrar gerekli
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button style="flex:1;min-height:52px;border:0;border-radius:var(--radius-md);background:var(--ink-900);color:#fff;font-size:16px;font-weight:600;box-shadow:var(--clay-md);cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">Tekrar ettim</button>
+          <button style="flex:none;width:52px;min-height:52px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)" aria-label="Soru kaydı ekle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+          </button>
+        </div>
+        <div style="width:120px;height:5px;border-radius:3px;background:var(--line-strong);margin:14px auto 0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ S4 HAFTALIK PLAN ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">S4 · Haftalık plan</span>
+      <span style="font-size:13px;color:var(--ink-500)">14 – 20 Eylül</span>
+    </div>
+    <div data-screen-label="S4 Haftalık plan" style="width:390px;height:844px;background:var(--bg-app);border-radius:44px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;position:relative;display:flex;flex-direction:column">
+      <div style="height:44px;flex:none;display:flex;align-items:center;padding:0 26px;font-size:13px;font-weight:600;color:var(--ink-700)">09.24</div>
+      <div style="flex:none;padding:0 18px 10px">
+        <h1 style="font-size:22px;font-weight:600">Haftalık plan</h1>
+        <div style="font-size:14px;color:var(--ink-500);margin-top:2px">14 – 20 Eylül · 5 / 7 gün işaretli</div>
+      </div>
+
+      <div style="flex:none;padding:0 18px 4px;display:flex;gap:6px">
+        <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+          <button style="flex:1;min-height:62px;border:0;border-radius:18px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:{{ d.bg }};box-shadow:{{ d.shadow }};color:{{ d.color }}" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)">
+            <span style="font-size:11.5px;font-weight:500">{{ d.name }}</span>
+            <span style="font-size:17px;font-weight:600">{{ d.num }}</span>
+            <span style="width:5px;height:5px;border-radius:50%;background:{{ d.dot }}"></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:14px 18px 40px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h2 style="font-size:17px;font-weight:600">Çarşamba, 16 Eylül</h2>
+          <span style="font-size:13.5px;color:var(--ink-700);font-weight:500">3 / 5 · 2 sa 40 dk</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:12px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:{{ t.shadow }};padding:10px 14px 10px 10px;border-left:7px solid {{ t.color }}">
+              <div style="width:44px;height:44px;flex:none;border-radius:var(--radius-md);display:grid;place-items:center;background:{{ t.boxBg }};box-shadow:{{ t.boxShadow }}">
+                <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16px;font-weight:600;position:relative;display:inline-block;white-space:nowrap">{{ t.topic }}<span style="position:absolute;left:-2px;top:54%;height:7px;border-radius:4px;background:var(--accent-marker);opacity:.8;z-index:-1;width:{{ t.markerW }}"></span></div>
+                <div style="font-size:13.5px;color:var(--ink-500);margin-top:2px">{{ t.meta }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:16px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px;border-left:7px solid var(--subject-rel)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center;font-size:15px;font-weight:600">MT</div>
+            <div>
+              <div style="font-size:15px;font-weight:600">Koçunun haftalık mesajı</div>
+              <div style="font-size:13px;color:var(--ink-500)">Murat Toprak · Pazartesi</div>
+            </div>
+          </div>
+          <p style="font-size:16px;line-height:1.5;color:var(--ink-900);margin-top:12px">“Bu hafta paragrafa ağırlık veriyoruz. Her gün 30 soru yeterli, acele etme.”</p>
+        </div>
+
+        <div style="margin-top:14px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px">
+          <div style="font-size:16px;font-weight:600">Haftam nasıl geçti?</div>
+          <div style="font-size:13.5px;color:var(--ink-500);margin-top:3px">Pazar akşamı açılır · koçun okur</div>
+          <div style="margin-top:12px;min-height:88px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);padding:12px 14px;font-size:15px;color:var(--ink-300);line-height:1.5">Bu hafta ne iyi gitti, nerede zorlandın? İki satır yeter.</div>
+          <button style="width:100%;min-height:48px;margin-top:12px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);font-size:16px;font-weight:600;cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.98)">Yazmaya başla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTLAR -->
+  <div style="width:390px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 10px 28px rgba(27,36,64,.10)">
+    <h3 style="font-size:17px;font-weight:600;margin-bottom:12px">Telefon ekranlarında kararlar</h3>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700)">Tarayıcı çubuğu yok: ana ekrandan açılmış tam ekran görünüm. Üstte 44 px güvenli alan, altta 5 px ev çubuğu payı; alt menü bu payın üstünde durur.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Konu haritası hücresi 44 × 44 px olduğu için satırlar yatay kaydırma yerine sarmalanıyor — 13 konulu Türkçe iki sıra oluyor. Yatay kaydırma, haritanın bütününü görme fikrini bozardı.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Fosforlu sarı yalnızca tamamlanan görevin üzerinde ve günlük hedef tamamlandığında görünür. Tamamlanan kart clay-md'den clay-sm'e düşerek “işi bitti” hissi verir.</p>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;streakDays&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:12,&quot;min&quot;:0,&quot;max&quot;:365,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Veri&quot;},&quot;daysLeft&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:270,&quot;min&quot;:0,&quot;max&quot;:400,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Veri&quot;},&quot;goalReached&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Durum&quot;}}">
+class Component extends DCLogic {
+  state = { d: 32, y: 6, b: 2 };
+
+  SUB = {
+    tr:   { name: "Türkçe",         short: "Tür", color: "#D14B33", soft: "#FAE6E1", ink: "#AE3922", rgb: "209,75,51" },
+    math: { name: "Matematik",      short: "Mat", color: "#2E66D6", soft: "#E2EAFB", ink: "#2354BC", rgb: "46,102,214" },
+    sci:  { name: "Fen Bilimleri",  short: "Fen", color: "#0E8C73", soft: "#DBF0EA", ink: "#0A6F5C", rgb: "14,140,115" },
+    hist: { name: "İnkılap Tarihi", short: "İnk", color: "#B0810F", soft: "#F6EBD3", ink: "#8A650A", rgb: "176,129,15" },
+    rel:  { name: "Din Kültürü",    short: "Din", color: "#7451C4", soft: "#EAE3FA", ink: "#6040AE", rgb: "116,81,196" },
+    eng:  { name: "İngilizce",      short: "İng", color: "#C2377F", soft: "#FAE1EE", ink: "#A62A6B", rgb: "194,55,127" }
+  };
+
+  TOPICS = {
+    tr: ["Sözcükte Anlam","Cümlede Anlam","Paragrafta Anlam","Paragrafta Yapı","Söz Sanatları","Deyim ve Atasözleri","Cümlenin Ögeleri","Fiillerde Çatı","Fiilimsiler","Cümle Türleri","Anlatım Bozuklukları","Yazım Kuralları","Noktalama İşaretleri"],
+    math: ["Çarpanlar ve Katlar","Üslü İfadeler","Kareköklü İfadeler","Veri Analizi","Olasılık","Cebirsel İfadeler","Özdeşlikler","Doğrusal Denklemler","Eşitsizlikler","Üçgenler","Eşlik ve Benzerlik","Geometrik Cisimler"],
+    sci: ["Mevsimler ve İklim","DNA ve Genetik Kod","Basınç","Madde ve Endüstri","Basit Makineler","Enerji Dönüşümleri","Elektrik Yükleri"],
+    hist: ["Bir Kahraman Doğuyor","Millî Uyanış","Millî Bir Destan","Atatürkçülük","Demokratikleşme Adımları","Atatürk Dönemi Dış Politika","Atatürk'ün Ölümü"],
+    rel: ["Kader ve Evrendeki Yasalar","Zekât ve Sadaka","Din ve Hayat","Hz. Muhammed'in Örnekliği","Kur'an'da Akıl ve Bilgi"],
+    eng: ["Friendship","Teen Life","In the Kitchen","On the Phone","The Internet","Adventures","Tourism","Chores","Science","Natural Forces"]
+  };
+
+  STATES = {
+    tr:   ["oturdu","tamam","calisiliyor","yok","tamam","oturdu","tamam","calisiliyor","yok","yok","yok","tamam","tekrar"],
+    math: ["oturdu","tamam","calisiliyor","tamam","tekrar","oturdu","tamam","calisiliyor","yok","yok","yok","yok"],
+    sci:  ["tamam","tekrar","tekrar","calisiliyor","yok","yok","yok"],
+    hist: ["oturdu","tamam","tamam","calisiliyor","yok","yok","yok"],
+    rel:  ["tamam","oturdu","calisiliyor","yok","yok"],
+    eng:  ["oturdu","tamam","tamam","tekrar","calisiliyor","yok","yok","yok","yok","yok"]
+  };
+
+  LABEL = { yok: "başlanmadı", calisiliyor: "çalışılıyor", tamam: "tamamlandı", oturdu: "oturdu", tekrar: "tekrar gerekli" };
+
+  cellCss(s, st) {
+    if (st === "yok") return "background:var(--bg-sunken);border:2px dashed var(--line-strong);box-shadow:var(--clay-well)";
+    if (st === "calisiliyor") return "border:2px solid " + s.color + ";background:repeating-linear-gradient(45deg, rgba(" + s.rgb + ",.55) 0 3px, transparent 3px 7px) bottom/100% 45% no-repeat, linear-gradient(to top, " + s.soft + " 45%, var(--bg-raised) 45%);box-shadow:var(--clay-sm)";
+    if (st === "tamam") return "border:2px solid " + s.color + ";background:" + s.color + ";box-shadow:var(--clay-sm)";
+    if (st === "oturdu") return "border:2px solid " + s.color + ";background:" + s.color + ";box-shadow:var(--clay-sm), inset 0 0 0 3px rgba(255,255,255,.45)";
+    return "border:2px dotted " + s.ink + ";background:repeating-linear-gradient(90deg, rgba(" + s.rgb + ",.5) 0 2px, transparent 2px 6px) bottom/100% 60% no-repeat, linear-gradient(to top, " + s.soft + " 60%, var(--bg-raised) 60%);box-shadow:var(--clay-sm)";
+  }
+
+  clamp(n) { return Math.max(0, Math.min(999, n)); }
+
+  renderVals() {
+    const p = this.props;
+    const streak = p.streakDays ?? 12;
+    const days = p.daysLeft ?? 270;
+    const goal = 120;
+    const done = p.goalReached ? 120 : 86;
+    const S = this.SUB;
+
+    const task = (sub, topic, meta, doneFlag, markerW) => ({
+      color: "var(--subject-" + sub + ")",
+      topic, meta,
+      done: doneFlag,
+      markerW: doneFlag ? markerW : "0px",
+      shadow: doneFlag ? "var(--clay-sm)" : "var(--clay-md),var(--clay-inner)",
+      boxBg: doneFlag ? "var(--accent-marker)" : "var(--bg-sunken)",
+      boxShadow: doneFlag ? "var(--clay-inner)" : "var(--clay-well)"
+    });
+
+    const mapRows = Object.keys(this.TOPICS).map(k => {
+      const s = S[k];
+      const sts = this.STATES[k];
+      const filled = sts.filter(x => x === "tamam" || x === "oturdu").length;
+      return {
+        name: s.name, color: s.color, ink: s.ink,
+        pct: "%" + Math.round((filled / sts.length) * 100),
+        cells: this.TOPICS[k].map((t, i) => ({
+          label: t + " · " + this.LABEL[sts[i]],
+          css: this.cellCss(s, sts[i]),
+          isDone: sts[i] === "oturdu",
+          isRepeat: sts[i] === "tekrar",
+          iconColor: s.ink
+        }))
+      };
+    });
+
+    const chipOf = (k, active) => ({
+      short: S[k].short,
+      bg: active ? S[k].soft : "var(--bg-surface)",
+      color: active ? S[k].ink : "var(--ink-700)",
+      shadow: active ? "var(--clay-pressed)" : "var(--clay-sm)"
+    });
+
+    const st = this.state;
+    const total = st.d + st.y + st.b;
+    const net = st.d - st.y / 3;
+
+    const day = (name, num, active, dotState) => ({
+      name, num,
+      bg: active ? "var(--bg-raised)" : "var(--bg-surface)",
+      shadow: active ? "var(--clay-md),var(--clay-inner)" : "var(--clay-sm)",
+      color: active ? "var(--ink-900)" : "var(--ink-500)",
+      dot: dotState === "done" ? "var(--accent-marker)" : dotState === "open" ? "var(--ink-300)" : "transparent"
+    });
+
+    const bar = (k, count, h) => ({ short: S[k].short, color: S[k].color, count, h: h + "px" });
+
+    return {
+      streakText: streak + " gün",
+      countdownText: "LGS'ye " + days + " gün",
+      done, goal,
+      ringBg: p.goalReached
+        ? "conic-gradient(var(--accent-marker) 0 100%)"
+        : "conic-gradient(var(--subject-math) 0 " + Math.round((done / goal) * 100) + "%, var(--bg-sunken) " + Math.round((done / goal) * 100) + "% 100%)",
+      goalLine: p.goalReached ? "Günün hedefi tamam. Fazlası yarına güç." : "34 soru kaldı. Paragrafla kapatabilirsin.",
+      tasks: [
+        task("math", "Üslü İfadeler", "Matematik · 40 soru · 32 D / 6 Y / 2 B", true, "128px"),
+        task("sci", "Basınç", "Fen · Video 3-5 · 28 dk", true, "62px"),
+        task("hist", "Millî Uyanış", "İnkılap · 20 soru · 16 D / 3 Y / 1 B", true, "104px"),
+        task("tr", "Paragrafta Anlam", "Türkçe · 30 soru · 35 dk", false, "0px"),
+        task("eng", "Teen Life", "İngilizce · 20 soru · 20 dk", false, "0px")
+      ],
+      weekBars: [bar("tr", 148, 56), bar("math", 176, 66), bar("sci", 112, 42), bar("hist", 74, 28), bar("rel", 42, 16), bar("eng", 60, 23)],
+      mapRows,
+      chips: [chipOf("tr", false), chipOf("math", true), chipOf("sci", false), chipOf("hist", false), chipOf("rel", false), chipOf("eng", false)],
+      steppers: [
+        { label: "Doğru", value: st.d, inc: () => this.setState(s => ({ d: this.clamp(s.d + 1) })), dec: () => this.setState(s => ({ d: this.clamp(s.d - 1) })), onInput: e => this.setState({ d: this.clamp(parseInt(e.target.value, 10) || 0) }) },
+        { label: "Yanlış", value: st.y, inc: () => this.setState(s => ({ y: this.clamp(s.y + 1) })), dec: () => this.setState(s => ({ y: this.clamp(s.y - 1) })), onInput: e => this.setState({ y: this.clamp(parseInt(e.target.value, 10) || 0) }) },
+        { label: "Boş", value: st.b, inc: () => this.setState(s => ({ b: this.clamp(s.b + 1) })), dec: () => this.setState(s => ({ b: this.clamp(s.b - 1) })), onInput: e => this.setState({ b: this.clamp(parseInt(e.target.value, 10) || 0) }) }
+      ],
+      summary: "Toplam " + total + " · Net " + net.toFixed(2).replace(".", ","),
+      days: [day("Pzt", 14, false, "done"), day("Sal", 15, false, "done"), day("Çar", 16, true, "open"), day("Per", 17, false, "open"), day("Cum", 18, false, "open"), day("Cmt", 19, false, "open"), day("Paz", 20, false, "none")]
+    };
+  }
+}
+</script>
+</body>
+</html>

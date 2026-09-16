@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC; --line-strong:#BCC6DE;
+  --subject-tr:#D14B33;   --subject-tr-soft:#FAE6E1;   --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6; --subject-math-soft:#E2EAFB; --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;  --subject-sci-soft:#DBF0EA;  --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F; --subject-hist-soft:#F6EBD3; --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;  --subject-rel-soft:#EAE3FA;  --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;  --subject-eng-soft:#FAE1EE; --subject-eng-ink:#A62A6B;
+  --accent-marker:#FFD84D;
+  --state-success:#1B8A66; --state-success-soft:#DCF0E8;
+  --state-warning:#C07C0C; --state-warning-soft:#FAEBD2;
+  --state-error:#C6352A;
+  --clay-sm:4px 4px 10px rgba(27,36,64,0.10), -3px -3px 8px rgba(255,255,255,0.85);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,0.6), inset -3px -3px 8px rgba(27,36,64,0.06);
+  --shadow-pop:0 10px 28px rgba(27,36,64,0.14), 0 2px 6px rgba(27,36,64,0.06);
+  --shadow-drag:0 16px 32px rgba(27,36,64,0.20);
+  --radius-xs:8px; --radius-sm:12px; --radius-md:16px; --radius-card:20px; --radius-pill:999px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:#DCE2EE;color:var(--ink-900);font-family:Lexend,'Segoe UI',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4,p{margin:0;}
+a{color:var(--ink-900);text-decoration:underline;}
+a:hover{color:var(--subject-math-ink);}
+button,input,select{font:inherit;color:inherit;font-variant-numeric:tabular-nums;}
+:focus-visible{outline:3px solid #2E66D6;outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+
+<div style="padding:40px;display:flex;flex-direction:column;gap:44px;align-items:flex-start">
+
+  <!-- ============ K1 ANA EKRAN ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">K1 · Koç ana ekranı</span>
+      <span style="font-size:13px;color:var(--ink-500)">1440 × 900 · sade, yoğun · clay yok</span>
+    </div>
+    <div data-screen-label="K1 Koç ana ekran" style="width:1440px;height:900px;background:#fff;border-radius:14px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;display:flex">
+
+      <nav style="width:232px;flex:none;border-right:1px solid var(--line);background:var(--bg-surface);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--line)">
+          <div style="width:36px;height:36px;border-radius:12px;background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);display:grid;place-items:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27l-5.41 1.8 1.8-5.41a2 2 0 0 1 1.27-1.27z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:600;line-height:1.1">Pusula</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">Koç paneli</div>
+          </div>
+        </div>
+        <div style="padding:10px 10px;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ navHome }}" as="n" hint-placeholder-count="8">
+            <button style="display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:0;border-radius:var(--radius-xs);cursor:pointer;text-align:left;font-size:14.5px;background:{{ n.bg }};color:{{ n.color }};font-weight:{{ n.w }}" style-hover="background:#E7ECF7">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ n.color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.d }}"></path><path d="{{ n.d2 }}"></path></svg>
+              <span style="flex:1">{{ n.label }}</span>
+              <span style="font-size:12.5px;color:var(--ink-500)">{{ n.badge }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="margin-top:auto;padding:14px 16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:13px;font-weight:600">MT</div>
+          <div><div style="font-size:13.5px;font-weight:500">Murat Toprak</div><div style="font-size:12px;color:var(--ink-500)">24 öğrenci</div></div>
+        </div>
+      </nav>
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:16px;padding:18px 28px;border-bottom:1px solid var(--line)">
+          <div style="flex:1">
+            <h1 style="font-size:22px;font-weight:600">Öğrenciler</h1>
+            <div style="font-size:13.5px;color:var(--ink-500);margin-top:2px">Çarşamba, 16 Eylül 2026 · LGS'ye 270 gün</div>
+          </div>
+          <div style="position:relative">
+            <input placeholder="Öğrenci ara" style="width:240px;height:38px;padding:0 12px 0 34px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);font-size:14px" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2" stroke-linecap="round" style="position:absolute;left:10px;top:11px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          </div>
+          <button style="height:38px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">Filtreler</button>
+          <button style="display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border:1px solid var(--ink-900);border-radius:var(--radius-xs);background:var(--ink-900);color:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#2A3760">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+            Yeni öğrenci
+          </button>
+        </div>
+
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:22px 28px 28px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <h2 style="font-size:17px;font-weight:600">Dikkat gerektirenler</h2>
+            <span style="height:22px;min-width:22px;padding:0 7px;border-radius:var(--radius-pill);background:var(--state-warning-soft);color:#8A5A07;font-size:12.5px;font-weight:600;display:grid;place-items:center">3</span>
+            <button style="margin-left:auto;height:32px;padding:0 10px;border:0;background:transparent;color:var(--subject-math-ink);font-size:13.5px;font-weight:500;cursor:pointer" style-hover="text-decoration:underline">Tümünü gör</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:14px;border:1px solid var(--line-strong);border-left:3px solid var(--state-warning);border-radius:var(--radius-xs);padding:12px 16px;background:#fff">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C07C0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.29 3.86-8.18 14.18A2 2 0 0 0 3.84 21h16.32a2 2 0 0 0 1.73-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+                <span style="font-size:14.5px;font-weight:600;width:150px">{{ a.name }}</span>
+                <span style="font-size:14.5px;color:var(--ink-700);flex:1">{{ a.text }}</span>
+                <span style="font-size:13px;color:var(--ink-500)">{{ a.since }}</span>
+                <button style="height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">{{ a.action }}</button>
+                <button style="height:32px;padding:0 12px;border:0;background:transparent;color:var(--subject-math-ink);font-size:13.5px;font-weight:500;cursor:pointer" style-hover="text-decoration:underline">Öğrenciyi aç</button>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin:26px 0 12px">
+            <h2 style="font-size:17px;font-weight:600">Tüm öğrenciler</h2>
+            <span style="font-size:13.5px;color:var(--ink-500)">9 / 24 gösteriliyor · haftalık veriler 14 – 20 Eylül</span>
+          </div>
+
+          <div style="border:1px solid var(--line);border-radius:var(--radius-xs);overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.6fr 1fr 1.1fr 1.2fr 1.1fr .9fr .6fr;gap:14px;padding:11px 18px;background:var(--bg-surface);border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-500);font-weight:500;position:sticky;top:0">
+              <span>Öğrenci</span>
+              <span>Son giriş</span>
+              <span style="text-align:right">Haftalık hedef</span>
+              <span style="text-align:right">Son net ve trend</span>
+              <span style="text-align:right">Plan uyumu</span>
+              <span style="text-align:right">Birikmiş tekrar</span>
+              <span></span>
+            </div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+              <div style="display:grid;grid-template-columns:1.6fr 1fr 1.1fr 1.2fr 1.1fr .9fr .6fr;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);font-size:14px;align-items:center;background:{{ r.bg }}" style-hover="background:#F6F8FD">
+                <span style="display:flex;align-items:center;gap:10px">
+                  <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:12px;font-weight:600">{{ r.initials }}</span>
+                  <span style="font-weight:500">{{ r.name }}</span>
+                </span>
+                <span style="color:{{ r.loginColor }}">{{ r.login }}</span>
+                <span style="text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:10px">
+                  <span style="width:56px;height:6px;border-radius:2px;background:var(--bg-sunken);overflow:hidden;display:block"><span style="display:block;height:100%;background:var(--ink-900);width:{{ r.goal }}"></span></span>
+                  <span style="font-weight:600;width:42px">{{ r.goal }}</span>
+                </span>
+                <span style="text-align:right;display:inline-flex;align-items:center;justify-content:flex-end;gap:8px">
+                  <span style="font-weight:600">{{ r.net }}</span>
+                  <span style="display:inline-flex;align-items:center;gap:3px;font-size:12.5px;color:{{ r.trendColor }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ r.trendColor }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ r.trendD }}"></path><path d="{{ r.trendD2 }}"></path></svg>
+                    {{ r.delta }}
+                  </span>
+                </span>
+                <span style="text-align:right;font-weight:600">{{ r.plan }}</span>
+                <span style="text-align:right;font-weight:600;color:{{ r.repeatColor }}">{{ r.repeats }}</span>
+                <span style="text-align:right">
+                  <button aria-label="Satır menüsü" style="width:28px;height:28px;border:0;background:transparent;border-radius:6px;cursor:pointer;display:grid;place-items:center" style-hover="background:#E7ECF7">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.5" stroke-linecap="round"><path d="M12 5h.01M12 12h.01M12 19h.01"></path></svg>
+                  </button>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ K2 ÖĞRENCİ DETAYI ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">K2 · Öğrenci detayı · genel bakış</span>
+      <span style="font-size:13px;color:var(--ink-500)">Elif Yılmaz</span>
+    </div>
+    <div data-screen-label="K2 Öğrenci detayı" style="width:1440px;height:900px;background:#fff;border-radius:14px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;display:flex">
+
+      <nav style="width:232px;flex:none;border-right:1px solid var(--line);background:var(--bg-surface);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--line)">
+          <div style="width:36px;height:36px;border-radius:12px;background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);display:grid;place-items:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27l-5.41 1.8 1.8-5.41a2 2 0 0 1 1.27-1.27z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:600;line-height:1.1">Pusula</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">Koç paneli</div>
+          </div>
+        </div>
+        <div style="padding:10px 10px;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ navHome }}" as="n" hint-placeholder-count="8">
+            <button style="display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:0;border-radius:var(--radius-xs);cursor:pointer;text-align:left;font-size:14.5px;background:{{ n.bg }};color:{{ n.color }};font-weight:{{ n.w }}" style-hover="background:#E7ECF7">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ n.color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.d }}"></path><path d="{{ n.d2 }}"></path></svg>
+              <span style="flex:1">{{ n.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </nav>
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <div style="padding:16px 28px 0;border-bottom:1px solid var(--line)">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);display:grid;place-items:center;font-size:16px;font-weight:600">EY</div>
+            <div style="flex:1">
+              <h1 style="font-size:21px;font-weight:600">Elif Yılmaz</h1>
+              <div style="font-size:13.5px;color:var(--ink-500);margin-top:3px">8-B · Atatürk Ortaokulu · hedef: Kadıköy Anadolu Lisesi · veli: Seda Yılmaz</div>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-pill);font-size:13.5px;font-weight:500">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              LGS'ye 270 gün
+            </span>
+            <button style="height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">Not yaz</button>
+            <button style="height:36px;padding:0 14px;border:1px solid var(--ink-900);border-radius:var(--radius-xs);background:var(--ink-900);color:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#2A3760">Plan hazırla</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:14px">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+              <button style="height:38px;padding:0 14px;border:0;border-bottom:2px solid {{ t.bar }};background:transparent;font-size:14px;cursor:pointer;color:{{ t.color }};font-weight:{{ t.w }}" style-hover="color:#1B2440">{{ t.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 28px 26px">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+              <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:12px 14px">
+                <div style="font-size:12.5px;color:var(--ink-500)">{{ k.label }}</div>
+                <div style="font-size:21px;font-weight:600;margin-top:5px">{{ k.value }}</div>
+                <div style="font-size:12.5px;color:var(--ink-500);margin-top:2px">{{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.32fr 1fr;gap:16px;margin-top:16px">
+
+            <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:16px 18px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <h2 style="font-size:16px;font-weight:600">Son 14 gün · çözülen soru</h2>
+                <span style="font-size:13px;color:var(--ink-500)">toplam 1.184 soru · günlük ortalama 85</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:flex-end;height:172px;margin-top:16px;border-bottom:1px solid var(--line);padding-bottom:2px">
+                <sc-for list="{{ days14 }}" as="d" hint-placeholder-count="14">
+                  <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%">
+                    <sc-for list="{{ d.segs }}" as="s" hint-placeholder-count="3">
+                      <span style="display:block;width:100%;background:{{ s.color }};height:{{ s.h }}"></span>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:6px">
+                <sc-for list="{{ days14 }}" as="d" hint-placeholder-count="14">
+                  <span style="flex:1;text-align:center;font-size:11px;color:var(--ink-500)">{{ d.label }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:14px">
+                <sc-for list="{{ legend }}" as="l" hint-placeholder-count="6">
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-700)"><span style="width:10px;height:10px;border-radius:2px;background:{{ l.color }}"></span>{{ l.name }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:16px 18px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <h2 style="font-size:16px;font-weight:600">Deneme net trendi</h2>
+                <span style="font-size:13px;color:var(--ink-500)">5 deneme · toplam +13,00</span>
+              </div>
+              <svg viewBox="0 0 340 168" width="100%" height="188" style="margin-top:12px;overflow:visible">
+                <line x1="0" y1="20" x2="340" y2="20" stroke="#E7ECF7" stroke-width="1"></line>
+                <line x1="0" y1="57" x2="340" y2="57" stroke="#E7ECF7" stroke-width="1"></line>
+                <line x1="0" y1="94" x2="340" y2="94" stroke="#E7ECF7" stroke-width="1"></line>
+                <line x1="0" y1="131" x2="340" y2="131" stroke="#E7ECF7" stroke-width="1"></line>
+                <line x1="0" y1="168" x2="340" y2="168" stroke="#D6DDEC" stroke-width="1"></line>
+                <sc-for list="{{ series }}" as="s" hint-placeholder-count="7">
+                  <polyline points="{{ s.points }}" fill="none" stroke="{{ s.color }}" stroke-width="{{ s.w }}" stroke-linejoin="round" stroke-linecap="round"></polyline>
+                </sc-for>
+                <sc-for list="{{ totalDots }}" as="p" hint-placeholder-count="5">
+                  <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" fill="#1B2440"></circle>
+                </sc-for>
+              </svg>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-500);margin-top:4px">
+                <span>5 Tem</span><span>26 Tem</span><span>16 Ağu</span><span>31 Ağu</span><span>14 Eyl</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px">
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600"><span style="width:14px;height:3px;border-radius:2px;background:#1B2440"></span>Toplam net</span>
+                <sc-for list="{{ legend }}" as="l" hint-placeholder-count="6">
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-700)"><span style="width:14px;height:2px;border-radius:2px;background:{{ l.color }}"></span>{{ l.short }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.32fr 1fr;gap:16px;margin-top:16px">
+            <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:16px 18px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+                <h2 style="font-size:16px;font-weight:600">Konu haritası</h2>
+                <span style="font-size:13px;color:var(--ink-500)">32 / 54 konu · sade sürüm</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ mapRows }}" as="row" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:132px 1fr 44px;gap:12px;align-items:center">
+                    <span style="display:flex;align-items:center;gap:8px;font-size:13.5px"><span style="width:4px;height:16px;border-radius:2px;background:{{ row.color }}"></span>{{ row.name }}</span>
+                    <span style="display:grid;grid-template-columns:repeat(13,1fr);gap:4px">
+                      <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7">
+                        <span title="{{ c.label }}" style="height:22px;border-radius:4px;display:grid;place-items:center;{{ c.css }}">
+                          <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                          </sc-if>
+                          <sc-if value="{{ c.isRepeat }}" hint-placeholder-val="{{ false }}">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{ c.iconColor }}" stroke-width="3" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+                          </sc-if>
+                        </span>
+                      </sc-for>
+                    </span>
+                    <span style="font-size:13px;font-weight:600;text-align:right">{{ row.pct }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:16px 18px">
+                <h2 style="font-size:16px;font-weight:600;margin-bottom:12px">Yanlış nedeni dağılımı</h2>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5">
+                    <div style="display:grid;grid-template-columns:168px 1fr 58px;gap:10px;align-items:center;font-size:13.5px">
+                      <span>{{ r.label }}</span>
+                      <span style="height:8px;border-radius:2px;background:var(--bg-sunken);overflow:hidden;display:block"><span style="display:block;height:100%;background:var(--ink-700);width:{{ r.w }}"></span></span>
+                      <span style="text-align:right;font-weight:600">{{ r.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="font-size:12.5px;color:var(--ink-500);margin-top:12px">198 yanlış · son 30 gün</div>
+              </div>
+
+              <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:16px 18px;flex:1">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"></path><path d="M9 2h6l1 8H8z"></path><path d="M12 10v7"></path></svg>
+                  <h2 style="font-size:16px;font-weight:600">Sabitlenmiş not</h2>
+                  <span style="font-size:12.5px;color:var(--ink-500);margin-left:auto">15 Eylül</span>
+                </div>
+                <p style="font-size:14px;line-height:1.55;color:var(--ink-900);padding-left:2px">Paragrafta süre sorunu var, 40 soruyu 55 dakikada bitiriyor. Bu hafta günlük 30 soru + süre tutma. Matematikte üslü ifadeler oturdu, kareköke geçebiliriz.</p>
+                <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
+                  <div style="font-size:13px;color:var(--ink-500);margin-bottom:6px">Öğrencinin geçen hafta değerlendirmesi · 13 Eylül</div>
+                  <p style="font-size:14px;line-height:1.55;color:var(--ink-700)">“Matematik iyi gitti ama paragrafta sıkıldım. Hafta sonu çok yorgundum, cumartesi hiç çalışamadım.”</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ K3 PLAN OLUŞTURUCU ============ -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">K3 · Haftalık plan oluşturucu</span>
+      <span style="font-size:13px;color:var(--ink-500)">sürükle-bırak · bir kart taşınırken</span>
+    </div>
+    <div data-screen-label="K3 Plan oluşturucu" style="width:1440px;height:900px;background:#fff;border-radius:14px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;display:flex">
+
+      <nav style="width:232px;flex:none;border-right:1px solid var(--line);background:var(--bg-surface);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--line)">
+          <div style="width:36px;height:36px;border-radius:12px;background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);display:grid;place-items:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27l-5.41 1.8 1.8-5.41a2 2 0 0 1 1.27-1.27z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:600;line-height:1.1">Pusula</div>
+            <div style="font-size:12.5px;color:var(--ink-500)">Koç paneli</div>
+          </div>
+        </div>
+        <div style="padding:10px 10px;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ navPlan }}" as="n" hint-placeholder-count="8">
+            <button style="display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:0;border-radius:var(--radius-xs);cursor:pointer;text-align:left;font-size:14.5px;background:{{ n.bg }};color:{{ n.color }};font-weight:{{ n.w }}" style-hover="background:#E7ECF7">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ n.color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.d }}"></path><path d="{{ n.d2 }}"></path></svg>
+              <span style="flex:1">{{ n.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </nav>
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--line)">
+          <div>
+            <h1 style="font-size:20px;font-weight:600">Elif Yılmaz · haftalık plan</h1>
+            <div style="font-size:13px;color:var(--ink-500);margin-top:2px">Taslak · son kayıt 14.02'de otomatik alındı</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-left:12px">
+            <button aria-label="Önceki hafta" style="width:34px;height:34px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;cursor:pointer;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+            <div style="height:34px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);display:flex;align-items:center;font-size:14px;font-weight:500">21 – 27 Eylül 2026</div>
+            <button aria-label="Sonraki hafta" style="width:34px;height:34px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;cursor:pointer;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+            <span style="font-size:13px;color:var(--ink-500)">Hafta toplamı: 9 sa 40 dk · 230 soru</span>
+            <button style="height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">Şablondan başlat</button>
+            <button style="height:36px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">Başka öğrencilere kopyala</button>
+            <button style="height:36px;padding:0 16px;border:1px solid var(--ink-900);border-radius:var(--radius-xs);background:var(--ink-900);color:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#2A3760">Planı yayınla</button>
+          </div>
+        </div>
+
+        <div style="flex:1;min-height:0;display:flex">
+          <aside style="width:252px;flex:none;border-right:1px solid var(--line);background:var(--bg-surface);padding:16px;overflow-y:auto">
+            <div style="position:relative;margin-bottom:14px">
+              <input placeholder="Konu, kaynak, video ara" style="width:100%;height:34px;padding:0 10px 0 30px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);font-size:13.5px;background:#fff" />
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2" stroke-linecap="round" style="position:absolute;left:9px;top:10px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            </div>
+            <sc-for list="{{ palette }}" as="g" hint-placeholder-count="3">
+              <div style="margin-bottom:18px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                  <span style="font-size:13px;font-weight:600">{{ g.title }}</span>
+                  <span style="font-size:12px;color:var(--ink-500)">{{ g.hint }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line-strong);border-left:3px solid {{ i.color }};border-radius:var(--radius-xs);background:#fff;cursor:grab" style-hover="box-shadow:var(--shadow-pop)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9AA2BC" stroke-width="2.5" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:13.5px;font-weight:500">{{ i.title }}</span>
+                        <span style="display:block;font-size:12px;color:var(--ink-500)">{{ i.meta }}</span>
+                      </span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </aside>
+
+          <div style="flex:1;min-width:0;padding:16px 20px;overflow:hidden;position:relative">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;height:100%">
+              <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+                <div style="display:flex;flex-direction:column;min-width:0;border:1px solid {{ d.border }};border-radius:var(--radius-xs);background:{{ d.bg }}">
+                  <div style="padding:9px 10px;border-bottom:1px solid var(--line)">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between">
+                      <span style="font-size:13.5px;font-weight:600">{{ d.name }}</span>
+                      <span style="font-size:12px;color:var(--ink-500)">{{ d.date }}</span>
+                    </div>
+                    <div style="font-size:12px;color:{{ d.timeColor }};margin-top:3px;font-weight:500">{{ d.time }}</div>
+                  </div>
+                  <div style="flex:1;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden">
+                    <sc-for list="{{ d.cards }}" as="c" hint-placeholder-count="3">
+                      <div style="border:1px solid var(--line-strong);border-left:3px solid {{ c.color }};border-radius:6px;background:#fff;padding:7px 8px;cursor:grab" style-hover="box-shadow:var(--shadow-pop)">
+                        <div style="font-size:12.5px;font-weight:500;line-height:1.3">{{ c.title }}</div>
+                        <div style="font-size:11.5px;color:var(--ink-500);margin-top:3px">{{ c.meta }}</div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{ d.isDrop }}" hint-placeholder-val="{{ false }}">
+                      <div style="height:52px;border:1px dashed var(--ink-900);border-radius:6px;background:#EEF2FB;display:grid;place-items:center;font-size:12px;color:var(--ink-700)">Buraya bırak</div>
+                    </sc-if>
+                    <button style="margin-top:auto;height:30px;border:1px dashed var(--line-strong);border-radius:6px;background:transparent;font-size:12.5px;color:var(--ink-500);cursor:pointer" style-hover="background:#fff;color:#1B2440">+ Görev ekle</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="position:absolute;left:330px;top:206px;width:158px;border:1px solid var(--ink-900);border-left:3px solid var(--subject-tr);border-radius:6px;background:#fff;padding:8px 10px;box-shadow:var(--shadow-drag);transform:rotate(-2deg);pointer-events:none">
+              <div style="display:flex;align-items:center;gap:7px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.5" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg>
+                <span style="font-size:12.5px;font-weight:600">Paragrafta Anlam</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--ink-500);margin-top:4px">Türkçe · 30 soru · 35 dk</div>
+              <div style="font-size:11px;color:var(--ink-500);margin-top:4px">Perşembe'ye taşınıyor</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--line);padding:10px 24px;display:flex;align-items:center;gap:16px;background:var(--bg-surface)">
+          <span style="font-size:13px;color:var(--ink-500)">Gün başına tahmini süre:</span>
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <span style="font-size:13px"><strong style="font-weight:600">{{ d.name }}</strong> <span style="color:var(--ink-700)">{{ d.time }}</span></span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:720px;background:#fff;border-radius:20px;padding:26px;box-shadow:0 10px 28px rgba(27,36,64,.10)">
+    <h3 style="font-size:17px;font-weight:600;margin-bottom:12px">Koç ekranlarında kararlar</h3>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700)">Clay yalnızca iki yerde: logo kutusu ve öğrenci avatarı. Geri kalan her şey düz yüzey, 1 px kenarlık ve boşlukla kuruluyor; gölge sadece sürüklenen kartta ve açılır katmanlarda.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Tablo sayıları sağa hizalı ve tabular; “haftalık hedef” yüzdesi ince bir çubukla destekleniyor ki tarama sırasında sayıyı okumaya gerek kalmasın. Düşük değerler kırmızı değil: 11 birikmiş tekrar koyu mürekkep, uyarı rengi yalnızca “dikkat gerektirenler” satırının kenarında.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Öğrenci tarafıyla bağ ders renklerinden geliyor: 14 günlük yığılmış grafik, net trendi ve sade konu haritası aynı altı rengi kullanıyor, böylece koç ve öğrenci aynı haritaya bakıyor.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  SUB = {
+    tr:   { name: "Türkçe",         short: "Tür", color: "#D14B33", soft: "#FAE6E1", ink: "#AE3922", rgb: "209,75,51" },
+    math: { name: "Matematik",      short: "Mat", color: "#2E66D6", soft: "#E2EAFB", ink: "#2354BC", rgb: "46,102,214" },
+    sci:  { name: "Fen Bilimleri",  short: "Fen", color: "#0E8C73", soft: "#DBF0EA", ink: "#0A6F5C", rgb: "14,140,115" },
+    hist: { name: "İnkılap Tarihi", short: "İnk", color: "#B0810F", soft: "#F6EBD3", ink: "#8A650A", rgb: "176,129,15" },
+    rel:  { name: "Din Kültürü",    short: "Din", color: "#7451C4", soft: "#EAE3FA", ink: "#6040AE", rgb: "116,81,196" },
+    eng:  { name: "İngilizce",      short: "İng", color: "#C2377F", soft: "#FAE1EE", ink: "#A62A6B", rgb: "194,55,127" }
+  };
+
+  TOPICS = {
+    tr: 13, math: 12, sci: 7, hist: 7, rel: 5, eng: 10
+  };
+
+  TOPIC_NAMES = {
+    tr: ["Sözcükte Anlam","Cümlede Anlam","Paragrafta Anlam","Paragrafta Yapı","Söz Sanatları","Deyim ve Atasözleri","Cümlenin Ögeleri","Fiillerde Çatı","Fiilimsiler","Cümle Türleri","Anlatım Bozuklukları","Yazım Kuralları","Noktalama İşaretleri"],
+    math: ["Çarpanlar ve Katlar","Üslü İfadeler","Kareköklü İfadeler","Veri Analizi","Olasılık","Cebirsel İfadeler","Özdeşlikler","Doğrusal Denklemler","Eşitsizlikler","Üçgenler","Eşlik ve Benzerlik","Geometrik Cisimler"],
+    sci: ["Mevsimler ve İklim","DNA ve Genetik Kod","Basınç","Madde ve Endüstri","Basit Makineler","Enerji Dönüşümleri","Elektrik Yükleri"],
+    hist: ["Bir Kahraman Doğuyor","Millî Uyanış","Millî Bir Destan","Atatürkçülük","Demokratikleşme Adımları","Atatürk Dönemi Dış Politika","Atatürk'ün Ölümü"],
+    rel: ["Kader ve Evrendeki Yasalar","Zekât ve Sadaka","Din ve Hayat","Hz. Muhammed'in Örnekliği","Kur'an'da Akıl ve Bilgi"],
+    eng: ["Friendship","Teen Life","In the Kitchen","On the Phone","The Internet","Adventures","Tourism","Chores","Science","Natural Forces"]
+  };
+
+  STATES = {
+    tr:   ["oturdu","tamam","calisiliyor","yok","tamam","oturdu","tamam","calisiliyor","yok","yok","yok","tamam","tekrar"],
+    math: ["oturdu","tamam","calisiliyor","tamam","tekrar","oturdu","tamam","calisiliyor","yok","yok","yok","yok"],
+    sci:  ["tamam","tekrar","tekrar","calisiliyor","yok","yok","yok"],
+    hist: ["oturdu","tamam","tamam","calisiliyor","yok","yok","yok"],
+    rel:  ["tamam","oturdu","calisiliyor","yok","yok"],
+    eng:  ["oturdu","tamam","tamam","tekrar","calisiliyor","yok","yok","yok","yok","yok"]
+  };
+
+  LABEL = { yok: "başlanmadı", calisiliyor: "çalışılıyor", tamam: "tamamlandı", oturdu: "oturdu", tekrar: "tekrar gerekli" };
+
+  flatCell(s, st) {
+    if (st === "yok") return "background:#fff;border:1px solid var(--line-strong)";
+    if (st === "calisiliyor") return "border:1px solid " + s.color + ";background:repeating-linear-gradient(45deg, rgba(" + s.rgb + ",.55) 0 2px, transparent 2px 5px) bottom/100% 45% no-repeat, linear-gradient(to top, " + s.soft + " 45%, #fff 45%)";
+    if (st === "tamam") return "border:1px solid " + s.color + ";background:" + s.color;
+    if (st === "oturdu") return "border:1px solid " + s.color + ";background:" + s.color + ";box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)";
+    return "border:1px dotted " + s.ink + ";background:repeating-linear-gradient(90deg, rgba(" + s.rgb + ",.5) 0 2px, transparent 2px 5px) bottom/100% 60% no-repeat, linear-gradient(to top, " + s.soft + " 60%, #fff 60%)";
+  }
+
+  nav(active) {
+    const items = [
+      { label: "Öğrenciler", badge: "24", d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", d2: "M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM22 21v-2a4 4 0 0 0-3-3.87" },
+      { label: "Planlar", badge: "6", d: "M3 6h18v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z", d2: "M8 2v4M16 2v4M3 11h18" },
+      { label: "Şablonlar", badge: "", d: "M4 4h7v7H4zM13 4h7v4h-7z", d2: "M13 10h7v10h-7zM4 13h7v7H4z" },
+      { label: "Kaynaklar", badge: "", d: "M4 4h7a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z", d2: "M20 4h-7a2 2 0 0 0-2 2v14h7a2 2 0 0 0 2-2z" },
+      { label: "Videolar", badge: "", d: "m22 8-6 4 6 4z", d2: "M2 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" },
+      { label: "Denemeler", badge: "", d: "M3 3v18h18", d2: "M7 16v-5M12 16V8M17 16v-8" },
+      { label: "Duyurular", badge: "2", d: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9", d2: "M10.3 21a1.94 1.94 0 0 0 3.4 0" },
+      { label: "Ayarlar", badge: "", d: "M4 6h16M4 12h16M4 18h16", d2: "M8 4v4M16 10v4M11 16v4" }
+    ];
+    return items.map(i => {
+      const on = i.label === active;
+      return Object.assign({}, i, {
+        bg: on ? "#E3E9F6" : "transparent",
+        color: on ? "#1B2440" : "#39456B",
+        w: on ? 600 : 400
+      });
+    });
+  }
+
+  renderVals() {
+    const S = this.SUB;
+
+    const up = { d: "m22 7-8.5 8.5-5-5L2 17", d2: "M16 7h6v6" };
+    const down = { d: "m22 17-8.5-8.5-5 5L2 7", d2: "M16 17h6v-6" };
+    const flat = { d: "M3 12h18", d2: "M17 8l4 4-4 4" };
+
+    const row = (name, login, loginWarn, goal, net, delta, trend, plan, repeats, repeatWarn, i) => {
+      const t = trend === "up" ? up : trend === "down" ? down : flat;
+      return {
+        name,
+        initials: name.split(" ").map(w => w[0]).join(""),
+        login, loginColor: loginWarn ? "#8A5A07" : "var(--ink-500)",
+        goal: "%" + goal,
+        net: net.toFixed(2).replace(".", ","),
+        delta, trendD: t.d, trendD2: t.d2,
+        trendColor: trend === "up" ? "#146B50" : "#39456B",
+        plan: "%" + plan,
+        repeats: String(repeats),
+        repeatColor: repeatWarn ? "#8A5A07" : "var(--ink-900)",
+        bg: i % 2 === 1 ? "#FBFCFE" : "#fff"
+      };
+    };
+
+    const mapRows = Object.keys(this.TOPIC_NAMES).map(k => {
+      const s = S[k], sts = this.STATES[k];
+      const filled = sts.filter(x => x === "tamam" || x === "oturdu").length;
+      return {
+        name: s.name, color: s.color,
+        pct: "%" + Math.round((filled / sts.length) * 100),
+        cells: this.TOPIC_NAMES[k].map((t, i) => ({
+          label: t + " · " + this.LABEL[sts[i]],
+          css: this.flatCell(s, sts[i]),
+          isDone: sts[i] === "oturdu",
+          isRepeat: sts[i] === "tekrar",
+          iconColor: s.ink
+        }))
+      };
+    });
+
+    // 14 günlük yığılmış grafik
+    const dayData = [
+      [40, 30, 0], [55, 20, 20], [30, 40, 15], [0, 0, 0], [60, 25, 20], [45, 35, 10], [20, 20, 30],
+      [50, 30, 20], [35, 45, 0], [40, 20, 30], [65, 20, 15], [30, 30, 25], [0, 25, 20], [40, 30, 16]
+    ];
+    const colors = ["var(--subject-math)", "var(--subject-tr)", "var(--subject-sci)"];
+    const labels = ["3","4","5","6","7","8","9","10","11","12","13","14","15","16"];
+    const days14 = dayData.map((segs, i) => ({
+      label: labels[i],
+      segs: segs.filter(v => v > 0).map((v, j) => ({ color: colors[j], h: Math.round(v * 1.05) + "px" }))
+    }));
+
+    // net trendi
+    const X = [10, 90, 170, 250, 330];
+    const scale = v => 168 - (v / 90) * 148;
+    const line = (vals, color, w) => ({
+      points: vals.map((v, i) => X[i] + "," + scale(v).toFixed(1)).join(" "),
+      color, w
+    });
+    const total = [58.33, 62.0, 65.67, 67.66, 71.33];
+
+    return {
+      navHome: this.nav("Öğrenciler"),
+      navPlan: this.nav("Planlar"),
+      alerts: [
+        { name: "Ahmet Kaya", text: "4 gündür kayıt yok", since: "son giriş 12 Eylül", action: "Not yaz" },
+        { name: "Zeynep Arslan", text: "Son 2 deneme ortalaması 6 net düştü", since: "31 Ağu – 14 Eyl", action: "Planı gözden geçir" },
+        { name: "Can Demir", text: "19 tekrar birikmiş", since: "en eski 24 gün", action: "Tekrar planı kur" }
+      ],
+      rows: [
+        row("Elif Yılmaz", "bugün", false, 86, 71.33, "+3,67", "up", 80, 4, false, 0),
+        row("Ahmet Kaya", "4 gün önce", true, 31, 52.0, "−4,33", "down", 38, 11, true, 1),
+        row("Zeynep Arslan", "bugün", false, 74, 64.67, "−6,00", "down", 71, 6, false, 2),
+        row("Can Demir", "dün", false, 68, 58.33, "0,00", "flat", 62, 19, true, 3),
+        row("Merve Şahin", "bugün", false, 92, 78.0, "+2,33", "up", 88, 2, false, 4),
+        row("Yusuf Aydın", "2 gün önce", false, 57, 61.33, "+1,67", "up", 54, 8, false, 5),
+        row("Defne Koç", "bugün", false, 81, 69.67, "+4,00", "up", 76, 3, false, 6),
+        row("Emir Öztürk", "dün", false, 45, 49.33, "−2,67", "down", 41, 14, true, 7),
+        row("Nisa Çelik", "bugün", false, 88, 73.67, "0,00", "flat", 83, 5, false, 8)
+      ],
+      tabs: ["Genel bakış","Konular","Sorular","Plan","Denemeler","Yanlışlar","Notlar","Modüller"].map((l, i) => ({
+        label: l,
+        bar: i === 0 ? "#1B2440" : "transparent",
+        color: i === 0 ? "#1B2440" : "#5A6485",
+        w: i === 0 ? 600 : 400
+      })),
+      kpis: [
+        { label: "Bu hafta soru", value: "612", sub: "önceki hafta 548" },
+        { label: "Çalışma süresi", value: "14 sa 20 dk", sub: "günlük ort. 2 sa 3 dk" },
+        { label: "Plan uyumu", value: "%80", sub: "28 görevin 22'si" },
+        { label: "Son deneme neti", value: "71,33", sub: "+3,67 · 14 Eylül" },
+        { label: "Birikmiş tekrar", value: "4", sub: "en eski 11 gün" }
+      ],
+      days14,
+      legend: Object.keys(S).map(k => ({ name: S[k].name, short: S[k].short, color: S[k].color })),
+      series: [
+        line([26, 27.3, 28.7, 29.3, 31.0], S.math.color, 1.5),
+        line([14, 15.3, 16.0, 16.3, 17.3], S.tr.color, 1.5),
+        line([8.3, 9.0, 10.3, 10.6, 11.3], S.sci.color, 1.5),
+        line([4.3, 4.6, 5.0, 5.3, 5.6], S.hist.color, 1.5),
+        line([3.0, 3.3, 3.3, 3.6, 3.6], S.rel.color, 1.5),
+        line([2.7, 2.5, 2.4, 2.6, 2.5], S.eng.color, 1.5),
+        line(total, "#1B2440", 2.8)
+      ],
+      totalDots: total.map((v, i) => ({ x: X[i], y: scale(v).toFixed(1) })),
+      reasons: [
+        { label: "Bilgi eksiği", value: "75 · %38", w: "100%" },
+        { label: "Dikkat hatası", value: "48 · %24", w: "64%" },
+        { label: "Süre yetmedi", value: "28 · %14", w: "37%" },
+        { label: "Soru kökünü yanlış okuma", value: "25 · %13", w: "33%" },
+        { label: "İşlem hatası", value: "22 · %11", w: "29%" }
+      ],
+      mapRows,
+      palette: [
+        {
+          title: "Zayıf konular", hint: "%60 altı başarı",
+          items: [
+            { title: "Paragrafta Anlam", meta: "Türkçe · %54 başarı", color: S.tr.color },
+            { title: "Olasılık", meta: "Matematik · %48 başarı", color: S.math.color },
+            { title: "Basınç", meta: "Fen · tekrar gerekli", color: S.sci.color },
+            { title: "On the Phone", meta: "İngilizce · %57 başarı", color: S.eng.color }
+          ]
+        },
+        {
+          title: "Atanmış kaynaklar", hint: "3 kitap",
+          items: [
+            { title: "Tonguç Türkçe SB", meta: "s. 120-134 · paragraf", color: S.tr.color },
+            { title: "Kafa Dengi Matematik", meta: "test 14-16", color: S.math.color },
+            { title: "Tonguç Fen SB", meta: "s. 88-96 · basınç", color: S.sci.color }
+          ]
+        },
+        {
+          title: "Video listeleri", hint: "izlenmeyen 7",
+          items: [
+            { title: "Paragraf kampı 4-6", meta: "3 video · 52 dk", color: S.tr.color },
+            { title: "Kareköklü İfadeler", meta: "2 video · 34 dk", color: S.math.color }
+          ]
+        }
+      ],
+      week: [
+        { name: "Pzt", date: "21 Eyl", time: "1 sa 40 dk", cards: [
+          { title: "Paragrafta Anlam", meta: "Türkçe · 30 soru", color: S.tr.color },
+          { title: "Kareköklü İfadeler", meta: "Matematik · 25 soru", color: S.math.color }
+        ] },
+        { name: "Sal", date: "22 Eyl", time: "1 sa 25 dk", cards: [
+          { title: "Basınç tekrarı", meta: "Fen · 20 soru", color: S.sci.color },
+          { title: "Teen Life", meta: "İngilizce · 20 soru", color: S.eng.color }
+        ] },
+        { name: "Çar", date: "23 Eyl", time: "1 sa 30 dk", cards: [
+          { title: "Kareköklü İfadeler", meta: "Matematik · 30 soru", color: S.math.color },
+          { title: "Paragraf kampı 4", meta: "Video · 18 dk", color: S.tr.color }
+        ] },
+        { name: "Per", date: "24 Eyl", time: "1 sa 10 dk", isDrop: true, cards: [
+          { title: "Millî Uyanış", meta: "İnkılap · 20 soru", color: S.hist.color }
+        ] },
+        { name: "Cum", date: "25 Eyl", time: "1 sa 20 dk", cards: [
+          { title: "Olasılık", meta: "Matematik · 25 soru", color: S.math.color },
+          { title: "Zekât ve Sadaka", meta: "Din · 15 soru", color: S.rel.color }
+        ] },
+        { name: "Cmt", date: "26 Eyl", time: "2 sa 15 dk", cards: [
+          { title: "Genel deneme 7", meta: "90 soru · 120 dk", color: "#1B2440" },
+          { title: "Yanlış analizi", meta: "45 dk", color: "#5A6485" }
+        ] },
+        { name: "Paz", date: "27 Eyl", time: "20 dk", cards: [
+          { title: "Haftam nasıl geçti?", meta: "Değerlendirme", color: "#5A6485" }
+        ] }
+      ].map(d => Object.assign({}, d, {
+        bg: d.name === "Çar" ? "#F6F8FD" : "#fff",
+        border: d.name === "Çar" ? "var(--line-strong)" : "var(--line)",
+        timeColor: d.name === "Cmt" ? "#8A5A07" : "var(--ink-500)",
+        isDrop: !!d.isDrop
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

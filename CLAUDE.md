@@ -11,7 +11,8 @@ Bu dosya Claude Code'un bu depoda nasıl çalışacağını tanımlar. Kısa tut
 1. `docs/01-proje-plani.md`: amaç, roller, modül kataloğu, yol haritası
 2. `docs/02-mimari.md`: yığın, klasör yapısı, modül sistemi, veri akışı, karar kaydı
 3. `docs/03-veri-modeli.md`: tablolar, RLS matrisi, görünümler, fonksiyonlar
-4. `docs/04-tasarim-sistemi.md`: token'lar, yerleşimler, yazım dili
+4. `docs/04-tasarim-sistemi.md`: token'lar, yüzey dilleri, ekran kuralları, yazım dili
+   - `docs/tasarim/`: onaylanan tasarım (HTML) ve ekran görüntüleri (PNG). Arayüz yaparken ilgili ekranın PNG'sine bak. Kural çelişirse 04 belgesi geçerli; tasarımdaki örnek veriler bağlayıcı değil.
 5. `docs/05-lgs-2027-sablonu.md`: seed verisi
 6. `docs/06-claude-code-rehberi.md`: faz istemleri
 
@@ -72,15 +73,20 @@ Bir görevi "bitti" saymadan önce `pnpm check` ve (şema değiştiyse) `pnpm db
 
 ## Arayüz Kuralları
 
-- Renkler sadece token'larla (`bg-surface`, `text-ink`, `subject-math` …). Hex değer yazılmaz.
-- Ders rengi `subjects.color` alanındaki token adından alınır.
-- Öğrenci ekranları önce mobil (360 px) tasarlanır; koç ekranları masaüstü önceliklidir ama mobilde kırılmaz.
-- Gölge sadece yüzen öğelerde; köşe yuvarlaklığı hiyerarşisine uy (04 Bölüm 5).
-- Kırmızı sadece sistem hatası içindir, performans için kullanılmaz.
-- Öğrenciye "sen", veliye "siz" dili; düğmeler eylemi söyler; boş ekran eylem önerir (04 Bölüm 8).
+- **Hibrit yüzey:** öğrenci `data-surface="clay"`, veli `clay-calm`, koç `flat`. Rol layout'u bu özelliği kök öğeye koyar; ortak bileşenler varyantı buradan alır. Koç ekranlarında clay yok (logo kutusu ve avatar hariç).
+- Renk, gölge, yarıçap ve metin boyutu sadece token'larla (04 Bölüm 3). Hex değer yazılmaz.
+- Ders rengi `subjects.color` token önekinden `subjectVars()` ile verilir; `bg-${...}` gibi dinamik Tailwind sınıfı kurma.
+- Ders rengi sadece dersi temsil eder: rozet metni `-ink` tonu `-soft` zemin üzerinde; tam renk sadece şerit, dolgu, grafik. Ders dışı metrikler (toplam hedef, plan uyumu, toplam net) ders rengi kullanmaz.
+- Kırmızı sadece sistem hatası (her zaman ikon + metin ile). Uyarı rengi sadece koç ekranlarında. Fosforlu sarı sadece tamamlanan görev ve ulaşılan günlük hedef.
+- Clay: en fazla 3 seviye; clay kaptır, içerik düzdür; basılı durumda `--clay-pressed` + %3 küçülme.
+- Responsive: telefon < 768, `md:` tablet, `lg:` masaüstü. Öğrenci telefonda ve tablette alt menü, masaüstünde 104 px yan menü. < 768 px alt panel, ≥ 768 px diyalog (`ResponsiveSheet`).
+- Menüler ve sekmeler modül registry'sinden üretilir, elle yazılmaz.
+- Sayı/tarih biçimi sadece `lib/format` ile (`71,33` · `1.250` · `%80`). Biçimlenmiş metni CSS veya hesap değeri olarak kullanma (`width: 86%`, `%86` değil).
+- Öğrenciye "sen", veliye "siz", koça nötr dil; düğmeler eylemi söyler; boş ekran eylem önerir (04 Bölüm 12).
 - Her sayfa segmentinde `loading.tsx` (iskelet) ve `error.tsx`.
-- Erişilebilirlik: 44 px dokunma hedefi, görünür odak, bilgi sadece renkle verilmez, `prefers-reduced-motion`.
-- Sıralama tablosu ve öğrenciler arası karşılaştırma öğrenci arayüzünde varsayılan olarak yok.
+- Erişilebilirlik: 44 px dokunma hedefi, `--focus-ring`, bilgi sadece renkle verilmez, klavye akışları (hızlı kayıt, konu haritası, sürükle-bırak), `prefers-reduced-motion`.
+- Emoji ikon olarak kullanılmaz (lucide). Öğrenciler arası sıralama öğrenci ve veli arayüzünde yok.
+- Kapsam dışı öğe tasarımda görünse bile eklenmez (ör. veli mesajlaşması); önce sor.
 
 ## Çalışma Şekli
 

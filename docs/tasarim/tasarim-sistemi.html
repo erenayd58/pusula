@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC; --line-strong:#BCC6DE;
+
+  --subject-tr:#D14B33;   --subject-tr-soft:#FAE6E1;   --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6; --subject-math-soft:#E2EAFB; --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;  --subject-sci-soft:#DBF0EA;  --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F; --subject-hist-soft:#F6EBD3; --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;  --subject-rel-soft:#EAE3FA;  --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;  --subject-eng-soft:#FAE1EE;  --subject-eng-ink:#A62A6B;
+  --subject-r1:#0F7A8C; --subject-r2:#7A4A2A; --subject-r3:#4F5A6B; --subject-r4:#9C1F4F;
+
+  --accent-marker:#FFD84D; --accent-marker-soft:#FFF3C7;
+  --state-success:#1B8A66; --state-success-soft:#DCF0E8;
+  --state-warning:#C07C0C; --state-warning-soft:#FAEBD2;
+  --state-error:#C6352A;   --state-error-soft:#FADFDC;
+
+  --clay-sm:4px 4px 10px rgba(27,36,64,0.10), -3px -3px 8px rgba(255,255,255,0.85);
+  --clay-md:8px 8px 20px rgba(27,36,64,0.12), -6px -6px 16px rgba(255,255,255,0.9);
+  --clay-lg:16px 16px 34px rgba(27,36,64,0.14), -10px -10px 24px rgba(255,255,255,0.95);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,0.6), inset -3px -3px 8px rgba(27,36,64,0.06);
+  --clay-pressed:inset 4px 4px 10px rgba(27,36,64,0.14), inset -3px -3px 8px rgba(255,255,255,0.75);
+  --clay-well:inset 3px 3px 8px rgba(27,36,64,0.10), inset -2px -2px 6px rgba(255,255,255,0.85);
+
+  --shadow-pop:0 10px 28px rgba(27,36,64,0.14), 0 2px 6px rgba(27,36,64,0.06);
+  --shadow-drag:0 16px 32px rgba(27,36,64,0.20);
+
+  --radius-xs:8px; --radius-sm:12px; --radius-md:16px; --radius-card:20px;
+  --radius-lg:28px; --radius-xl:36px; --radius-pill:999px;
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+  --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px;
+
+  --bp-tablet:768px; --bp-desktop:1024px; --bp-max:1320px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg-app);color:var(--ink-900);font-family:Lexend,'Segoe UI',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4,p{margin:0;}
+a{color:var(--ink-900);text-decoration:underline;text-underline-offset:3px;}
+a:hover{color:var(--subject-math-ink);}
+button,input,select{font:inherit;color:inherit;font-variant-numeric:tabular-nums;}
+:focus-visible{outline:3px solid #2E66D6;outline-offset:3px;border-radius:6px;}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+
+<div style="{{ clayVars }}">
+<div style="max-width:1320px;margin:0 auto;padding:48px 32px 96px">
+
+  <header style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="width:64px;height:64px;border-radius:var(--radius-lg);background:var(--bg-raised);box-shadow:var(--clay-md),var(--clay-inner);display:grid;place-items:center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-1.8 5.41a2 2 0 0 1-1.27 1.27l-5.41 1.8 1.8-5.41a2 2 0 0 1 1.27-1.27z"></path></svg>
+      </div>
+      <div>
+        <h1 style="font-size:34px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Pusula tasarım sistemi</h1>
+        <p style="font-size:16px;color:var(--ink-500);margin-top:6px">LGS çalışma takip ve koçluk platformu · açık tema · responsive web</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);font-size:14px;font-weight:500;white-space:nowrap">Öğrenci · clay</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm);font-size:14px;font-weight:500;white-space:nowrap">Veli · sakin clay</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-sm);background:#fff;border:1px solid var(--line-strong);font-size:14px;font-weight:500;white-space:nowrap">Koç · sade</span>
+    </div>
+  </header>
+
+  <p style="max-width:760px;font-size:16px;line-height:1.6;color:var(--ink-700);margin-top:20px">Tek ürün, iki yüzey dili. Renk paleti, ders renkleri, Lexend yazı tipi, lucide ikonları ve yazım dili her rolde ortaktır; değişen tek şey yüzeyin dokusudur. Öğrenci tarafı kabarık ve dokunsal, koç tarafı düz ve yoğundur.</p>
+
+  <!-- 1 · RENKLER -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">1 · Renkler</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Ders rengi hiçbir zaman tek başına bilgi taşımaz; her zaman kısa ad ya da ikonla birlikte gelir.</span>
+  </div>
+
+  <h3 style="font-size:17px;font-weight:600;margin-bottom:14px">Temel palet</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px;margin-bottom:36px">
+    <sc-for list="{{ base }}" as="c" hint-placeholder-count="8">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="height:68px;border-radius:var(--radius-md);box-shadow:var(--clay-inner);border:1px solid rgba(27,36,64,0.06);background:{{ c.hex }}"></div>
+        <div style="font-size:14px;font-weight:500">{{ c.name }}</div>
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-500);line-height:1.5">{{ c.token }}<br />{{ c.hex }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <h3 style="font-size:17px;font-weight:600;margin-bottom:14px">Ders renkleri ve soft tonları</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;margin-bottom:28px">
+    <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="6">
+      <div style="display:flex;align-items:center;gap:14px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px 16px">
+        <div style="width:6px;height:52px;border-radius:var(--radius-pill);background:{{ s.color }}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--radius-pill);font-size:13px;font-weight:600;background:{{ s.soft }};color:{{ s.ink }}">{{ s.short }}</span>
+            <span style="font-size:15px;font-weight:500">{{ s.name }}</span>
+          </div>
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);margin-top:7px">{{ s.tokens }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="width:34px;height:22px;border-radius:7px;background:{{ s.color }}"></div>
+          <div style="width:34px;height:22px;border-radius:7px;background:{{ s.soft }}"></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;margin-bottom:12px">
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:18px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:12px">Yedek ders renkleri</h4>
+      <div style="display:flex;gap:10px">
+        <sc-for list="{{ reserve }}" as="r" hint-placeholder-count="4">
+          <div style="flex:1">
+            <div style="height:44px;border-radius:var(--radius-sm);background:{{ r.hex }}"></div>
+            <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-500);margin-top:6px">{{ r.hex }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);line-height:1.5;margin-top:12px">Yeni ders eklendiğinde renkle birlikte kısa ad da atanır; renk tek ayırt edici olmaz.</p>
+    </div>
+
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:18px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:12px">Vurgu · fosforlu kalem</h4>
+      <div style="height:44px;border-radius:var(--radius-sm);background:var(--accent-marker);display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:600;color:var(--ink-900)">Görev tamamlandı</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-500);margin-top:6px">--accent-marker #FFD84D · --accent-marker-soft #FFF3C7</div>
+      <p style="font-size:13.5px;color:var(--ink-500);line-height:1.5;margin-top:12px">Yalnızca iki yerde: görev tamamlandığında ve günlük hedefe ulaşıldığında. Başka hiçbir yerde kullanılmaz.</p>
+    </div>
+
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:18px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:12px">Durum renkleri</h4>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ states }}" as="st" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);background:{{ st.soft }}">
+            <span style="width:12px;height:12px;border-radius:50%;background:{{ st.hex }}"></span>
+            <span style="font-size:14px;font-weight:500;color:{{ st.hex }}">{{ st.name }}</span>
+            <span style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-500)">{{ st.hex }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);line-height:1.5;margin-top:12px">Kırmızı sadece sistem hatası içindir. Düşük performans nötr dille anlatılır: “180 soru kaldı”.</p>
+    </div>
+  </div>
+
+  <!-- 2 · CLAY -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">2 · Clay yükseklik seviyeleri</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Üç seviye, fazlası değil. Basılı durumda gölge içe döner ve öğe %3 küçülür.</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:28px 24px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <button style="flex:1;height:84px;border:0;border-radius:var(--radius-card);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner);font-size:15px;font-weight:600;cursor:pointer;transition:box-shadow .12s,transform .12s" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">clay-sm</button>
+        <div style="flex:1;height:84px;border-radius:var(--radius-card);background:var(--bg-raised);box-shadow:var(--clay-pressed);display:grid;place-items:center;font-size:14px;color:var(--ink-500);transform:scale(.97)">basılı</div>
+      </div>
+      <p style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);line-height:1.7;margin-top:16px">--clay-sm:<br />4px 4px 10px rgba(27,36,64,.10),<br />-3px -3px 8px rgba(255,255,255,.85)</p>
+      <p style="font-size:13.5px;color:var(--ink-700);margin-top:10px">Ders rozeti, çip, liste kabı, veli özet kartı.</p>
+    </div>
+
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:28px 24px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <button style="flex:1;height:84px;border:0;border-radius:var(--radius-card);background:var(--bg-raised);box-shadow:var(--clay-md),var(--clay-inner);font-size:15px;font-weight:600;cursor:pointer;transition:box-shadow .12s,transform .12s" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">clay-md</button>
+        <div style="flex:1;height:84px;border-radius:var(--radius-card);background:var(--bg-raised);box-shadow:var(--clay-pressed);display:grid;place-items:center;font-size:14px;color:var(--ink-500);transform:scale(.97)">basılı</div>
+      </div>
+      <p style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);line-height:1.7;margin-top:16px">--clay-md:<br />8px 8px 20px rgba(27,36,64,.12),<br />-6px -6px 16px rgba(255,255,255,.9)</p>
+      <p style="font-size:13.5px;color:var(--ink-700);margin-top:10px">Görev kartı, ders kartı, birincil düğme, hedef halkası.</p>
+    </div>
+
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:28px 24px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <button style="flex:1;height:84px;border:0;border-radius:var(--radius-xl);background:var(--bg-raised);box-shadow:var(--clay-lg),var(--clay-inner);font-size:15px;font-weight:600;cursor:pointer;transition:box-shadow .12s,transform .12s" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">clay-lg</button>
+        <div style="flex:1;height:84px;border-radius:var(--radius-xl);background:var(--bg-raised);box-shadow:var(--clay-pressed);display:grid;place-items:center;font-size:14px;color:var(--ink-500);transform:scale(.97)">basılı</div>
+      </div>
+      <p style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);line-height:1.7;margin-top:16px">--clay-lg:<br />16px 16px 34px rgba(27,36,64,.14),<br />-10px -10px 24px rgba(255,255,255,.95)</p>
+      <p style="font-size:13.5px;color:var(--ink-700);margin-top:10px">Alt panel, diyalog, hızlı kayıt düğmesi, yan menü.</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:20px">
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:20px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:12px">Kuyu (içerik yüzeyi)</h4>
+      <div style="height:64px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center;font-size:14px;color:var(--ink-700)">Metin ve form içeriği burada düz durur</div>
+      <p style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);margin-top:12px">--clay-well</p>
+    </div>
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:20px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:12px">Koç tarafı: gölge sadece yüzen öğede</h4>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;height:64px;border-radius:var(--radius-sm);background:#fff;border:1px solid var(--line-strong);display:grid;place-items:center;font-size:13.5px">kenarlık</div>
+        <div style="flex:1;height:64px;border-radius:var(--radius-sm);background:#fff;box-shadow:var(--shadow-pop);display:grid;place-items:center;font-size:13.5px">--shadow-pop</div>
+        <div style="flex:1;height:64px;border-radius:var(--radius-sm);background:#fff;box-shadow:var(--shadow-drag);display:grid;place-items:center;font-size:13.5px">--shadow-drag</div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);line-height:1.5;margin-top:12px">Menü, açılır pencere, diyalog ve sürüklenen kart dışında koç ekranlarında gölge yok.</p>
+    </div>
+  </div>
+
+  <!-- 3 · RADIUS + SPACING -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">3 · Köşe yuvarlaklığı ve boşluk</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Yarıçap hiyerarşiktir: öğe büyüdükçe yuvarlaklık artar.</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px">
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:22px">
+      <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="7">
+          <div style="text-align:center">
+            <div style="width:88px;height:{{ r.h }};background:var(--bg-surface);box-shadow:var(--clay-inner);border:1px solid var(--line);border-radius:{{ r.v }}"></div>
+            <div style="font-size:13px;font-weight:500;margin-top:8px">{{ r.v }}</div>
+            <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-500)">{{ r.token }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-700);line-height:1.6;margin-top:16px">Çip ve rozet <strong>pill</strong>, düğme ve giriş <strong>sm–md</strong>, kart <strong>card</strong>, panel ve diyalog <strong>lg–xl</strong>. Konu haritası hücresi <strong>xs</strong> — küçük öğe, az yuvarlaklık.</p>
+    </div>
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:22px">
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:14px">Boşluk ölçeği · 4 px tabanlı</h4>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ spaces }}" as="s" hint-placeholder-count="9">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-500);width:86px">{{ s.token }}</span>
+            <span style="height:14px;border-radius:4px;background:var(--subject-math-soft);width:{{ s.v }}"></span>
+            <span style="font-size:12.5px;color:var(--ink-700)">{{ s.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · TİPOGRAFİ -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">4 · Tipografi</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Lexend · 300–700 · tüm sayılarda tabular rakam · Türkçe karakter seti tam</span>
+  </div>
+
+  <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:26px 24px">
+    <div style="display:grid;grid-template-columns:150px 120px 1fr;gap:12px 20px;align-items:baseline;padding-bottom:12px;border-bottom:1px solid var(--line)">
+      <span style="font-size:13px;color:var(--ink-500)">Ölçek</span>
+      <span style="font-size:13px;color:var(--ink-500)">Telefon / masaüstü</span>
+      <span style="font-size:13px;color:var(--ink-500)">Örnek</span>
+    </div>
+    <sc-for list="{{ typeScale }}" as="t" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:150px 120px 1fr;gap:12px 20px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line)">
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-700)">{{ t.token }}</span>
+        <span style="font-size:13px;color:var(--ink-500)">{{ t.sizes }}</span>
+        <span style="font-size:{{ t.px }};font-weight:{{ t.w }};line-height:1.25;letter-spacing:{{ t.ls }}">{{ t.sample }}</span>
+      </div>
+    </sc-for>
+    <p style="font-size:14px;color:var(--ink-700);line-height:1.6;margin-top:16px">Telefonda gövde metni 16 px'in altına inmez; 12–13 px yalnızca çip, birim ve tablo etiketlerinde kullanılır. Başlıklar cümle düzeninde yazılır; büyük harfli, harf aralıklı küçük etiket yok. Rakam yoğun alanlarda <span style="font-variant-numeric:tabular-nums;font-weight:600">71,33 net · 1.250 soru · %80</span> hizalı kalır.</p>
+    <p style="font-size:14px;color:var(--ink-700);line-height:1.6;margin-top:10px"><strong>Neden Lexend:</strong> öneriyi koruyorum. Yuvarlak ve geniş harf formları clay yüzeylerin yumuşak hatlarıyla aynı dili konuşuyor, okuma akıcılığı için tasarlanmış olması 13–14 yaş için doğru, Türkçe karakterleri (ğ ş ı İ ç ö ü) eksiksiz ve Google Fonts'ta değişken ağırlıkla var. Tek aile yeterli; ikinci bir başlık ailesi eklemek koç tarafının nötr havasını bozardı.</p>
+  </div>
+
+  <!-- 5 · KIRILMA NOKTALARI -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">5 · Kırılma noktaları ve responsive davranış</h2>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-bottom:22px">
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:20px">
+      <div style="font-size:15px;font-weight:600">Telefon</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-500);margin-top:6px">&lt; 768 px</div>
+      <div style="height:6px;border-radius:var(--radius-pill);background:var(--subject-math);width:30%;margin-top:14px"></div>
+    </div>
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:20px">
+      <div style="font-size:15px;font-weight:600">Tablet</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-500);margin-top:6px">768 – 1023 px · --bp-tablet</div>
+      <div style="height:6px;border-radius:var(--radius-pill);background:var(--subject-sci);width:60%;margin-top:14px"></div>
+    </div>
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:20px">
+      <div style="font-size:15px;font-weight:600">Masaüstü</div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-500);margin-top:6px">≥ 1024 px · içerik en fazla 1320 px, ortalı</div>
+      <div style="height:6px;border-radius:var(--radius-pill);background:var(--subject-rel);width:100%;margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:22px">
+      <h4 style="font-size:16px;font-weight:600;margin-bottom:10px">Öğrenci</h4>
+      <p style="font-size:14.5px;line-height:1.65;color:var(--ink-700)">Telefonda alt menü, tek sütun, hızlı kayıt alttan açılan panel. Masaüstünde solda dar clay yan menü, çok sütunlu içerik, hızlı kayıt ortada açılan diyalog.</p>
+      <p style="font-size:14.5px;line-height:1.65;color:var(--ink-700);margin-top:10px"><strong>Tablet kararı:</strong> 768–1023 px'te <strong>alt menü kalır</strong>, içerik iki sütuna çıkar. Gerekçe: tablet elde ve yatay tutulurken başparmak ekranın altındadır; yan menüye geçmek 44 px hedefleri ekranın en uzak köşesine taşır. Hızlı kayıt 768 px'ten itibaren diyaloğa döner, çünkü alt panel bu yükseklikte ekranın yarısını boş bırakıyor.</p>
+    </div>
+    <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:22px">
+      <h4 style="font-size:16px;font-weight:600;margin-bottom:10px">Veli</h4>
+      <p style="font-size:14.5px;line-height:1.65;color:var(--ink-700)">Telefon öncelikli tek sütun. Masaüstünde aynı içerik ortalanır ve en fazla iki sütuna yayılır; yeni bilgi eklenmez. Oyunsu öğe yok, sadece clay-sm özet kartları.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line-strong);padding:22px">
+      <h4 style="font-size:16px;font-weight:600;margin-bottom:10px">Koç</h4>
+      <p style="font-size:14.5px;line-height:1.65;color:var(--ink-700)">Masaüstü öncelikli. Telefonda yan menü hamburger menüye, tablo satırları kart listesine döner. Plan oluşturucu telefonda salt okunurdur.</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border-radius:var(--radius-xs);background:var(--state-warning-soft);font-size:13.5px;color:var(--ink-900)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C07C0C" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>
+        Düzenlemek için bilgisayardan açın
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 · BİLEŞENLER -->
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 8px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">6 · Bileşenler</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Solda öğrenci (clay), sağda koç (sade) varyantı.</span>
+  </div>
+
+  <!-- düğmeler -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:24px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Düğmeler · öğrenci</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+        <button style="min-height:48px;padding:0 24px;border:0;border-radius:var(--radius-md);background:var(--ink-900);color:#fff;font-size:16px;font-weight:600;box-shadow:var(--clay-md);cursor:pointer;transition:transform .12s,box-shadow .12s" style-hover="transform:translateY(-1px)" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">Kaydet</button>
+        <button style="min-height:48px;padding:0 24px;border:0;border-radius:var(--radius-md);background:var(--bg-raised);color:var(--ink-900);font-size:16px;font-weight:600;box-shadow:var(--clay-sm),var(--clay-inner);cursor:pointer;transition:transform .12s,box-shadow .12s" style-hover="transform:translateY(-1px)" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">Vazgeç</button>
+        <button style="min-height:48px;padding:0 12px;border:0;background:transparent;color:var(--ink-700);font-size:16px;font-weight:500;text-decoration:underline;text-underline-offset:4px;cursor:pointer">Tümünü gör</button>
+        <button disabled="disabled" style="min-height:48px;padding:0 24px;border:0;border-radius:var(--radius-md);background:var(--bg-sunken);color:var(--ink-300);font-size:16px;font-weight:600;box-shadow:var(--clay-well);cursor:not-allowed">Kaydet</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:16px">
+        <div style="min-height:48px;padding:0 24px;border-radius:var(--radius-md);background:var(--ink-900);color:#fff;font-size:16px;font-weight:600;box-shadow:var(--clay-pressed);transform:scale(.97);display:grid;place-items:center">basılı</div>
+        <div style="min-height:48px;padding:0 24px;border-radius:var(--radius-md);background:var(--ink-900);color:#fff;font-size:16px;font-weight:600;box-shadow:var(--clay-md);outline:3px solid #2E66D6;outline-offset:3px;display:grid;place-items:center">odak</div>
+        <span style="font-size:13.5px;color:var(--ink-500)">devre dışı · basılı · klavye odağı</span>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Düğmeler · koç</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <button style="min-height:38px;padding:0 16px;border:1px solid var(--ink-900);border-radius:var(--radius-xs);background:var(--ink-900);color:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#2A3760">Planı yayınla</button>
+        <button style="min-height:38px;padding:0 16px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--bg-surface)">Şablondan başlat</button>
+        <button style="min-height:38px;padding:0 10px;border:0;background:transparent;color:var(--subject-math-ink);font-size:14px;font-weight:500;cursor:pointer" style-hover="text-decoration:underline">Öğrenci ekle</button>
+        <button disabled="disabled" style="min-height:38px;padding:0 16px;border:1px solid var(--line);border-radius:var(--radius-xs);background:var(--bg-surface);color:var(--ink-300);font-size:14px;font-weight:500;cursor:not-allowed">Planı yayınla</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px">
+        <div style="min-height:38px;padding:0 16px;border-radius:var(--radius-xs);background:#131B31;color:#fff;font-size:14px;display:grid;place-items:center">basılı</div>
+        <div style="min-height:38px;padding:0 16px;border-radius:var(--radius-xs);background:var(--ink-900);color:#fff;font-size:14px;outline:3px solid #2E66D6;outline-offset:2px;display:grid;place-items:center">odak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- form -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Metin girişi ve seçim kutusu · öğrenci</div>
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:420px">
+        <label style="display:block">
+          <span style="display:block;font-size:14px;font-weight:500;margin-bottom:7px">Konu</span>
+          <input value="Üslü İfadeler" style="width:100%;min-height:48px;padding:0 16px;border:0;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);font-size:16px;color:var(--ink-900)" />
+        </label>
+        <label style="display:block">
+          <span style="display:block;font-size:14px;font-weight:500;margin-bottom:7px">Kaynak</span>
+          <select style="width:100%;min-height:48px;padding:0 14px;border:0;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);font-size:16px">
+            <option>Tonguç 8. Sınıf Matematik Soru Bankası</option>
+            <option>Kafa Dengi Deneme Seti</option>
+          </select>
+        </label>
+        <div style="min-height:48px;padding:0 16px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);font-size:16px;color:var(--ink-300);display:flex;align-items:center">Konu ara (boş durum)</div>
+        <p style="font-size:13.5px;color:var(--ink-500)">Alanın içi düz kalır; clay olan kaptır. Odak halkası her zaman görünür.</p>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Metin girişi ve seçim kutusu · koç</div>
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:420px">
+        <label style="display:block">
+          <span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">Öğrenci ara</span>
+          <input value="Elif" style="width:100%;height:38px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px" />
+        </label>
+        <label style="display:block">
+          <span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">Hafta</span>
+          <select style="width:100%;height:38px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:14px">
+            <option>21 – 27 Eylül 2026</option>
+            <option>28 Eylül – 4 Ekim 2026</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- sayı adımlayıcı -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Sayı adımlayıcı · doğru / yanlış / boş</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:14px">
+        <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px 10px 12px;text-align:center">
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px">Doğru</div>
+          <input value="{{ d }}" onChange="{{ setD }}" inputmode="numeric" aria-label="Doğru sayısı" style="width:100%;height:48px;border:0;background:transparent;text-align:center;font-size:34px;font-weight:600;line-height:1" />
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:4px">
+            <button onClick="{{ decD }}" aria-label="Doğru azalt" style="width:48px;height:48px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+            <button onClick="{{ incD }}" aria-label="Doğru artır" style="width:48px;height:48px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg></button>
+          </div>
+        </div>
+        <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);padding:14px 10px 12px;text-align:center">
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px">Yanlış</div>
+          <input value="{{ y }}" onChange="{{ setY }}" inputmode="numeric" aria-label="Yanlış sayısı" style="width:100%;height:48px;border:0;background:transparent;text-align:center;font-size:34px;font-weight:600;line-height:1" />
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:4px">
+            <button onClick="{{ decY }}" aria-label="Yanlış azalt" style="width:48px;height:48px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+            <button onClick="{{ incY }}" aria-label="Yanlış artır" style="width:48px;height:48px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg></button>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:14px;color:var(--ink-700);margin-top:14px">Hedef 48 × 48 px dokunma alanı. Alan doğrudan yazılabilir, ↑ ↓ ile değişir, Tab ile geçilir. Anlık net: <strong>{{ netText }}</strong></p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Sayı girişi · koç (yoğun form)</div>
+      <div style="display:flex;gap:10px">
+        <label style="flex:1"><span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">D</span><input value="32" style="width:100%;height:38px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);text-align:right;padding:0 10px;font-size:14px" /></label>
+        <label style="flex:1"><span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">Y</span><input value="6" style="width:100%;height:38px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);text-align:right;padding:0 10px;font-size:14px" /></label>
+        <label style="flex:1"><span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">B</span><input value="2" style="width:100%;height:38px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);text-align:right;padding:0 10px;font-size:14px" /></label>
+        <div style="flex:1"><span style="display:block;font-size:13px;color:var(--ink-500);margin-bottom:6px">Net</span><div style="height:38px;display:flex;align-items:center;justify-content:flex-end;font-size:14px;font-weight:600">30,00</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ders rozeti / şerit -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Ders rozeti ve ders şeridi · öğrenci</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="6">
+          <span style="display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 14px;border-radius:var(--radius-pill);font-size:14px;font-weight:600;background:{{ s.soft }};color:{{ s.ink }}"><span style="width:9px;height:9px;border-radius:50%;background:{{ s.color }}"></span>{{ s.short }}</span>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:18px;flex-wrap:wrap">
+        <div style="flex:1;min-width:230px;display:flex;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);overflow:hidden">
+          <div style="width:8px;background:var(--subject-math)"></div>
+          <div style="padding:14px 16px">
+            <div style="font-size:16px;font-weight:600">Üslü İfadeler</div>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:4px">Matematik · 40 soru</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:230px;display:flex;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm),var(--clay-inner);overflow:hidden">
+          <div style="width:8px;background:var(--subject-sci)"></div>
+          <div style="padding:14px 16px">
+            <div style="font-size:16px;font-weight:600">Basınç</div>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:4px">Fen Bilimleri · Video 3-5</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:14px">Rozet metni her zaman koyu ders tonunda (–ink) soft zemin üzerinde: tam renk üzerinde beyaz metin AA'yı geçmiyor. Tam renk yalnızca şerit, dolgu ve grafikte kullanılır.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Ders rozeti · koç</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="6">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:var(--radius-xs);font-size:13px;font-weight:500;background:{{ s.soft }};color:{{ s.ink }}"><span style="width:7px;height:7px;border-radius:2px;background:{{ s.color }}"></span>{{ s.short }}</span>
+        </sc-for>
+      </div>
+      <div style="display:flex;margin-top:18px;border:1px solid var(--line);border-radius:var(--radius-xs);overflow:hidden">
+        <div style="width:4px;background:var(--subject-math)"></div>
+        <div style="padding:10px 12px;font-size:14px">Üslü İfadeler · 40 soru</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ilerleme + hedef halkası -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:18px">İlerleme çubuğu ve hedef halkası · öğrenci</div>
+      <div style="display:flex;gap:26px;align-items:center;flex-wrap:wrap">
+        <div style="width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--subject-math) 0% 72%, var(--bg-sunken) 72% 100%);box-shadow:var(--clay-md);display:grid;place-items:center">
+          <div style="width:96px;height:96px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-inner);display:grid;place-items:center;text-align:center">
+            <div>
+              <div style="font-size:26px;font-weight:600;line-height:1">86</div>
+              <div style="font-size:13px;color:var(--ink-500)">/ 120 soru</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--accent-marker) 0% 100%);box-shadow:var(--clay-md);display:grid;place-items:center">
+          <div style="width:96px;height:96px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-inner);display:grid;place-items:center;text-align:center">
+            <div>
+              <div style="font-size:26px;font-weight:600;line-height:1">120</div>
+              <div style="font-size:13px;color:var(--ink-900);font-weight:500">hedef tamam</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>Plan uyumu</span><span style="font-weight:600">%80</span></div>
+          <div style="height:16px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);overflow:hidden">
+            <div style="width:80%;height:100%;border-radius:var(--radius-pill);background:var(--subject-sci)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin:18px 0 8px"><span>Günlük hedef</span><span style="font-weight:600">tamamlandı</span></div>
+          <div style="height:16px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);overflow:hidden">
+            <div style="width:100%;height:100%;border-radius:var(--radius-pill);background:var(--accent-marker)"></div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:16px">Halka hedefe ulaşana kadar ders renginde; ulaştığında fosforlu sarıya döner ve metin “hedef tamam” olur. Renk tek başına anlam taşımaz.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:18px">İlerleme · koç</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px"><span>Haftalık hedef</span><span style="font-weight:600">%86</span></div>
+          <div style="height:8px;border-radius:2px;background:var(--bg-sunken);overflow:hidden"><div style="width:86%;height:100%;background:var(--ink-900)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px"><span>Plan uyumu</span><span style="font-weight:600">%80</span></div>
+          <div style="height:8px;border-radius:2px;background:var(--bg-sunken);overflow:hidden"><div style="width:80%;height:100%;background:var(--ink-900)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- plan görev kartı -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Plan görev kartı · bekliyor ve tamamlandı</div>
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:460px">
+        <div style="display:flex;align-items:center;gap:14px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-md),var(--clay-inner);padding:14px 16px;border-left:8px solid var(--subject-tr)">
+          <button aria-label="Görevi tamamla" style="width:44px;height:44px;flex:none;border:0;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);cursor:pointer"></button>
+          <div style="flex:1">
+            <div style="font-size:16px;font-weight:600">Paragrafta Anlam</div>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:3px">Türkçe · 30 soru · 35 dk</div>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"></path></svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:14px 16px;border-left:8px solid var(--subject-math)">
+          <div style="width:44px;height:44px;flex:none;border-radius:var(--radius-md);background:var(--accent-marker);box-shadow:var(--clay-inner);display:grid;place-items:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:16px;font-weight:600;position:relative;display:inline-block">Üslü İfadeler<span style="position:absolute;left:-2px;right:-2px;top:52%;height:8px;background:var(--accent-marker);opacity:.75;border-radius:4px;z-index:-1"></span></div>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:3px">Matematik · 40 soru · 32 D / 6 Y / 2 B</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:14px">Tamamlandığında fosforlu kalem soldan sağa 220 ms'de çizilir; başka animasyon yok. Kart hafifçe düzleşir (clay-md → clay-sm) — “işi bitti” hissi.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Plan görev kartı · koç (sürüklenebilir)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:320px">
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--line-strong);border-left:3px solid var(--subject-tr);border-radius:var(--radius-xs);padding:10px 12px;background:#fff">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA2BC" stroke-width="2.5" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg>
+          <div style="flex:1"><div style="font-size:14px;font-weight:500">Paragrafta Anlam</div><div style="font-size:12.5px;color:var(--ink-500)">30 soru · 35 dk</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--ink-900);border-left:3px solid var(--subject-math);border-radius:var(--radius-xs);padding:10px 12px;background:#fff;box-shadow:var(--shadow-drag);transform:rotate(-1.5deg)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.5" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg>
+          <div style="flex:1"><div style="font-size:14px;font-weight:500">Üslü İfadeler</div><div style="font-size:12.5px;color:var(--ink-500)">40 soru · 45 dk</div></div>
+        </div>
+        <div style="height:44px;border:1px dashed var(--line-strong);border-radius:var(--radius-xs);display:grid;place-items:center;font-size:13px;color:var(--ink-500)">Buraya bırak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- konu haritası hücresi -->
+  <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px;margin-top:20px">
+    <div style="font-size:14px;color:var(--ink-500);margin-bottom:6px">Konu haritası hücresi · 5 durum</div>
+    <p style="font-size:14px;color:var(--ink-700);max-width:760px;margin-bottom:18px">Durumlar üç ayrı kanalla ayrılır: <strong>doluluk seviyesi</strong> (0 → %45 → %60 → %100), <strong>desen</strong> (yok / çapraz tarama / dikey tarama / düz) ve <strong>ikon</strong>. Renk yalnızca dersi söyler, durumu söylemez.</p>
+    <div style="display:flex;gap:26px;flex-wrap:wrap">
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);background:var(--bg-sunken);border:2px dashed var(--line-strong);box-shadow:var(--clay-well)"></div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Başlanmadı</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">boş · kesikli</div>
+      </div>
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);border:2px solid var(--subject-math);background:repeating-linear-gradient(45deg, rgba(46,102,214,.55) 0 3px, transparent 3px 7px) bottom/100% 45% no-repeat, linear-gradient(to top, var(--subject-math-soft) 45%, var(--bg-raised) 45%);box-shadow:var(--clay-sm)"></div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Çalışılıyor</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">%45 · çapraz tarama</div>
+      </div>
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);background:var(--subject-math);box-shadow:var(--clay-sm)"></div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Tamamlandı</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">%100 · düz</div>
+      </div>
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);background:var(--subject-math);box-shadow:var(--clay-sm),inset 0 0 0 3px rgba(255,255,255,.5);display:grid;place-items:center">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+        </div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Oturdu</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">%100 · onay ikonu</div>
+      </div>
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);border:2px dotted var(--subject-math-ink);background:repeating-linear-gradient(90deg, rgba(35,84,188,.5) 0 2px, transparent 2px 6px) bottom/100% 60% no-repeat, linear-gradient(to top, var(--subject-math-soft) 60%, var(--bg-raised) 60%);box-shadow:var(--clay-sm);display:grid;place-items:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2354BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+        </div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Tekrar gerekli</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">%60 · dikey tarama · ikon</div>
+      </div>
+      <div style="text-align:center;width:120px">
+        <div style="width:56px;height:56px;margin:0 auto;border-radius:var(--radius-xs);background:var(--subject-math);box-shadow:var(--clay-pressed);outline:3px solid var(--ink-900);outline-offset:3px"></div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Seçili</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">basılı + çerçeve</div>
+      </div>
+      <div style="text-align:center;width:150px">
+        <div style="display:flex;gap:4px;justify-content:center">
+          <div style="width:34px;height:34px;border-radius:6px;background:var(--subject-math)"></div>
+          <div style="width:34px;height:34px;border-radius:6px;background:var(--subject-math);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"></path></svg></div>
+          <div style="width:34px;height:34px;border-radius:6px;border:1.5px solid var(--line-strong);background:var(--bg-surface)"></div>
+        </div>
+        <div style="font-size:14px;font-weight:500;margin-top:10px">Koç sürümü</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">aynı durumlar, clay'siz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- motivasyon öğeleri -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Seri rozeti, başarı rozeti, LGS geri sayım çipi</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <div style="display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D14B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+          <span style="font-size:16px;font-weight:600">12 gün</span>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;border-radius:var(--radius-pill);background:var(--bg-raised);box-shadow:var(--clay-sm),var(--clay-inner)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+          <span style="font-size:16px;font-weight:600">LGS'ye 270 gün</span>
+        </div>
+        <div style="text-align:center">
+          <div style="width:74px;height:74px;border-radius:var(--radius-lg);background:var(--bg-raised);box-shadow:var(--clay-md),var(--clay-inner);display:grid;place-items:center">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#B0810F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"></path></svg>
+          </div>
+          <div style="font-size:13px;font-weight:500;margin-top:8px">Kazanıldı</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:74px;height:74px;border-radius:var(--radius-lg);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9AA2BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <div style="font-size:13px;color:var(--ink-500);margin-top:8px">Kilitli</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:16px">Seri ateşi emoji değil, lucide “flame” ikonu. Rozetler öğrenci tarafında; veli ve koç ekranlarında görünmez.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Koç tarafındaki karşılıkları</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--line)"><span style="color:var(--ink-500)">Seri</span><span style="font-weight:600">12 gün</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--line)"><span style="color:var(--ink-500)">LGS'ye kalan</span><span style="font-weight:600">270 gün</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-500)">Rozet</span><span>gösterilmez</span></div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:14px">Koç tarafında motivasyon öğesi veri olarak görünür, rozet olarak değil. Tek clay detayı: logo ve öğrenci avatarı.</p>
+    </div>
+  </div>
+
+  <!-- menüler -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Öğrenci alt menüsü (telefon) ve yan menüsü (masaüstü)</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+        <div style="width:330px;background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) var(--radius-card) var(--radius-card);box-shadow:var(--clay-lg);padding:12px 14px 16px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <sc-for list="{{ tabsLeft }}" as="t" hint-placeholder-count="2">
+              <button style="flex:1;min-width:56px;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ t.color }};font-size:12px;font-weight:{{ t.w }}">
+                <span style="width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:{{ t.bg }};box-shadow:{{ t.sh }}"><span style="display:block;width:16px;height:16px;border-radius:5px;border:2.5px solid {{ t.color }}"></span></span>
+                {{ t.label }}
+              </button>
+            </sc-for>
+            <button aria-label="Hızlı kayıt" style="width:62px;height:62px;flex:none;margin:0 6px -18px;border:0;border-radius:22px;background:var(--ink-900);box-shadow:var(--clay-lg);display:grid;place-items:center;cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.95)">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+            </button>
+            <sc-for list="{{ tabsRight }}" as="t" hint-placeholder-count="2">
+              <button style="flex:1;min-width:56px;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:{{ t.color }};font-size:12px;font-weight:{{ t.w }}">
+                <span style="width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:{{ t.bg }};box-shadow:{{ t.sh }}"><span style="display:block;width:16px;height:16px;border-radius:5px;border:2.5px solid {{ t.color }}"></span></span>
+                {{ t.label }}
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="width:92px;background:var(--bg-raised);border-radius:var(--radius-xl);box-shadow:var(--clay-lg);padding:16px 10px;display:flex;flex-direction:column;gap:10px;align-items:center">
+          <div style="width:46px;height:46px;border-radius:var(--radius-md);background:var(--ink-900);box-shadow:var(--clay-md);display:grid;place-items:center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+          </div>
+          <div style="width:46px;height:46px;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-pressed);display:grid;place-items:center;font-size:11px;font-weight:600">Bugün</div>
+          <div style="width:46px;height:46px;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:11px;color:var(--ink-500)">Konu</div>
+          <div style="width:46px;height:46px;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:11px;color:var(--ink-500)">Plan</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:14px">Alt menüde ortadaki hızlı kayıt düğmesi çubuktan 18 px taşar; masaüstünde aynı düğme yan menünün en üstünde durur.</p>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Koç yan menüsü ve telefondaki hamburger hali</div>
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+        <div style="width:190px;border:1px solid var(--line);border-radius:var(--radius-xs);overflow:hidden">
+          <sc-for list="{{ coachNav }}" as="n" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:14px;background:{{ n.bg }};font-weight:{{ n.w }};border-left:3px solid {{ n.bar }}">{{ n.label }}</div>
+          </sc-for>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);padding:8px 10px;background:#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <span style="font-size:14px;font-weight:500">Öğrenciler</span>
+            <span style="margin-left:auto;width:26px;height:26px;border-radius:50%;background:var(--bg-raised);box-shadow:var(--clay-sm)"></span>
+          </div>
+          <p style="font-size:13px;color:var(--ink-500);margin-top:10px;line-height:1.5">&lt; 768 px'te menü soldan açılan panele döner; gölge --shadow-pop.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tablo / uyarı -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Veri tablosu satırı · koç</div>
+      <div style="border:1px solid var(--line);border-radius:var(--radius-xs);overflow:hidden">
+        <div style="display:grid;grid-template-columns:1.5fr 1fr .8fr .9fr;gap:12px;padding:10px 14px;background:var(--bg-surface);font-size:12.5px;color:var(--ink-500);border-bottom:1px solid var(--line)">
+          <span>Öğrenci</span><span>Son giriş</span><span style="text-align:right">Son net</span><span style="text-align:right">Tekrar</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr .8fr .9fr;gap:12px;padding:12px 14px;font-size:14px;align-items:center;border-bottom:1px solid var(--line)" style-hover="background:var(--bg-surface)">
+          <span style="font-weight:500">Elif Yılmaz</span><span style="color:var(--ink-500)">bugün</span><span style="text-align:right;font-weight:600">71,33</span><span style="text-align:right">4</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr .8fr .9fr;gap:12px;padding:12px 14px;font-size:14px;align-items:center;background:var(--bg-surface)">
+          <span style="font-weight:500">Ahmet Kaya</span><span style="color:var(--ink-500)">4 gün önce</span><span style="text-align:right;font-weight:600">52,00</span><span style="text-align:right">11</span>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--ink-500);margin:20px 0 12px">Telefondaki kart hali</div>
+      <div style="border:1px solid var(--line);border-radius:var(--radius-xs);padding:12px 14px;max-width:320px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:500">Elif Yılmaz</span><span style="font-size:13px;color:var(--ink-500)">bugün</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;font-size:13px">
+          <div><div style="color:var(--ink-500)">Hedef</div><div style="font-weight:600">%86</div></div>
+          <div><div style="color:var(--ink-500)">Son net</div><div style="font-weight:600">71,33</div></div>
+          <div><div style="color:var(--ink-500)">Tekrar</div><div style="font-weight:600">4</div></div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--ink-500);margin:20px 0 12px">Uyarı satırı</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--line-strong);border-left:3px solid var(--state-warning);border-radius:var(--radius-xs);padding:11px 14px;background:#fff">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C07C0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.29 3.86-8.18 14.18A2 2 0 0 0 3.84 21h16.32a2 2 0 0 0 1.73-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+          <span style="font-size:14px;font-weight:500">Ahmet Kaya</span>
+          <span style="font-size:14px;color:var(--ink-700)">4 gündür kayıt yok</span>
+          <button style="margin-left:auto;height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);background:#fff;font-size:13px;cursor:pointer">Not yaz</button>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Boş durum · öğrenci</div>
+      <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:28px 22px;text-align:center">
+        <div style="width:96px;height:96px;margin:0 auto 18px;border-radius:var(--radius-lg);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center">
+          <svg width="46" height="46" viewBox="0 0 48 48" fill="none"><rect x="8" y="12" width="32" height="8" rx="4" fill="#BCC6DE"></rect><rect x="8" y="26" width="20" height="8" rx="4" fill="#D6DDEC"></rect><circle cx="38" cy="30" r="5" fill="#FFD84D"></circle></svg>
+        </div>
+        <div style="font-size:18px;font-weight:600">Henüz deneme eklemedin</div>
+        <p style="font-size:15px;color:var(--ink-700);margin:8px auto 18px;max-width:320px;line-height:1.55">İlk denemeni ekle, net takibin başlasın.</p>
+        <button style="min-height:48px;padding:0 24px;border:0;border-radius:var(--radius-md);background:var(--ink-900);color:#fff;font-size:16px;font-weight:600;box-shadow:var(--clay-md);cursor:pointer" style-active="box-shadow:var(--clay-pressed);transform:scale(.97)">Deneme ekle</button>
+      </div>
+      <div style="font-size:14px;color:var(--ink-500);margin:20px 0 12px">Toast bildirimi</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px;background:var(--ink-900);color:#fff;border-radius:var(--radius-md);box-shadow:var(--clay-lg);padding:14px 18px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD84D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          <span style="font-size:15px;font-weight:500">Kaydedildi. Bugün 34 soru kaldı.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:var(--state-error-soft);border:1px solid var(--state-error);border-radius:var(--radius-md);padding:14px 18px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C6352A" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+          <span style="font-size:15px;font-weight:500;color:var(--ink-900)">Kaydedilemedi. Tekrar dene.</span>
+          <button style="margin-left:auto;min-height:36px;padding:0 12px;border:1px solid var(--state-error);border-radius:var(--radius-xs);background:#fff;font-size:14px;font-weight:500;cursor:pointer">Tekrar dene</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- alt panel / diyalog -->
+  <div style="display:grid;grid-template-columns:{{ compCols }};gap:20px;margin-top:20px">
+    <div style="background:var(--bg-surface);border-radius:var(--radius-lg);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Alt panel (telefon)</div>
+      <div style="width:320px;background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) 0 0;box-shadow:var(--clay-lg);padding:14px 18px 22px">
+        <div style="width:44px;height:5px;border-radius:3px;background:var(--line-strong);margin:0 auto 16px"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:18px;font-weight:600">Soru kaydı</span>
+          <button aria-label="Kapat" style="width:44px;height:44px;border:0;border-radius:var(--radius-md);background:var(--bg-surface);box-shadow:var(--clay-sm);cursor:pointer;display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div style="height:80px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);margin-top:16px;display:grid;place-items:center;font-size:14px;color:var(--ink-500)">içerik</div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:24px">
+      <div style="font-size:14px;color:var(--ink-500);margin-bottom:16px">Diyalog (masaüstü) · solda öğrenci clay, sağda koç sade</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px;background:var(--bg-app);border-radius:var(--radius-md);padding:18px;display:grid;place-items:center">
+          <div style="width:100%;background:var(--bg-raised);border-radius:var(--radius-lg);box-shadow:var(--clay-lg);padding:16px">
+            <div style="font-size:16px;font-weight:600">Soru kaydı</div>
+            <div style="height:54px;border-radius:var(--radius-md);background:var(--bg-sunken);box-shadow:var(--clay-well);margin-top:12px"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px;background:rgba(27,36,64,.35);border-radius:var(--radius-md);padding:18px;display:grid;place-items:center">
+          <div style="width:100%;background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow-pop);padding:16px">
+            <div style="font-size:15px;font-weight:600">Planı 3 öğrenciye kopyala</div>
+            <div style="height:38px;border:1px solid var(--line-strong);border-radius:var(--radius-xs);margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 · TOKENLAR -->
+  <sc-if value="{{ showTokens }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:64px 0 20px">
+    <h2 style="font-size:26px;font-weight:600;letter-spacing:-0.01em">7 · Token listesi</h2>
+    <span style="font-size:15px;color:var(--ink-500)">Geliştiriciye devir · Tailwind v4 @theme veya :root altında kullanılabilir</span>
+  </div>
+  <div style="background:#fff;border-radius:var(--radius-card);border:1px solid var(--line);padding:26px;overflow-x:auto">
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.85;color:var(--ink-900);white-space:pre">:root {
+  /* mürekkep ve zemin — tema değiştirilebilir, koyu temada aynı adlar yeniden tanımlanır */
+  --ink-900:#1B2440;  --ink-700:#39456B;  --ink-500:#5A6485;  --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6;   --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC;     --line-strong:#BCC6DE;
+
+  /* ders renkleri */
+  --subject-tr:#D14B33;    --subject-tr-soft:#FAE6E1;    --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6;  --subject-math-soft:#E2EAFB;  --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;   --subject-sci-soft:#DBF0EA;   --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F;  --subject-hist-soft:#F6EBD3;  --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;   --subject-rel-soft:#EAE3FA;   --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;   --subject-eng-soft:#FAE1EE;   --subject-eng-ink:#A62A6B;
+  --subject-r1:#0F7A8C;    --subject-r2:#7A4A2A;         --subject-r3:#4F5A6B;  --subject-r4:#9C1F4F;
+
+  /* vurgu ve durum */
+  --accent-marker:#FFD84D;   --accent-marker-soft:#FFF3C7;
+  --state-success:#1B8A66;   --state-success-soft:#DCF0E8;
+  --state-warning:#C07C0C;   --state-warning-soft:#FAEBD2;
+  --state-error:#C6352A;     --state-error-soft:#FADFDC;
+
+  /* clay gölgeler */
+  --clay-sm:4px 4px 10px rgba(27,36,64,.10), -3px -3px 8px rgba(255,255,255,.85);
+  --clay-md:8px 8px 20px rgba(27,36,64,.12), -6px -6px 16px rgba(255,255,255,.90);
+  --clay-lg:16px 16px 34px rgba(27,36,64,.14), -10px -10px 24px rgba(255,255,255,.95);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,.60), inset -3px -3px 8px rgba(27,36,64,.06);
+  --clay-pressed:inset 4px 4px 10px rgba(27,36,64,.14), inset -3px -3px 8px rgba(255,255,255,.75);
+  --clay-well:inset 3px 3px 8px rgba(27,36,64,.10), inset -2px -2px 6px rgba(255,255,255,.85);
+
+  /* koç gölgeleri — sadece yüzen öğeler */
+  --shadow-pop:0 10px 28px rgba(27,36,64,.14), 0 2px 6px rgba(27,36,64,.06);
+  --shadow-drag:0 16px 32px rgba(27,36,64,.20);
+
+  /* yarıçap */
+  --radius-xs:8px;  --radius-sm:12px;  --radius-md:16px;  --radius-card:20px;
+  --radius-lg:28px; --radius-xl:36px;  --radius-pill:999px;
+
+  /* boşluk */
+  --space-1:4px;  --space-2:8px;  --space-3:12px; --space-4:16px; --space-5:20px;
+  --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px;
+
+  /* tipografi */
+  --font-sans:'Lexend', system-ui, sans-serif;
+  --text-display:32px;  --text-display-lg:44px;   /* telefon / masaüstü */
+  --text-title:24px;    --text-title-lg:28px;
+  --text-heading:18px;  --text-heading-lg:20px;
+  --text-body:16px;     --text-body-lg:16px;
+  --text-small:14px;    --text-small-lg:14px;
+  --text-micro:12px;    --text-micro-lg:12.5px;
+  --leading-tight:1.2;  --leading-body:1.55;
+  --weight-regular:400; --weight-medium:500; --weight-semibold:600;
+  --numeric:tabular-nums;
+
+  /* kırılma noktaları ve ölçüler */
+  --bp-tablet:768px; --bp-desktop:1024px; --bp-max:1320px;
+  --touch-min:44px;  --nav-rail:92px;  --coach-sidebar:232px;
+  --focus-ring:3px solid #2E66D6; --focus-offset:3px;
+  --motion-press:120ms; --motion-marker:220ms;
+}</div>
+  </div>
+  </sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;clayIntensity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;yumuşak&quot;,&quot;standart&quot;,&quot;belirgin&quot;],&quot;default&quot;:&quot;standart&quot;,&quot;tsType&quot;:&quot;'yumuşak'|'standart'|'belirgin'&quot;,&quot;section&quot;:&quot;Clay&quot;},&quot;showCoachVariants&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Görünüm&quot;},&quot;showTokenList&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Görünüm&quot;}}">
+class Component extends DCLogic {
+  state = { d: 32, y: 6 };
+
+  clamp(n) { return Math.max(0, Math.min(999, n)); }
+
+  renderVals() {
+    const p = this.props;
+    const inten = p.clayIntensity ?? "standart";
+    const presets = {
+      "yumuşak": {
+        "--clay-sm": "3px 3px 7px rgba(27,36,64,0.07), -2px -2px 6px rgba(255,255,255,0.8)",
+        "--clay-md": "6px 6px 14px rgba(27,36,64,0.08), -4px -4px 12px rgba(255,255,255,0.85)",
+        "--clay-lg": "12px 12px 26px rgba(27,36,64,0.10), -8px -8px 18px rgba(255,255,255,0.9)"
+      },
+      "standart": {},
+      "belirgin": {
+        "--clay-sm": "5px 5px 12px rgba(27,36,64,0.14), -4px -4px 10px rgba(255,255,255,0.95)",
+        "--clay-md": "10px 10px 26px rgba(27,36,64,0.17), -7px -7px 20px rgba(255,255,255,1)",
+        "--clay-lg": "20px 20px 42px rgba(27,36,64,0.20), -12px -12px 28px rgba(255,255,255,1)"
+      }
+    };
+
+    const subjects = [
+      { name: "Türkçe", short: "Tür", color: "#D14B33", soft: "#FAE6E1", ink: "#AE3922", tokens: "--subject-tr · soft #FAE6E1 · ink #AE3922" },
+      { name: "Matematik", short: "Mat", color: "#2E66D6", soft: "#E2EAFB", ink: "#2354BC", tokens: "--subject-math · soft #E2EAFB · ink #2354BC" },
+      { name: "Fen Bilimleri", short: "Fen", color: "#0E8C73", soft: "#DBF0EA", ink: "#0A6F5C", tokens: "--subject-sci · soft #DBF0EA · ink #0A6F5C" },
+      { name: "İnkılap Tarihi", short: "İnk", color: "#B0810F", soft: "#F6EBD3", ink: "#8A650A", tokens: "--subject-hist · soft #F6EBD3 · ink #8A650A" },
+      { name: "Din Kültürü", short: "Din", color: "#7451C4", soft: "#EAE3FA", ink: "#6040AE", tokens: "--subject-rel · soft #EAE3FA · ink #6040AE" },
+      { name: "İngilizce", short: "İng", color: "#C2377F", soft: "#FAE1EE", ink: "#A62A6B", tokens: "--subject-eng · soft #FAE1EE · ink #A62A6B" }
+    ];
+
+    const net = this.state.d - this.state.y / 3;
+
+    const tab = (label, active) => ({
+      label,
+      color: active ? "#1B2440" : "#5A6485",
+      w: active ? 600 : 400,
+      bg: active ? "var(--bg-surface)" : "transparent",
+      sh: active ? "var(--clay-pressed)" : "none"
+    });
+
+    const cn = (label, active) => ({
+      label,
+      bg: active ? "var(--bg-surface)" : "#fff",
+      w: active ? 600 : 400,
+      bar: active ? "#1B2440" : "transparent"
+    });
+
+    return {
+      clayVars: presets[inten] || {},
+      showTokens: p.showTokenList ?? true,
+      compCols: (p.showCoachVariants ?? true) ? "repeat(auto-fit,minmax(340px,1fr))" : "1fr",
+      subjects,
+      base: [
+        { name: "Mürekkep 900", token: "--ink-900", hex: "#1B2440" },
+        { name: "Mürekkep 700", token: "--ink-700", hex: "#39456B" },
+        { name: "Mürekkep 500", token: "--ink-500", hex: "#5A6485" },
+        { name: "Mürekkep 300", token: "--ink-300", hex: "#9AA2BC" },
+        { name: "Uygulama zemini", token: "--bg-app", hex: "#E9EDF6" },
+        { name: "Yüzey", token: "--bg-surface", hex: "#F1F4FB" },
+        { name: "Kabarık yüzey", token: "--bg-raised", hex: "#FAFBFE" },
+        { name: "Kuyu", token: "--bg-sunken", hex: "#DFE5F1" }
+      ],
+      reserve: [{ hex: "#0F7A8C" }, { hex: "#7A4A2A" }, { hex: "#4F5A6B" }, { hex: "#9C1F4F" }],
+      states: [
+        { name: "Başarı", hex: "#1B8A66", soft: "#DCF0E8" },
+        { name: "Uyarı", hex: "#C07C0C", soft: "#FAEBD2" },
+        { name: "Hata (sadece sistem)", hex: "#C6352A", soft: "#FADFDC" }
+      ],
+      radii: [
+        { token: "--radius-xs", v: "8px", h: "38px" },
+        { token: "--radius-sm", v: "12px", h: "46px" },
+        { token: "--radius-md", v: "16px", h: "54px" },
+        { token: "--radius-card", v: "20px", h: "62px" },
+        { token: "--radius-lg", v: "28px", h: "72px" },
+        { token: "--radius-xl", v: "36px", h: "82px" },
+        { token: "--radius-pill", v: "999px", h: "44px" }
+      ],
+      spaces: [
+        { token: "--space-1", v: "4px" }, { token: "--space-2", v: "8px" },
+        { token: "--space-3", v: "12px" }, { token: "--space-4", v: "16px" },
+        { token: "--space-5", v: "20px" }, { token: "--space-6", v: "24px" },
+        { token: "--space-8", v: "32px" }, { token: "--space-10", v: "40px" },
+        { token: "--space-12", v: "48px" }
+      ],
+      typeScale: [
+        { token: "--text-display", sizes: "32 / 44 px · 600", px: "40px", w: 600, ls: "-0.02em", sample: "86 soru" },
+        { token: "--text-title", sizes: "24 / 28 px · 600", px: "27px", w: 600, ls: "-0.01em", sample: "Bugün ne yapacağım?" },
+        { token: "--text-heading", sizes: "18 / 20 px · 600", px: "20px", w: 600, ls: "0", sample: "Konu haritası" },
+        { token: "--text-body", sizes: "16 / 16 px · 400", px: "16px", w: 400, ls: "0", sample: "Bu hafta paragrafa ağırlık veriyoruz." },
+        { token: "--text-small", sizes: "14 / 14 px · 400", px: "14px", w: 400, ls: "0", sample: "son çalışma 3 gün önce" },
+        { token: "--text-micro", sizes: "12 / 12,5 px · 500", px: "12px", w: 500, ls: "0", sample: "40 soru · Net 30,00" }
+      ],
+      tabsLeft: [tab("Bugün", true), tab("Konular", false)],
+      tabsRight: [tab("Denemeler", false), tab("Ben", false)],
+      coachNav: [cn("Öğrenciler", true), cn("Planlar", false), cn("Şablonlar", false), cn("Denemeler", false), cn("Ayarlar", false)],
+      d: this.state.d,
+      y: this.state.y,
+      netText: net.toFixed(2).replace(".", ",") + " net · " + (this.state.d + this.state.y + 2) + " soru",
+      incD: () => this.setState(s => ({ d: this.clamp(s.d + 1) })),
+      decD: () => this.setState(s => ({ d: this.clamp(s.d - 1) })),
+      incY: () => this.setState(s => ({ y: this.clamp(s.y + 1) })),
+      decY: () => this.setState(s => ({ y: this.clamp(s.y - 1) })),
+      setD: e => this.setState({ d: this.clamp(parseInt(e.target.value, 10) || 0) }),
+      setY: e => this.setState({ y: this.clamp(parseInt(e.target.value, 10) || 0) })
+    };
+  }
+}
+</script>
+</body>
+</html>

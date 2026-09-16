@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC; --line-strong:#BCC6DE;
+  --subject-tr:#D14B33;   --subject-tr-soft:#FAE6E1;   --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6; --subject-math-soft:#E2EAFB; --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;  --subject-sci-soft:#DBF0EA;  --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F; --subject-hist-soft:#F6EBD3; --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;  --subject-rel-soft:#EAE3FA;  --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;  --subject-eng-soft:#FAE1EE; --subject-eng-ink:#A62A6B;
+  --state-success:#1B8A66;
+  --clay-sm:4px 4px 10px rgba(27,36,64,0.10), -3px -3px 8px rgba(255,255,255,0.85);
+  --clay-md:8px 8px 20px rgba(27,36,64,0.12), -6px -6px 16px rgba(255,255,255,0.9);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,0.6), inset -3px -3px 8px rgba(27,36,64,0.06);
+  --clay-pressed:inset 4px 4px 10px rgba(27,36,64,0.14), inset -3px -3px 8px rgba(255,255,255,0.75);
+  --clay-well:inset 3px 3px 8px rgba(27,36,64,0.10), inset -2px -2px 6px rgba(255,255,255,0.85);
+  --radius-xs:8px; --radius-sm:12px; --radius-md:16px; --radius-card:20px;
+  --radius-lg:28px; --radius-xl:36px; --radius-pill:999px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:#DCE2EE;color:var(--ink-900);font-family:Lexend,'Segoe UI',system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4,p{margin:0;}
+a{color:var(--ink-900);text-decoration:underline;}
+a:hover{color:var(--subject-math-ink);}
+button,input,select{font:inherit;color:inherit;}
+:focus-visible{outline:3px solid #2E66D6;outline-offset:3px;}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+
+<div style="padding:40px;display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+
+  <div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <span style="font-size:15px;font-weight:600">V1 · Veli haftalık özeti</span>
+      <span style="font-size:13px;color:var(--ink-500)">390 × 844 · salt okunur · sakin clay</span>
+    </div>
+    <div data-screen-label="V1 Veli haftalık özet" style="width:390px;height:844px;background:var(--bg-app);border-radius:44px;box-shadow:0 30px 60px rgba(27,36,64,.22);overflow:hidden;position:relative;display:flex;flex-direction:column">
+      <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:600;color:var(--ink-700)">
+        <span>20.05</span>
+        <span style="width:16px;height:9px;border:1.5px solid var(--ink-700);border-radius:3px;display:block"></span>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:4px 18px 96px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;font-size:16px;font-weight:600">E</div>
+          <div style="flex:1">
+            <h1 style="font-size:21px;font-weight:600">Elif'in bu haftası</h1>
+            <div style="font-size:14px;color:var(--ink-500);margin-top:2px">14 – 20 Eylül 2026</div>
+          </div>
+          <button aria-label="Hafta seç" style="width:44px;height:44px;border:0;border-radius:var(--radius-md);background:var(--bg-raised);box-shadow:var(--clay-sm);display:grid;place-items:center;cursor:pointer">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path><path d="M8 2v4M16 2v4M3 11h18"></path></svg>
+          </button>
+        </div>
+
+        <div style="margin-top:16px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:16px 18px">
+          <div style="font-size:16px;color:var(--ink-700);line-height:1.5">Elif bu hafta planının <strong style="font-weight:600">%80'ini</strong> tamamladı.</div>
+          <div style="height:14px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);overflow:hidden;margin-top:12px">
+            <div style="width:80%;height:100%;border-radius:var(--radius-pill);background:var(--subject-sci)"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <div style="flex:1;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:14px 16px">
+            <div style="font-size:24px;font-weight:600;line-height:1.1">612</div>
+            <div style="font-size:13.5px;color:var(--ink-500);margin-top:4px">soru çözdü</div>
+          </div>
+          <div style="flex:1;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:14px 16px">
+            <div style="font-size:24px;font-weight:600;line-height:1.1">14 sa 20 dk</div>
+            <div style="font-size:13.5px;color:var(--ink-500);margin-top:4px">çalışma süresi</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:16px 18px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div>
+              <div style="font-size:14px;color:var(--ink-500)">Son deneme neti</div>
+              <div style="font-size:32px;font-weight:600;line-height:1.1;margin-top:4px">71,33</div>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--radius-pill);background:#DCF0E8;color:#146B50;font-size:14.5px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#146B50" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"></path><path d="M16 7h6v6"></path></svg>
+              +3,67
+            </span>
+          </div>
+          <div style="font-size:13.5px;color:var(--ink-500);margin-top:8px">14 Eylül · Kafa Dengi Deneme 6</div>
+        </div>
+
+        <h2 style="font-size:17px;font-weight:600;margin:20px 2px 10px">Son 5 denemenin neti</h2>
+        <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:16px 16px 12px">
+          <div style="display:flex;gap:10px;align-items:flex-end;height:132px">
+            <sc-for list="{{ exams }}" as="e" hint-placeholder-count="5">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+                <span style="font-size:13px;font-weight:600">{{ e.net }}</span>
+                <span style="width:100%;border-radius:8px 8px 4px 4px;background:{{ e.bg }};height:{{ e.h }}"></span>
+                <span style="font-size:11.5px;color:var(--ink-500)">{{ e.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:13px;color:var(--ink-500);margin-top:10px;text-align:center">Beş denemede toplam net 13 puan arttı.</div>
+        </div>
+
+        <h2 style="font-size:17px;font-weight:600;margin:20px 2px 10px">Ders bazında haftalık soru</h2>
+        <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:16px 18px">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ dist }}" as="d" hint-placeholder-count="6">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:6px">
+                  <span>{{ d.name }}</span>
+                  <span style="font-weight:600">{{ d.count }}</span>
+                </div>
+                <div style="height:10px;border-radius:var(--radius-pill);background:var(--bg-sunken);box-shadow:var(--clay-well);overflow:hidden">
+                  <div style="height:100%;border-radius:var(--radius-pill);background:{{ d.color }};width:{{ d.w }}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <h2 style="font-size:17px;font-weight:600;margin:20px 2px 10px">Koçun notu</h2>
+        <div style="background:var(--bg-raised);border-radius:var(--radius-card);box-shadow:var(--clay-sm);padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:var(--radius-sm);background:var(--bg-sunken);box-shadow:var(--clay-well);display:grid;place-items:center;font-size:14.5px;font-weight:600">MT</div>
+            <div>
+              <div style="font-size:15px;font-weight:600">Murat Toprak</div>
+              <div style="font-size:13px;color:var(--ink-500)">Koç · 15 Eylül</div>
+            </div>
+          </div>
+          <p style="font-size:16px;line-height:1.55;color:var(--ink-900);margin-top:12px">“Elif matematikte istikrarlı gidiyor, üslü ifadeler oturdu. Bu hafta paragraf sorularına ağırlık veriyoruz; günde 30 soru hedefliyoruz. Akşam çalışma saatini 21.00'den önce bitirmesi verimini artırır.”</p>
+          <div style="font-size:13.5px;color:var(--ink-500);margin-top:12px">Sorularınız için koçunuza mesaj yazabilirsiniz.</div>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:0 14px 10px">
+        <div style="background:var(--bg-raised);border-radius:var(--radius-xl) var(--radius-xl) 26px 26px;box-shadow:var(--clay-md);padding:8px;display:flex">
+          <button style="flex:1;min-height:52px;border:0;border-radius:20px;background:var(--bg-surface);box-shadow:var(--clay-pressed);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:12px;font-weight:600">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1B2440" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 16v-5M12 16V8M17 16v-8"></path></svg>
+            Özet
+          </button>
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:12px;color:var(--ink-500)">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"></path><path d="M4 9h16M9 19V9"></path></svg>
+            Denemeler
+          </button>
+          <button style="flex:1;min-height:52px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:12px;color:var(--ink-500)">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5A6485" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"></path></svg>
+            Mesajlar
+          </button>
+        </div>
+        <div style="width:120px;height:5px;border-radius:3px;background:var(--line-strong);margin:8px auto 0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:390px;background:#fff;border-radius:20px;padding:24px;box-shadow:0 10px 28px rgba(27,36,64,.10)">
+    <h3 style="font-size:17px;font-weight:600;margin-bottom:12px">Veli ekranında kararlar</h3>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700)">Aynı token'lar, daha sakin kullanım: yalnızca clay-sm özet kartları, rozet ve seri yok, fosforlu vurgu yok. Kabarıklık bilgiyi gruplamak için var, ödüllendirmek için değil.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Tek soru yanıtlanıyor: “Çocuğum bu hafta nasıl gidiyor?” Üç ana bilgi en üstte, ardından trend ve ders dağılımı, en sonda koçun notu. Başka öğrencilerle karşılaştırma ya da sıralama hiçbir yerde yok.</p>
+    <p style="font-size:14.5px;line-height:1.6;color:var(--ink-700);margin-top:10px">Salt okunur: tek etkileşim hafta seçmek ve koça mesaj yazmak. Net düşüşü kırmızıyla değil, yükseliş yeşil rozetle ve nötr sayılarla anlatılıyor.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  renderVals() {
+    const nets = [
+      { label: "5 Tem", v: 58.33 },
+      { label: "26 Tem", v: 62.0 },
+      { label: "16 Ağu", v: 65.67 },
+      { label: "31 Ağu", v: 67.66 },
+      { label: "14 Eyl", v: 71.33 }
+    ];
+    const max = 80;
+    const exams = nets.map((n, i) => ({
+      label: n.label,
+      net: n.v.toFixed(2).replace(".", ","),
+      h: Math.round((n.v / max) * 108) + "px",
+      bg: i === nets.length - 1 ? "var(--subject-math)" : "#9FB6E6"
+    }));
+
+    const raw = [
+      { name: "Matematik", count: 176, color: "var(--subject-math)" },
+      { name: "Türkçe", count: 148, color: "var(--subject-tr)" },
+      { name: "Fen Bilimleri", count: 112, color: "var(--subject-sci)" },
+      { name: "İnkılap Tarihi", count: 74, color: "var(--subject-hist)" },
+      { name: "İngilizce", count: 60, color: "var(--subject-eng)" },
+      { name: "Din Kültürü", count: 42, color: "var(--subject-rel)" }
+    ];
+    return {
+      exams,
+      dist: raw.map(r => ({ name: r.name, count: r.count + " soru", color: r.color, w: Math.round((r.count / 176) * 100) + "%" }))
+    };
+  }
+}
+</script>
+</body>
+</html>

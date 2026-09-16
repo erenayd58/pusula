@@ -118,7 +118,7 @@ Her modül bağımsız bir klasördür (`src/features/<modul>`), kendi menü ö�
 
 ## 7. Koç Uyarı Kuralları
 
-Uyarılar veritabanında bir görünüm (view) ile hesaplanır; eşik değerleri kurum ayarlarında düzenlenebilir.
+Uyarılar veritabanında bir görünüm (view) ile hesaplanır; eşik değerleri kurum ayarlarında düzenlenebilir. Koç ana ekranında her uyarı satırında türüne uygun bir hızlı eylem bulunur (hareketsizlik → "Not yaz", net düşüşü → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur").
 
 | Uyarı | Varsayılan kural |
 |---|---|
@@ -200,7 +200,7 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 
 ### Faz 4: Haftalık Plan, Notlar, Duyurular (M)
 - `weekly_plans`, `plan_items`, `plan_templates`, `coach_notes`, `meetings`, `announcements`
-- Koç plan oluşturucu (sürükle-bırak), plan kopyalama; öğrenci görev tamamlama → soru kaydı ön doldurma
+- Koç plan oluşturucu (sürükle-bırak, otomatik taslak kaydı, zayıf konu/kaynak/video paneli), plan kopyalama; öğrenci görev tamamlama → soru kaydı ön doldurma
 - **Kabul:** Koç bir planı 3 öğrenciye kopyalayabiliyor; öğrencinin tamamladığı görev koç ekranına yansıyor.
 
 ### Faz 5: Kaynaklar ve Videolar (M)

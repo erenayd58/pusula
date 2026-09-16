@@ -46,6 +46,7 @@ pusula/
 │   ├── 02-mimari.md
 │   ├── 03-veri-modeli.md
 │   ├── 04-tasarim-sistemi.md
+│   ├── tasarim/                     # Claude Design çıktıları (görsel referans) + ekran görüntüleri
 │   ├── 05-lgs-2027-sablonu.md
 │   └── 06-claude-code-rehberi.md
 ├── supabase/
@@ -149,9 +150,9 @@ pusula/
     │   └── get-enabled-modules.ts   # Öğrenci için açık modülleri getirir (cache'li)
     ├── components/
     │   ├── ui/                      # shadcn/ui bileşenleri (sadece burada)
-    │   ├── layout/                  # AppShell, BottomNav, Sidebar, PageHeader
+    │   ├── layout/                  # SurfaceRoot (data-surface), StudentBottomNav, StudentRail, CoachSidebar, PageHeader
     │   ├── charts/                  # Ortak grafik sarmalayıcıları
-    │   └── shared/                  # EmptyState, SubjectBadge, StatNumber, ConfirmDialog…
+    │   └── shared/                  # EmptyState, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
     ├── lib/
     │   ├── supabase/
     │   │   ├── client.ts            # Tarayıcı istemcisi
@@ -165,7 +166,9 @@ pusula/
     │   ├── actions/
     │   │   └── create-action.ts     # Server Action sarmalayıcısı (auth + zod + Result)
     │   ├── dates/
-    │   │   └── index.ts             # todayInIstanbul(), weekStart(), formatTr()…
+    │   │   └── index.ts             # todayInIstanbul(), weekStart()…
+    │   ├── format/
+    │   │   └── index.ts             # formatPercent, formatNet, formatCount, formatDuration, formatDateTr
     │   ├── exam/
     │   │   └── net.ts               # calculateNet(correct, wrong, penalty)
     │   ├── result.ts                # Result<T> tipi
@@ -458,3 +461,6 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 5 | 2026-09 | Öğrenci için kullanıcı adı + sentetik e-posta | Çocukların e-postası yok | Telefonla SMS girişi (ücretli) |
 | 6 | 2026-09 | Zamanlanmış işler pg_cron'da | Vercel Hobby cron sınırı | Harici cron servisi |
 | 7 | 2026-09 | Rota segmentleri İngilizce, arayüz Türkçe | Kod tutarlılığı | Türkçe URL |
+| 8 | 2026-09 | Hibrit tasarım: öğrenci clay, veli sakin clay, koç sade; `data-surface` ile tek bileşen seti | Yaş grubuna uygun his + koç ekranlarında veri okunabilirliği | Tamamen clay, tamamen düz |
+| 9 | 2026-09 | Ders rengi `subjects.color` token öneki + `subjectVars()` CSS değişkenleri | Tailwind dinamik sınıf üretemez; yeni dersler kod değişmeden renk alır | Sabit sınıf eşleme tablosu |
+| 10 | 2026-09 | Tasarımdaki veli "Mesajlar" sekmesi "Notlar" olarak uygulanır | Mesajlaşma kapsam dışı | Mesajlaşma modülü eklemek |

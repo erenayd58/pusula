@@ -24,16 +24,20 @@
 
 ## 2. Dersler
 
+`color` alanı `04-tasarim-sistemi.md` Bölüm 4.2'deki token önekidir.
+
 | code | name | short_name | color | icon (lucide) | exam_section | exam_question_count | sort_order |
 |---|---|---|---|---|---|---|---|
-| TUR | Türkçe | Türkçe | subject-turkish | BookOpenText | sozel | 20 | 1 |
+| TUR | Türkçe | Türkçe | subject-tr | BookOpenText | sozel | 20 | 1 |
 | MAT | Matematik | Mat | subject-math | Sigma | sayisal | 20 | 2 |
-| FEN | Fen Bilimleri | Fen | subject-science | FlaskConical | sayisal | 20 | 3 |
-| INK | T.C. İnkılap Tarihi ve Atatürkçülük | İnkılap | subject-history | Landmark | sozel | 10 | 4 |
-| DIN | Din Kültürü ve Ahlak Bilgisi | Din | subject-religion | BookHeart | sozel | 10 | 5 |
-| ING | İngilizce | İng | subject-english | Languages | sozel | 10 | 6 |
+| FEN | Fen Bilimleri | Fen | subject-sci | FlaskConical | sayisal | 20 | 3 |
+| INK | T.C. İnkılap Tarihi ve Atatürkçülük | İnkılap | subject-hist | Landmark | sozel | 10 | 4 |
+| DIN | Din Kültürü ve Ahlak Bilgisi | Din | subject-rel | BookHeart | sozel | 10 | 5 |
+| ING | İngilizce | İng | subject-eng | Languages | sozel | 10 | 6 |
 
 ## 3. Konular
+
+> Tasarım dosyalarındaki konu adları (ör. "Paragrafta Yapı", "Olasılık") sadece görsel örnektir. Şablon için esas alınacak liste burasıdır; o da MEB listesiyle doğrulanmalıdır.
 
 Ünite düzeyi konular aşağıdadır. Alt konular (`parent_id`) isteğe bağlıdır; Matematik için örnek olarak verilmiştir. `semester` değerleri okulların ders planına göre değişebildiği için boş bırakılmış, koç tarafından doldurulacaktır.
 

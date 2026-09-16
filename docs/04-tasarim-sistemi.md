@@ -1,231 +1,356 @@
 # Tasarım Sistemi
 
-## 1. Konu, Kitle, Görev
+> Onaylanan tasarım Claude Design ile üretildi ve `docs/tasarim/` klasöründe duruyor. **Bu belge kuraldır, HTML dosyaları görsel referanstır.** İkisi çelişirse bu belge geçerlidir. Tasarım dosyalarındaki örnek veriler (öğrenci adları, konu adları, yayınevi adları, sayılar) sadece görseldir; gerçek konu listesi `05-lgs-2027-sablonu.md` ve veritabanından gelir.
 
-- **Konu:** LGS'ye hazırlanan bir öğrencinin çalışma defteri ve koçunun kontrol paneli.
-- **Kitle:** 13-14 yaşında öğrenciler (telefonda, kısa süreli, sık kullanım), koç (masaüstünde, yoğun veriyle), veli (telefonda, haftada birkaç kez, özet).
-- **Birincil görev:** Öğrenci için "bugün ne yapacağım ve ne yaptım" sorusunu saniyeler içinde yanıtlamak. Koç için "kime, neden müdahale etmeliyim" sorusunu tek bakışta yanıtlamak.
+## 1. Referans Dosyalar
 
-## 2. Görsel Fikir
-
-Okul hayatının tanıdık nesnelerinden beslenen sade bir dil:
-
-- **Ders renkleri = defter kapakları.** Her dersin sabit bir rengi vardır ve bu renk uygulamanın her yerinde (rozet, grafik, konu haritası, plan kartının sol çizgisi) aynı dersi temsil eder. Öğrenci bir süre sonra metni okumadan rengi tanır.
-- **Mürekkep ve kâğıt.** Nötr zemin serin gri-beyaz, metin ve birincil düğmeler koyu mürekkep mavisi. Renk yükünü dersler taşır; arayüzün kendisi sessizdir.
-- **Fosforlu kalem.** Tek vurgu rengi. Sadece "tamamlandı" anında ve günün hedef sayısında kullanılır; bir satırın arkasına fosforlu kalem çekilmiş gibi görünür. Başka hiçbir yerde kullanılmaz, böylece anlamını korur.
-
-**İmza öğe: Konu Haritası.** Her ders bir satır, her konu bir hücre; hücrenin doluluğu hâkimiyet puanını gösterir. Öğrencinin ve koçun "nerede eksiğim var" sorusuna tek ekranda cevap veren, uygulamanın en akılda kalıcı ekranı budur. Görsel cesaret burada harcanır; diğer ekranlar sakin kalır.
-
-### Bilinçli olarak kaçınılanlar
-
-- Her şeyi aynı köşe yuvarlaklığında ve aynı gölgeli kartlara bölmek. Burada çizgiler ve boşluk hiyerarşiyi kurar; gölge sadece üstte yüzen öğelerde (alt panel, menü, diyalog) vardır.
-- Başlıkların üstünde küçük harf aralıklı BÜYÜK HARF etiketler.
-- Motivasyon için gradyanlı süslemeler, konfeti yağdıran animasyonlar. Başarı anı tek, küçük ve anlamlı bir hareketle gösterilir (fosforlu kalemin satıra çekilmesi).
-- Kırmızıyı performans için kullanmak. Kırmızı sadece sistem hatasıdır ("kaydedilemedi"). Düşük performans "kalan" diliyle ve nötr renkle gösterilir.
-
-## 3. Renk Token'ları
-
-`src/app/globals.css` içinde CSS değişkeni olarak tanımlanır, Tailwind v4 `@theme` ile sınıflara bağlanır.
-
-### 3.1 Temel
-
-| Token | Açık tema | Koyu tema | Kullanım |
-|---|---|---|---|
-| `--canvas` | `#F4F6FA` | `#0F1426` | Sayfa zemini |
-| `--surface` | `#FFFFFF` | `#172036` | Kart, panel, tablo zemini |
-| `--ink` | `#1B2440` | `#E8ECF5` | Ana metin, birincil düğme zemini |
-| `--ink-muted` | `#5B6479` | `#9AA3B8` | İkincil metin |
-| `--line` | `#D9DEE8` | `#2A3350` | Kenarlıklar, ayraçlar |
-| `--highlight` | `#FFD84D` | `#E9BE2F` | Fosforlu kalem (sadece tamamlandı + günün hedefi) |
-| `--danger` | `#C23B34` | `#F07A72` | Sadece sistem hataları |
-| `--success` | `#1D8F63` | `#4CC495` | Kayıt başarılı bildirimi |
-
-### 3.2 Ders Renkleri
-
-Veritabanında `subjects.color` alanı token **adını** tutar (`subject-math`), hex değerini değil. Böylece tema değişince veriler bozulmaz. Yeni bir ders eklenirse yedek paletten (`subject-extra-1…4`) seçilir.
-
-| Token | Ders | Açık | Koyu |
-|---|---|---|---|
-| `--subject-turkish` | Türkçe | `#D9543C` | `#F08A73` |
-| `--subject-math` | Matematik | `#2E66D6` | `#6E9BF2` |
-| `--subject-science` | Fen Bilimleri | `#14946F` | `#4FC7A2` |
-| `--subject-history` | İnkılap Tarihi | `#A8741A` | `#DDAA4E` |
-| `--subject-religion` | Din Kültürü | `#7654C2` | `#A68BE6` |
-| `--subject-english` | İngilizce | `#C63F77` | `#EC7DAA` |
-| `--subject-extra-1…4` | Yedek | `#0E7C86`, `#6B7A1E`, `#8A4F7D`, `#4B5563` | açık tonları |
-
-Her ders rengi için `--subject-*-soft` (%12 opaklık zemin) türetilir. Metin her zaman `--ink` renginde kalır; ders rengi metin rengi olarak sadece büyük ve kalın ifadelerde kullanılır (kontrast için).
-
-### 3.3 Hâkimiyet Ölçeği (Konu Haritası)
-
-Renk tek başına anlam taşımaz; doluluk seviyesi + desen birlikte kullanılır.
-
-| Durum | Hücre görünümü |
+| Dosya | İçerik |
 |---|---|
-| Başlanmadı | Boş hücre, ince `--line` kenarlık |
-| Çalışılıyor | Hücrenin alt %33'ü ders rengiyle dolu |
-| Tamamlandı | Alt %66 dolu |
-| Oturdu | Tamamen dolu |
-| Tekrar gerekli | Mevcut doluluk + çapraz tarama deseni |
+| `docs/tasarim/tasarim-sistemi.html` | Renkler, clay seviyeleri, tipografi, kırılma noktaları, tüm bileşenler (öğrenci ve koç varyantı yan yana), token listesi |
+| `docs/tasarim/ogrenci-telefon.html` | S1 Bugün, S2 Hızlı kayıt, S3 Konu haritası, S4 Haftalık plan |
+| `docs/tasarim/ogrenci-masaustu.html` | S5 Bugün, S6 Hızlı kayıt diyaloğu, S7 Konu haritası |
+| `docs/tasarim/veli-telefon.html` | V1 Haftalık özet |
+| `docs/tasarim/koc-masaustu.html` | K1 Ana ekran, K2 Öğrenci detayı, K3 Plan oluşturucu |
+| `docs/tasarim/ekran-goruntuleri/*.png` | Aynı ekranların statik görüntüleri (Claude Code bunları doğrudan okuyabilir) |
 
-Hücreye dokununca/üzerine gelince konu adı, soru sayısı, başarı yüzdesi ve son çalışma tarihi gösterilir.
+HTML dosyaları çift tıklayarak açıldığında boş görünebilir; bir yerel sunucuyla açın: `npx serve docs/tasarim`. İnternet bağlantısı gerekir (React ve Lexend CDN'den yüklenir). PNG görüntüler yedek yazı tipiyle alınmıştır, tipografi için HTML'i esas alın.
 
-## 4. Tipografi
+## 2. Görsel Yön: Hibrit, Tek Ürün
 
-- **Aile:** [Lexend](https://fonts.google.com/specimen/Lexend), `next/font/google` ile, `latin` + `latin-ext` alt kümeleri. Okuma akıcılığını artırmak amacıyla tasarlanmış bir yazı tipi; genç kullanıcılar ve yoğun sayı içeren ekranlar için bilinçli seçim. Kurulumda ğ, ş, ı, İ, ç, ö, ü karakterlerinin doğru göründüğü kontrol edilir.
-- **Yedek:** `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
-- **Sayılar:** Tüm istatistik ve tablolarda `font-variant-numeric: tabular-nums`.
+Renk paleti, ders renkleri, Lexend yazı tipi, lucide ikonları ve yazım dili tüm rollerde ortaktır. Değişen tek şey yüzeyin dokusudur.
 
-| Token | Boyut / satır yüksekliği | Ağırlık | Kullanım |
+| Rol | Yüzey dili | `data-surface` | Özet |
 |---|---|---|---|
-| `text-display` | 40 / 44 | 600 | Günün hedef sayısı, geri sayım |
-| `text-title` | 24 / 30 | 600 | Sayfa başlığı |
-| `text-heading` | 18 / 24 | 600 | Bölüm başlığı |
-| `text-body` | 16 / 24 | 400 | Gövde (mobilde asla 16'nın altına inmez; iOS yakınlaştırmasını önler) |
-| `text-small` | 14 / 20 | 400 | İkincil bilgi, tablo |
-| `text-micro` | 12 / 16 | 500 | Grafik ekseni, rozet |
+| Öğrenci (telefon + masaüstü) | Claymorphism | `clay` | Kabarık, dokunsal, oyunsu ama çocuksu değil. Rozet, seri, fosforlu vurgu var. |
+| Veli | Sakin clay | `clay-calm` | Aynı token'lar; sadece `clay-sm` özet kartları. Rozet, seri, fosforlu vurgu yok. |
+| Koç | Sade | `flat` | Düz yüzey, 1 px kenarlık, boşlukla hiyerarşi. Gölge sadece yüzen öğelerde. Clay sadece logo kutusu ve öğrenci avatarında. |
 
-Başlıklar cümle düzeninde yazılır ("Bugünkü görevler"), büyük harf kullanılmaz.
+**Uygulama:** Her rolün kök layout'u `<div data-surface="clay|clay-calm|flat">` ile sarılır. Ortak bileşenler (Button, Card, Input, Badge, Dialog, Nav) varyantını bu özelliğe göre CSS ile alır; bileşene her seferinde `variant="clay"` geçilmez. Böylece aynı bileşen öğrenci ekranında kabarık, koç ekranında düz görünür.
 
-## 5. Biçim ve Boşluk
+## 3. Token'lar
 
-- **Boşluk ölçeği:** 4 px tabanlı (4, 8, 12, 16, 24, 32, 48).
-- **Köşe yuvarlaklığı hiyerarşisi:**
-  - `6px`: giriş alanı, rozet, konu haritası hücresi
-  - `10px`: kart, tablo kapsayıcısı
-  - `20px`: alt panel (bottom sheet) üst köşeleri, diyalog
-  - `999px`: sadece ilerleme çubuğu ve avatar
-- **Gölge:** Sadece yüzen öğelerde tek bir gölge token'ı (`--shadow-float`).
-- **Dokunma hedefi:** En az 44×44 px.
-- **Satır uzunluğu:** Metin blokları en fazla ~70 karakter (`max-w-prose`).
+`src/app/globals.css` içinde `:root` altında tanımlanır. Adlar koyu tema için korunur; koyu temada aynı adlar yeniden tanımlanacak (sonraki tur).
 
-## 6. Yerleşimler
+```css
+:root {
+  /* mürekkep ve zemin */
+  --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
+  --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --line:#D6DDEC; --line-strong:#BCC6DE;
 
-### 6.1 Öğrenci: Bugün (mobil)
+  /* ders renkleri: tam renk / soft zemin / koyu metin tonu */
+  --subject-tr:#D14B33;   --subject-tr-soft:#FAE6E1;   --subject-tr-ink:#AE3922;
+  --subject-math:#2E66D6; --subject-math-soft:#E2EAFB; --subject-math-ink:#2354BC;
+  --subject-sci:#0E8C73;  --subject-sci-soft:#DBF0EA;  --subject-sci-ink:#0A6F5C;
+  --subject-hist:#B0810F; --subject-hist-soft:#F6EBD3; --subject-hist-ink:#8A650A;
+  --subject-rel:#7451C4;  --subject-rel-soft:#EAE3FA;  --subject-rel-ink:#6040AE;
+  --subject-eng:#C2377F;  --subject-eng-soft:#FAE1EE;  --subject-eng-ink:#A62A6B;
+  /* yedek ders renkleri (soft ve ink tonları uygulamada türetilecek) */
+  --subject-r1:#0F7A8C; --subject-r2:#7A4A2A; --subject-r3:#4F5A6B; --subject-r4:#9C1F4F;
 
-```
-┌──────────────────────────────┐
-│ Günaydın Elif        🔥 12   │  ← seri
-│ LGS'ye 268 gün               │
-├──────────────────────────────┤
-│  Bugün                        │
-│  86 / 120 soru               │  ← text-display, hedefe ulaşınca fosforlu
-│  ▓▓▓▓▓▓▓▓▓▓▓▓░░░░░            │
-├──────────────────────────────┤
-│ Planım                  3/5  │
-│ ▌Mat  Üslü İfadeler · 40 soru│  ← sol çizgi ders rengi
-│ ▌Fen  Basınç · video 3-5  ✓  │  ← tamamlanınca fosforlu arka plan
-│ ▌Türkçe Paragraf · 30 soru   │
-├──────────────────────────────┤
-│ Tekrar zamanı            4   │
-│ DNA ve Genetik Kod · 7. gün  │
-├──────────────────────────────┤
-│  [modül widget'ları sırayla] │
-└──────────────────────────────┘
-│ Bugün  Konular  (＋)  Deneme  Ben │  ← alt menü, ortada hızlı kayıt
-```
+  /* vurgu ve durum */
+  --accent-marker:#FFD84D; --accent-marker-soft:#FFF3C7;
+  --state-success:#1B8A66; --state-success-soft:#DCF0E8;
+  --state-warning:#C07C0C; --state-warning-soft:#FAEBD2;
+  --state-error:#C6352A;   --state-error-soft:#FADFDC;
 
-### 6.2 Öğrenci: Hızlı kayıt alt paneli
+  /* clay gölgeler (öğrenci, veli) */
+  --clay-sm:4px 4px 10px rgba(27,36,64,.10), -3px -3px 8px rgba(255,255,255,.85);
+  --clay-md:8px 8px 20px rgba(27,36,64,.12), -6px -6px 16px rgba(255,255,255,.90);
+  --clay-lg:16px 16px 34px rgba(27,36,64,.14), -10px -10px 24px rgba(255,255,255,.95);
+  --clay-inner:inset 2px 2px 4px rgba(255,255,255,.60), inset -3px -3px 8px rgba(27,36,64,.06);
+  --clay-pressed:inset 4px 4px 10px rgba(27,36,64,.14), inset -3px -3px 8px rgba(255,255,255,.75);
+  --clay-well:inset 3px 3px 8px rgba(27,36,64,.10), inset -2px -2px 6px rgba(255,255,255,.85);
 
-```
-┌──────────────────────────────┐
-│ Soru kaydı              ✕    │
-│ [Mat][Fen][Tür][İnk][Din][İng]│  ← son kullanılan ders seçili gelir
-│ Konu:  Üslü İfadeler     ▾   │  ← son konu önerilir
-│ Kaynak: (isteğe bağlı)   ▾   │
-│                              │
-│  Doğru    Yanlış    Boş      │
-│  [ 32 ]   [  6 ]   [  2 ]    │  ← büyük sayı klavyesi
-│  Toplam 40 · Net 30,00       │
-│                              │
-│ [        Kaydet         ]    │
-└──────────────────────────────┘
+  /* koç gölgeleri, yarıçaplar ve metin boyutları: Bölüm 3.1'deki @theme içinde tanımlanır */
+
+  /* ölçüler */
+  --touch-min:44px;
+  --nav-rail:104px;          /* öğrenci masaüstü yan menü (tasarımdaki gerçek değer) */
+  --coach-sidebar:232px;
+  --content-max-student:1240px;
+  --content-max:1320px;
+  --focus-ring:3px solid #2E66D6; --focus-offset:3px;
+  --motion-press:120ms; --motion-marker:220ms;
+}
 ```
 
-### 6.3 Koç: Ana ekran (masaüstü)
+Tasarım dosyasındaki token listesinden farklar: koç gölgeleri, yarıçaplar ve metin boyutları Tailwind'le ad çakışmasını önlemek için `@theme` içine taşındı (değerler aynı); `--nav-rail` ekranlarda 104 px kullanıldığı için 92 yerine 104 alındı; içerik genişliği öğrenci (1240) ve koç (1320) için ayrıldı. Boşluk token'ları Tailwind v4'ün varsayılan 4 px tabanlı ölçeğiyle birebir örtüştüğü için ayrıca tanımlanmaz (`p-1` = 4 px … `p-12` = 48 px).
 
+### 3.1 Tailwind v4 eşlemesi
+
+```css
+@import "tailwindcss";
+
+@theme inline {
+  /* :root token'larına bağlanan renkler ve clay gölgeler */
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-marker: var(--accent-marker);
+  --color-marker-soft: var(--accent-marker-soft);
+  --color-success: var(--state-success);
+  --color-success-soft: var(--state-success-soft);
+  --color-warning: var(--state-warning);
+  --color-warning-soft: var(--state-warning-soft);
+  --color-error: var(--state-error);
+  --color-error-soft: var(--state-error-soft);
+  /* ders rengi: bileşen düzeyinde ayarlanan --s değişkenleri (Bölüm 4.2) */
+  --color-subject: var(--s);
+  --color-subject-soft: var(--s-soft);
+  --color-subject-ink: var(--s-ink);
+
+  --shadow-clay-sm: var(--clay-sm);
+  --shadow-clay-md: var(--clay-md);
+  --shadow-clay-lg: var(--clay-lg);
+  --shadow-clay-pressed: var(--clay-pressed);
+  --shadow-clay-well: var(--clay-well);
+
+  --font-sans: var(--font-lexend), system-ui, sans-serif;
+}
+
+@theme {
+  /* Tailwind ad alanlarıyla aynı adı taşıyan token'lar :root'ta değil burada,
+     literal değerle tanımlanır. inline olmayan @theme bunları CSS değişkeni olarak
+     da yayınlar, yani var(--radius-card) gibi her yerde kullanılabilir. */
+  --shadow-pop: 0 10px 28px rgba(27,36,64,.14), 0 2px 6px rgba(27,36,64,.06);
+  --shadow-drag: 0 16px 32px rgba(27,36,64,.20);
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-card: 20px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+
+  --text-display: 32px;    --text-display-lg: 44px;   /* telefon / masaüstü */
+  --text-title: 24px;      --text-title-lg: 28px;
+  --text-heading: 18px;    --text-heading-lg: 20px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-micro: 12px;      --text-micro-lg: 12.5px;
+}
 ```
-┌────────────┬─────────────────────────────────────────────────────┐
-│ Pusula     │ Öğrencilerim                     [+ Yeni öğrenci]   │
-│            ├─────────────────────────────────────────────────────┤
-│ Öğrenciler │ Dikkat gerektirenler (3)                            │
-│ Planlar    │ Ahmet K.   4 gündür kayıt yok                  [→]  │
-│ Şablonlar  │ Zeynep A.  Son 2 deneme ortalaması -6 net      [→]  │
-│ Kaynaklar  │ Can D.     19 tekrar birikmiş                  [→]  │
-│ Videolar   ├─────────────────────────────────────────────────────┤
-│ Denemeler  │ Ad        Son giriş  Hafta hedefi  Son net  Plan    │
-│ Duyurular  │ Elif Y.   bugün      ████████░ 86%  71,33 ↑ %80     │
-│ Ayarlar    │ Ahmet K.  4 gün önce ██░░░░░░ 22%   58,00 → %35     │
-│            │ …                                                   │
-└────────────┴─────────────────────────────────────────────────────┘
+
+Kırılma noktaları Tailwind varsayılanlarıyla örtüşür: `md:` = tablet (768 px), `lg:` = masaüstü (1024 px). Ayrıca tanımlanmaz.
+
+Clay yardımcıları `@utility` ile tanımlanır (ör. `clay-card`: `bg-raised` + `--clay-md` + `--clay-inner`; `clay-press`: `:active` durumunda `--clay-pressed` ve `scale(.97)`, `--motion-press` süresiyle).
+
+## 4. Renk Kuralları
+
+### 4.1 Genel
+
+- Hex değer bileşenlerde yazılmaz; sadece token.
+- **Kırmızı (`--state-error`) sadece sistem hatasıdır.** Düşük performans nötr renk ve dille anlatılır: "180 soru kaldı".
+- **Uyarı rengi (`--state-warning`)** sadece koç ekranlarında dikkat gerektiren durumlar için: "Dikkat gerektirenler" satırının kenarı, gecikmiş son giriş, yüksek birikmiş tekrar sayısı. Öğrenci ve veli ekranlarında kullanılmaz.
+- **Fosforlu sarı (`--accent-marker`)** sadece iki yerde: tamamlanan görev ve ulaşılan günlük hedef. Başka hiçbir yerde kullanılmaz.
+
+### 4.2 Ders renkleri
+
+- Ders rengi **sadece dersi** temsil eder ve hiçbir zaman tek başına bilgi taşımaz; her zaman kısa ad (Tür, Mat, Fen, İnk, Din, İng) ya da ikonla gelir.
+- **Rozet metni:** `-ink` tonu, `-soft` zemin üzerinde. Tam renk üzerine beyaz metin AA kontrastını geçmediği için kullanılmaz.
+- **Tam renk** sadece şerit (kart kenarı), dolgu (grafik çubuğu, konu haritası hücresi) ve grafik çizgisinde kullanılır.
+- **Ders dışı metrikler ders renklerini kullanmaz.** Günün toplam hedef halkası, plan uyumu çubuğu, toplam net grafiği gibi dersten bağımsız göstergeler `--ink-900` (veya hedefe ulaşıldığında `--accent-marker`) kullanır. Aksi halde mavi Matematik, yeşil Fen gibi okunur. Tasarım dosyalarında bu kurala uymayan üç yer vardır ve uygulamada düzeltilecektir: S1/S5 günün hedefi halkası (mavi), V1 plan uyumu çubuğu (yeşil), V1 net grafiğinde son deneme çubuğu (mavi).
+- **Türkçe ve hata rengi birbirine yakındır** (`#D14B33` / `#C6352A`). Bu yüzden hata durumları asla sadece renkle gösterilmez: her zaman ikon + açıklayıcı metin + (toast ise) "Tekrar dene" eylemi birlikte kullanılır.
+
+**Veritabanı bağlantısı:** `subjects.color` alanı token önekini tutar: `subject-tr`, `subject-math`, `subject-sci`, `subject-hist`, `subject-rel`, `subject-eng`, `subject-r1` … `subject-r4`.
+
+Tailwind sınıfları derleme zamanında üretildiği için `bg-${color}` gibi dinamik sınıf adları çalışmaz. Bunun yerine ders rengi taşıyan bileşen, kök öğesinde CSS değişkenlerini ayarlar ve içeride sabit sınıflar kullanılır:
+
+```tsx
+// src/components/shared/subject-scope.tsx
+export function subjectVars(color: string): React.CSSProperties {
+  return {
+    "--s": `var(--${color})`,
+    "--s-soft": `var(--${color}-soft, color-mix(in srgb, var(--${color}) 12%, white))`,
+    "--s-ink": `var(--${color}-ink, color-mix(in srgb, var(--${color}) 80%, black))`,
+  } as React.CSSProperties;
+}
+// kullanım: <div style={subjectVars(subject.color)} className="border-l-4 border-subject">
 ```
 
-### 6.4 Konu Haritası
+Yedek renklerin `-soft` ve `-ink` tonları tanımlı olmadığı için `color-mix` ile türetilir.
 
-```
-              1. dönem ─────────────────────── 2. dönem ────────
-Matematik    [▇][▇][▅][▂][ ][ ][ ][ ][ ][ ][ ][ ]
-Fen          [▇][▅][▨][▂][ ][ ][ ]
-Türkçe       [▇][▇][▅][▅][▂][ ][ ][ ][ ][ ][ ][ ]
-İnkılap      [▇][▂][ ][ ][ ][ ][ ]
-Din          [▅][ ][ ][ ][ ]
-İngilizce    [▇][▅][▂][ ][ ][ ][ ][ ][ ][ ]
-                         ▨ = tekrar gerekli
-```
+## 5. Clay Kullanım Kuralları (öğrenci ve veli)
 
-### 6.5 Veli: Özet (mobil)
+| Seviye | Nerede |
+|---|---|
+| `clay-sm` | Ders rozeti, çip, liste kabı, veli özet kartı, küçük istatistik kutusu |
+| `clay-md` | Plan görev kartı, ders kartı, birincil düğme, hedef halkası kabı |
+| `clay-lg` | Alt panel, diyalog, hızlı kayıt düğmesi, alt menü, masaüstü yan menü |
+| `clay-well` (kuyu) | İçerik yüzeyleri: form alanının içi, ilerleme çubuğu yuvası, sayı adımlayıcının değer alanı |
+| `clay-pressed` | Basılı durum ve seçili çip/menü öğesi |
 
-Tek sütun, en önemli üç bilgi yukarıda: bu haftaki çalışma (soru + süre), plan uyumu yüzdesi, son deneme neti ve trendi. Altında koçun veliye açık son notu.
+- Üç yükseklik seviyesinden fazlası kullanılmaz.
+- **Clay kaptır, içerik düzdür.** Uzun metin, liste satırının içi, form alanının içi clay olmaz.
+- **Basılı durum:** gölge içe döner (`--clay-pressed`), öğe %3 küçülür, 120 ms.
+- **Tamamlanan görev kartı** `clay-md`'den `clay-sm`'e düşer ("işi bitti" hissi), onay kutusu fosforlu sarı olur.
+- Koç ekranlarında clay yok; sadece logo kutusu ve öğrenci avatarı `clay-sm` taşır.
 
-## 7. Hareket
+## 6. Tipografi
 
-- Tek anlamlı an: bir görev tamamlandığında fosforlu kalem soldan sağa 250 ms'de çizilir.
-- Alt panel açılış/kapanış geçişi (kullanıcı eylemine yanıt).
-- Sayfa yüklemede kademeli giriş animasyonları **yok**.
-- `prefers-reduced-motion` durumunda tüm geçişler anlık olur.
+- **Aile:** Lexend, `next/font/google`, alt kümeler `latin` + `latin-ext`, değişken ağırlık (300-700), CSS değişkeni `--font-lexend`. Tasarım bu seçimi korudu: yuvarlak ve geniş harf formları clay diliyle uyumlu, Türkçe karakter seti tam.
+- Tüm sayılarda `font-variant-numeric: tabular-nums` (gövdeye global olarak uygulanır).
+- Telefonda gövde metni 16 px'in altına inmez. 12-13 px sadece çip, birim ve tablo etiketlerinde.
+- Başlıklar cümle düzeninde; büyük harfli, harf aralıklı küçük etiket yok.
+- Ağırlıklar: 400 gövde, 500 vurgu, 600 başlık ve sayılar.
 
-## 8. Yazım Dili
+## 7. Köşe Yuvarlaklığı
 
-| Kitle | Hitap | Örnek |
-|---|---|---|
-| Öğrenci | Sen, samimi, kısa | "Bugün 34 soru kaldı." / "Kaydedildi." |
-| Veli | Siz, bilgilendirici | "Elif bu hafta planının %80'ini tamamladı." |
-| Koç | Nötr, işlevsel | "Plan 3 öğrenciye kopyalandı." |
+Öğe büyüdükçe yuvarlaklık artar:
 
-Kurallar:
+| Token | Kullanım |
+|---|---|
+| `pill` | Çip, rozet, ilerleme çubuğu |
+| `xs` (8) | Konu haritası hücresi |
+| `sm`-`md` (12-16) | Düğme, giriş alanı, küçük istatistik kutusu |
+| `card` (20) | Kart |
+| `lg`-`xl` (28-36) | Alt panel, diyalog, alt menü |
 
-- Düğme ne yapacağını söyler: "Kaydet", "Planı yayınla", "Daveti gönder". "Tamam", "Gönder" gibi belirsiz ifadeler kullanılmaz.
-- Eylemin adı akış boyunca aynı kalır: "Planı yayınla" → "Plan yayınlandı".
-- Hata mesajı ne olduğunu ve ne yapılacağını söyler, özür dilemez: "Fotoğraf 2 MB'tan büyük. Daha küçük bir fotoğraf seç."
-- Boş ekran bir davettir: "Henüz deneme eklemedin. İlk denemeni ekleyerek net takibine başla." + düğme.
-- Performans dili yargılamaz: "Hedefin gerisindesin" yerine "Haftalık hedefe 180 soru kaldı".
-- Sayılar Türkçe biçimde: `71,33 net`, `1.250 soru`, `%80`.
+Koç tarafında aynı ölçek daha küçük uçtan kullanılır: kart ve tablo kabı `sm`-`md`, düğme ve giriş `xs`-`sm`.
 
-## 9. Erişilebilirlik Tabanı
+## 8. Responsive Davranış ve Ekranlar
 
-- WCAG AA kontrast (metin 4,5:1, büyük metin 3:1). Ders renkleri açık zeminde metin olarak sadece `text-heading` ve üzeri boyutta.
-- Görünür klavye odağı (`focus-visible` halkası, `--ink` renginde 2 px).
-- Hiçbir bilgi sadece renkle aktarılmaz (ders adı kısaltması, desen, simge eşlik eder).
-- Grafiklerin altında ekran okuyucu için özet metin.
-- Form alanlarının hepsinde görünür etiket; hata mesajı alana `aria-describedby` ile bağlı.
-- Mobil sayı girişi `inputmode="numeric"`.
+### 8.1 Kırılma noktaları
+
+| Aralık | Tailwind |
+|---|---|
+| Telefon: < 768 px | varsayılan |
+| Tablet: 768-1023 px | `md:` |
+| Masaüstü: ≥ 1024 px | `lg:` |
+
+### 8.2 Öğrenci
+
+| Aralık | Menü | İçerik | Hızlı kayıt |
+|---|---|---|---|
+| Telefon | Alt menü; ortadaki kayıt düğmesi çubuktan 18 px taşar | Tek sütun | Alttan açılan panel |
+| Tablet | Alt menü kalır (başparmak erişimi) | İki sütun | Ortada diyalog |
+| Masaüstü | Solda 104 px dar clay yan menü; kayıt düğmesi en üstte koyu düğme | İki sütun, en fazla 1240 px, ortalı | Ortada diyalog |
+
+**Menü öğeleri:**
+- Telefon alt menüsü: Bugün · Konular · (+) Kayıt · Denemeler · Ben
+- Masaüstü yan menüsü: Kayıt · Bugün · Konular · Plan · Denemeler · Yanlışlar · Kaynaklar · Videolar · Ben
+- Telefonda Plan'a "Bugün" ekranındaki Planım kartından; Yanlışlar, Kaynaklar ve Videolar'a "Ben" sekmesinden erişilir.
+
+Menüler modül registry'sinden üretildiği için (`nav.student.mobile: true`) bu dağılım tek satırla değiştirilebilir.
+
+**Ekran notları:**
+- **S1 / S5 Bugün:** Üstte selamlama, tarih, seri ve LGS geri sayımı. Günün hedefi halkası (86 / 120) + motive edici tek cümle ("34 soru kaldı. Paragrafla kapatabilirsin.") + bugünkü çalışma süresi. Planım listesi. Tekrar zamanı gelenler. Bu hafta özeti. Masaüstünde solda "bugün ne yapacağım" (hedef + plan), sağda "neyi kaçırıyorum" (tekrar + haftalık özet).
+- **S2 / S6 Hızlı kayıt:** Ders ve konu son kayıttan hazır gelir, sayıyı girip kaydedilir. Anlık "Toplam 40 · Net 30,00". Masaüstünde klavye akışı: Tab alanlar arası, ↑ ↓ sayı değiştirir, Enter kaydeder, Esc kapatır; bu ipucu diyalogun altında görünür. Sayı adımlayıcı alanı doğrudan yazılabilir, dokunma hedefi 48 × 48 px.
+- **S3 / S7 Konu haritası:** Bölüm 9.
+- **S4 Haftalık plan:** Pazartesi-Pazar gün seçici (işaretli günlerde nokta), seçili günün görevleri ve toplam süresi, koçun haftalık mesajı, "Haftam nasıl geçti?" alanı (pazar akşamı açılır, koç okur).
+
+### 8.3 Veli
+
+- Telefon öncelikli tek sütun. Masaüstünde aynı içerik ortalanır, en fazla iki sütuna yayılır; yeni bilgi eklenmez.
+- **V1 Haftalık özet sırası:** selamlama + hafta seçici → plan uyumu cümlesi ve çubuğu → soru sayısı ve çalışma süresi → son deneme neti ve değişimi → son 5 deneme grafiği → ders bazında haftalık soru → koçun veliye açık son notu.
+- **Alt menü:** Özet · Denemeler · Notlar.
+
+> **Kapsam notu:** Tasarımda veli alt menüsünde "Mesajlar" sekmesi ve "koçunuza mesaj yazabilirsiniz" cümlesi var. Mesajlaşma `01-proje-plani.md` Bölüm 12'de kapsam dışıdır. Bu nedenle sekme **"Notlar"** olarak uygulanır (koçun veliye açık notları) ve mesaj cümlesi kaldırılır. Mesajlaşma istenirse önce modül olarak plana eklenir.
+
+### 8.4 Koç
+
+- Masaüstü öncelikli; yan menü 232 px, içerik en fazla 1320 px.
+- **Telefonda:** yan menü soldan açılan panele (hamburger) döner, tablo satırları kart listesine döner, plan oluşturucu salt okunurdur ve "Düzenlemek için bilgisayardan açın" notu gösterilir.
+- **K1 Ana ekran:** Başlık (Öğrenciler, tarih, LGS geri sayımı) + arama + Filtreler + Yeni öğrenci. "Dikkat gerektirenler" satırlarında uyarının türüne göre **hızlı eylem** düğmesi vardır: hareketsizlik → "Not yaz", net düşüşü → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur"; ayrıca "Öğrenciyi aç". Öğrenci tablosu: öğrenci, son giriş, haftalık hedef (ince çubuk + yüzde), son net ve trend, plan uyumu, birikmiş tekrar, satır menüsü.
+- **K2 Öğrenci detayı:** Başlıkta sınıf, okul, hedef lise, veli adı, LGS geri sayımı, "Not yaz" ve "Plan hazırla". Sekmeler registry'den. Genel bakışta 5 özet kutusu (bu hafta soru, çalışma süresi, plan uyumu, son net, birikmiş tekrar; her birinin altında karşılaştırma bilgisi), son 14 gün yığılmış soru grafiği, deneme net trendi (toplam + ders çizgileri), sade konu haritası, yanlış nedeni dağılımı, sabitlenmiş not, öğrencinin geçen hafta değerlendirmesi.
+- **K3 Plan oluşturucu:** Başlıkta taslak durumu ve otomatik kayıt zamanı, hafta seçici, hafta toplamı (süre + soru), Şablondan başlat, Başka öğrencilere kopyala, Planı yayınla. Solda aranabilir kaynak paneli: zayıf konular (%60 altı başarı veya tekrar gerekli), atanmış kaynaklar, izlenmemiş video listeleri. 7 gün sütunu, gün başlığında tarih ve toplam süre, "Buraya bırak" hedefi, "+ Görev ekle". Altta gün başına süre özeti. **Otomatik taslak kaydı** bu ekranın gereksinimidir.
+- **Dar masaüstü:** 1440 px'te 7 sütun sıkışıktır. 1440 px'in altında sol kaynak paneli daraltılabilir olur; 1280 px'in altında gün sütunları yatay kaydırılır.
+
+## 9. Konu Haritası
+
+Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, desen ve ikon.** Renk sadece dersi söyler, durumu söylemez.
+
+| Durum | Doluluk | Desen / ikon | Kenarlık |
+|---|---|---|---|
+| Başlanmadı | Boş (`bg-sunken`) | Yok | Kesikli `line-strong` |
+| Çalışılıyor | Alttan %45 ders rengi | Çapraz tarama | Ders rengi, ince |
+| Tamamlandı | %100 düz ders rengi | Yok | Yok |
+| Oturdu | %100 düz ders rengi | Beyaz onay ikonu + iç beyaz çerçeve | Yok |
+| Tekrar gerekli | Alttan %60 ders rengi | Dikey tarama + yenile ikonu | Kesikli ders rengi |
+| Seçili (ek durum) | Mevcut durum | `clay-pressed` + belirgin çerçeve | 2 px `ink-900` |
+
+**Yerleşim:**
+- **Telefon:** Her ders ayrı clay kart; başlıkta ders adı ve tamamlanma yüzdesi, altında ince ilerleme çubuğu. Hücre 44 × 44 px, satırlar **sarmalanır** (yatay kaydırma yok). Seçili hücrenin detayı alttan panel: konu, soru sayısı, başarı yüzdesi, son çalışma, durum, "Tekrar ettim" ve "+" (bu konuya kayıt ekle).
+- **Masaüstü:** Tüm dersler 13 sütunlu tek ızgarada, hücre 52 px, satırların sağı ders uzunluğuna göre boş kalır. Detay sağ yan panelde: yukarıdakilere ek olarak yanlış defterindeki soru sayısı ve bağlı kaynaklar/videolar. Ok tuşlarıyla hücreler arasında gezinilir.
+- **Koç (sade):** Aynı durum kanalları, clay yok, hücreler daha küçük; satır sonunda yüzde.
+- Sütun sayısı sabit 13 değildir; en uzun dersin konu sayısından hesaplanır.
 
 ## 10. Bileşen Envanteri
 
-`components/shared` altında, modüllerin ortak kullandığı bileşenler:
+`tasarim-sistemi.html` Bölüm 6'daki bileşenler. Her biri `data-surface`'e göre clay veya sade görünür.
 
-| Bileşen | Açıklama |
-|---|---|
-| `SubjectBadge` | Ders renk noktası + kısa ad |
-| `SubjectStripe` | Kartın solundaki ders renkli dikey çizgi |
-| `StatNumber` | Büyük sayı + küçük açıklama, tabular rakam |
-| `ProgressBar` | Hedef ilerlemesi, hedefe ulaşınca fosforlu |
-| `HighlightMark` | Fosforlu kalem efekti sarmalayıcısı |
-| `TopicMasteryCell` | Konu haritası hücresi |
-| `EmptyState` | Boş ekran: açıklama + eylem düğmesi |
-| `PageHeader` | Başlık, açıklama, sağda eylemler |
-| `BottomSheet` | Mobilde alt panel, masaüstünde diyalog (aynı API) |
-| `NumberStepper` | Doğru/yanlış/boş için büyük dokunmatik sayı girişi |
-| `CountdownChip` | LGS geri sayımı |
-| `ConfirmDialog` | Silme gibi geri alınamaz işlemler |
-| `DateRangePicker` | Türkçe, pazartesi başlangıçlı |
+| Bileşen | Konum | Not |
+|---|---|---|
+| `Button` (primary, secondary, ghost) | `components/ui` | Durumlar: normal, hover, basılı, odak, devre dışı |
+| `Input`, `Select` | `components/ui` | Clay'de kap clay, alan içi `clay-well` |
+| `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı |
+| `SubjectBadge`, `SubjectStripe` | `components/shared` | `subjectVars()` ile |
+| `GoalRing`, `ProgressBar` | `components/shared` | Hedefe ulaşınca fosforlu + "hedef tamam" metni |
+| `PlanTaskCard` | `features/planner` | Bekliyor / tamamlandı; koç sürümü sürüklenebilir + "Buraya bırak" hedefi |
+| `TopicMasteryCell`, `TopicMap` | `features/topics` | Bölüm 9 |
+| `StreakBadge`, `AchievementBadge`, `CountdownChip` | `components/shared` | Rozet ve seri sadece `clay`; koçta veri olarak ("Seri 12 gün") |
+| `StudentBottomNav`, `StudentRail` | `components/layout` | Registry'den |
+| `CoachSidebar` | `components/layout` | Telefonda soldan panel, `shadow-pop` |
+| `DataTable` | `components/shared` | Koç; telefonda kart listesine döner |
+| `AlertRow` | `features/analytics` | Uyarı kenarı + hızlı eylem düğmesi |
+| `EmptyState` | `components/shared` | Başlık, tek cümle, eylem düğmesi |
+| `Toast` | sonner teması | Başarı: "Kaydedildi. Bugün 34 soru kaldı." Hata: ikon + "Kaydedilemedi. Tekrar dene." + eylem |
+| `BottomSheet` / `Dialog` | `components/ui` | < 768 px alt panel, ≥ 768 px diyalog; aynı API (`ResponsiveSheet`) |
+| `StatTile` | `components/shared` | Büyük sayı + kısa açıklama (+ isteğe bağlı karşılaştırma satırı) |
+
+## 11. Hareket
+
+- **Basılma:** 120 ms, gölge içe döner, %3 küçülme (sadece clay).
+- **Görev tamamlandı:** fosforlu kalem soldan sağa 220 ms'de çizilir, kart `clay-md` → `clay-sm`.
+- **Alt panel / diyalog** açılış-kapanış geçişi.
+- **Sürükle-bırak (koç):** sürüklenen kart `shadow-drag` + hafif eğim, hedef "Buraya bırak" kesikli kutusu.
+- Sayfa açılışında kademeli giriş animasyonu, konfeti, parıltı yok.
+- `prefers-reduced-motion: reduce` durumunda tüm geçişler kapanır.
+
+## 12. Yazım Dili
+
+| Kitle | Hitap | Örnek |
+|---|---|---|
+| Öğrenci | Sen, samimi, kısa | "Kaydedildi. Bugün 34 soru kaldı." / "34 soru kaldı. Paragrafla kapatabilirsin." |
+| Veli | Siz, bilgilendirici | "Elif bu hafta planının %80'ini tamamladı." |
+| Koç | Nötr, işlevsel | "Plan 3 öğrenciye kopyalandı." |
+
+- Düğme eylemi söyler: "Kaydet", "Planı yayınla", "Tekrar ettim", "Tekrara başla". "Tamam", "Gönder" yok.
+- Eylemin adı akış boyunca aynı kalır: "Planı yayınla" → "Plan yayınlandı".
+- Hata mesajı ne olduğunu ve ne yapılacağını söyler, özür dilemez.
+- Boş durum eylem önerir: "Henüz deneme eklemedin. İlk denemeni ekle, net takibin başlasın."
+- Performans dili yargılamaz: "Hedefin gerisindesin" değil, "180 soru kaldı".
+- Öğrenciler arası sıralama veya karşılaştırma öğrenci ve veli ekranlarında yok.
+
+### 12.1 Sayı ve tarih biçimi
+
+- Metinde Türkçe biçim: `71,33 net` · `1.250 soru` · `%80` · `14 sa 20 dk` · `16 Eylül` · `14 – 20 Eylül`.
+- **Biçimlenmiş metin ile hesap/CSS değeri ayrı tutulur.** `%86` sadece ekranda gösterilir; çubuk genişliği gibi CSS değerlerine ham sayı (`86%`) verilir. (Tasarım dosyasında koç tablosundaki hedef çubukları bu yüzden yanlış görünür: `width:%86` geçersiz CSS'tir.)
+- Tüm biçimlendirme `lib/format` üzerinden: `formatPercent`, `formatNet`, `formatCount`, `formatDuration`, `formatDateTr`, `formatWeekRange`.
+
+## 13. Erişilebilirlik
+
+- WCAG AA kontrast. Pastel zemin üzerinde soluk gri metin yok; ikincil metin en açık `--ink-500`.
+- Dokunma hedefi en az 44 × 44 px (sayı adımlayıcıda 48).
+- Görünür odak halkası: `--focus-ring` / `--focus-offset`, her iki yüzey dilinde.
+- Bilgi sadece renkle verilmez (ders kısa adı, desen, ikon, metin).
+- Masaüstünde kritik akışlar klavyeyle yapılabilir (hızlı kayıt, konu haritasında ok tuşları, plan oluşturucuda sürükle-bırakın klavye alternatifi: dnd-kit klavye sensörü).
+- Grafiklerin ekran okuyucu için metin özeti ("Beş denemede toplam net 13 puan arttı.").
+- Seri ateşi emoji değil, lucide `Flame` ikonu; ikonlar yanında metin veya `aria-label`.
+
+## 14. Sonraki Tasarım Turu İçin Açık Konular
+
+- [ ] Koyu tema (clay gölgelerinin koyu zeminde karşılığı dahil)
+- [ ] Öğrenci: Denemeler, Yanlış defteri, Kaynaklar, Videolar, Ben ekranları
+- [ ] Koç: Şablon editörü, Kaynak ve video katalogları, Deneme kataloğu ve karşılaştırma, Ayarlar
+- [ ] Giriş, davet ve KVKK onay ekranları
+- [ ] Veli: Denemeler ve Notlar sekmeleri
+- [ ] Boş durum illüstrasyonları (özgün SVG)

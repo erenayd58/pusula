@@ -173,7 +173,7 @@ subjects (
   code text not null,                     -- 'MAT' — sezonlar arası eşleştirme için
   name text not null,                     -- 'Matematik'
   short_name text not null,               -- 'Mat'
-  color text not null,                    -- tasarım token adı: 'subject-math'
+  color text not null,                    -- token öneki: 'subject-math' (04 Bölüm 4.2)
   icon text not null,                     -- lucide ikon adı
   exam_section text,                      -- 'sayisal' | 'sozel'
   exam_question_count smallint,
