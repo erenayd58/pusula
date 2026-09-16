@@ -63,10 +63,10 @@ select throws_ok(
   '42501', null,
   'koç X öğrencinin coach_id kolonunu değiştiremez (kolon yetkisi yok)'
 );
-select is(
-  tests.row_count($$delete from public.students where profile_id = tests.id('student_a') returning 1$$),
-  0::bigint,
-  'koç öğrenci silemez'
+select throws_ok(
+  $$delete from public.students where profile_id = tests.id('student_a')$$,
+  '42501', null,
+  'koç öğrenci silemez (DELETE yetkisi yok)'
 );
 
 -- Başka kurumun koçu (Z) öğrenci A'yı hiçbir şekilde göremez.
@@ -123,10 +123,10 @@ select throws_ok(
   '42501', null,
   'owner students tablosuna doğrudan ekleyemez (INSERT politikası yok)'
 );
-select is(
-  tests.row_count($$delete from public.students where profile_id = tests.id('student_a') returning 1$$),
-  0::bigint,
-  'owner students tablosundan doğrudan silemez (DELETE politikası yok)'
+select throws_ok(
+  $$delete from public.students where profile_id = tests.id('student_a')$$,
+  '42501', null,
+  'owner students tablosundan doğrudan silemez (DELETE yetkisi yok)'
 );
 
 -- 5. anon hiçbir şey göremez.

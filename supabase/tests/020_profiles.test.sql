@@ -63,10 +63,10 @@ select is(
   0::bigint,
   'öğrenci koçunun profilini güncelleyemez'
 );
-select is(
-  tests.row_count($$delete from public.profiles where id = tests.id('student_a') returning 1$$),
-  0::bigint,
-  'öğrenci profil silemez'
+select throws_ok(
+  $$delete from public.profiles where id = tests.id('student_a')$$,
+  '42501', null,
+  'öğrenci profil silemez (DELETE yetkisi yok)'
 );
 
 -- 3. Koç kendi öğrencilerini ve velilerini görür; başka koçun öğrencisini görmez.
