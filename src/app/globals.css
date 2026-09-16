@@ -1,0 +1,254 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------
+   Yüzey varyantları (04-tasarim-sistemi.md Bölüm 3.2)
+   Rol layout'u kök öğeye data-surface koyar; bileşenler clay:/calm:/flat:
+   önekleriyle yazılır. Seçici "kendisi veya soyundan" biçimindedir, böylece
+   portal ile body'ye çıkan Dialog içeriği de data-surface taşıyınca doğru
+   varyantı alır. calm, clay'den sonra tanımlıdır ve aynı öğede kazanır.
+   ------------------------------------------------------------------ */
+@custom-variant clay (&:where([data-surface="clay"], [data-surface="clay"] *, [data-surface="clay-calm"], [data-surface="clay-calm"] *));
+@custom-variant calm (&:where([data-surface="clay-calm"], [data-surface="clay-calm"] *));
+@custom-variant flat (&:where([data-surface="flat"], [data-surface="flat"] *));
+
+/* ------------------------------------------------------------------
+   Token'lar (04-tasarim-sistemi.md Bölüm 3). Hex değerler yalnızca burada.
+   ------------------------------------------------------------------ */
+:root {
+  /* mürekkep ve zemin */
+  --ink-900: #1b2440;
+  --ink-700: #39456b;
+  --ink-500: #5a6485;
+  --ink-300: #9aa2bc;
+  --bg-app: #e9edf6;
+  --bg-surface: #f1f4fb;
+  --bg-raised: #fafbfe;
+  --bg-sunken: #dfe5f1;
+  --bg-paper: #ffffff; /* koç (flat) kart, giriş ve diyalog zemini */
+  --line: #d6ddec;
+  --line-strong: #bcc6de;
+
+  /* ders renkleri: tam renk / soft zemin / koyu metin tonu */
+  --subject-tr: #d14b33;
+  --subject-tr-soft: #fae6e1;
+  --subject-tr-ink: #ae3922;
+  --subject-math: #2e66d6;
+  --subject-math-soft: #e2eafb;
+  --subject-math-ink: #2354bc;
+  --subject-sci: #0e8c73;
+  --subject-sci-soft: #dbf0ea;
+  --subject-sci-ink: #0a6f5c;
+  --subject-hist: #b0810f;
+  --subject-hist-soft: #f6ebd3;
+  --subject-hist-ink: #8a650a;
+  --subject-rel: #7451c4;
+  --subject-rel-soft: #eae3fa;
+  --subject-rel-ink: #6040ae;
+  --subject-eng: #c2377f;
+  --subject-eng-soft: #fae1ee;
+  --subject-eng-ink: #a62a6b;
+  /* yedek ders renkleri (soft ve ink tonları subjectVars() ile color-mix'ten türetilir) */
+  --subject-r1: #0f7a8c;
+  --subject-r2: #7a4a2a;
+  --subject-r3: #4f5a6b;
+  --subject-r4: #9c1f4f;
+
+  /* vurgu ve durum */
+  --accent-marker: #ffd84d;
+  --accent-marker-soft: #fff3c7;
+  --state-success: #1b8a66;
+  --state-success-soft: #dcf0e8;
+  --state-warning: #c07c0c;
+  --state-warning-soft: #faebd2;
+  --state-error: #c6352a;
+  --state-error-soft: #fadfdc;
+
+  /* clay gölgeler (öğrenci, veli) */
+  --clay-sm: 4px 4px 10px rgba(27, 36, 64, 0.1), -3px -3px 8px rgba(255, 255, 255, 0.85);
+  --clay-md: 8px 8px 20px rgba(27, 36, 64, 0.12), -6px -6px 16px rgba(255, 255, 255, 0.9);
+  --clay-lg: 16px 16px 34px rgba(27, 36, 64, 0.14), -10px -10px 24px rgba(255, 255, 255, 0.95);
+  --clay-inner:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.6), inset -3px -3px 8px rgba(27, 36, 64, 0.06);
+  --clay-pressed:
+    inset 4px 4px 10px rgba(27, 36, 64, 0.14), inset -3px -3px 8px rgba(255, 255, 255, 0.75);
+  --clay-well:
+    inset 3px 3px 8px rgba(27, 36, 64, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.85);
+
+  /* koç gölgeleri, yarıçaplar ve metin boyutları: aşağıdaki @theme içinde */
+
+  /* ölçüler */
+  --touch-min: 44px;
+  --nav-rail: 104px; /* öğrenci masaüstü yan menü */
+  --coach-sidebar: 232px;
+  --content-max-student: 1240px;
+  --content-max: 1320px;
+  --focus-color: #2e66d6; /* odak halkası; ders rengi değil */
+  --focus-ring: 3px solid var(--focus-color);
+  --focus-offset: 3px;
+  --motion-press: 120ms;
+  --motion-marker: 220ms;
+}
+
+@theme inline {
+  /* :root token'larına bağlanan renkler */
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-bg-paper: var(--bg-paper);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-marker: var(--accent-marker);
+  --color-marker-soft: var(--accent-marker-soft);
+  --color-success: var(--state-success);
+  --color-success-soft: var(--state-success-soft);
+  --color-warning: var(--state-warning);
+  --color-warning-soft: var(--state-warning-soft);
+  --color-error: var(--state-error);
+  --color-error-soft: var(--state-error-soft);
+  --color-focus: var(--focus-color);
+  /* ders rengi: bileşen düzeyinde subjectVars() ile ayarlanan --s değişkenleri */
+  --color-subject: var(--s);
+  --color-subject-soft: var(--s-soft);
+  --color-subject-ink: var(--s-ink);
+
+  --shadow-clay-sm: var(--clay-sm);
+  --shadow-clay-md: var(--clay-md);
+  --shadow-clay-lg: var(--clay-lg);
+  --shadow-clay-pressed: var(--clay-pressed);
+  --shadow-clay-well: var(--clay-well);
+
+  --font-sans: var(--font-lexend), system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* shadcn/ui takma adları (04 Bölüm 3.3): hex yok, yeni renk yok */
+  --color-background: var(--bg-app);
+  --color-foreground: var(--ink-900);
+  --color-card: var(--bg-raised);
+  --color-card-foreground: var(--ink-900);
+  --color-popover: var(--bg-paper);
+  --color-popover-foreground: var(--ink-900);
+  --color-primary: var(--ink-900);
+  --color-primary-foreground: var(--bg-paper);
+  --color-secondary: var(--bg-surface);
+  --color-secondary-foreground: var(--ink-900);
+  --color-muted: var(--bg-surface);
+  --color-muted-foreground: var(--ink-500);
+  --color-accent: var(--bg-sunken);
+  --color-accent-foreground: var(--ink-900);
+  --color-destructive: var(--state-error);
+  --color-border: var(--line);
+  --color-input: var(--line-strong);
+  --color-ring: var(--focus-color);
+}
+
+@theme {
+  /* Tailwind ad alanlarıyla aynı adı taşıyan token'lar burada literal değerle tanımlanır;
+     inline olmayan @theme bunları CSS değişkeni olarak da yayınlar (var(--radius-card) gibi). */
+  --shadow-pop: 0 10px 28px rgba(27, 36, 64, 0.14), 0 2px 6px rgba(27, 36, 64, 0.06);
+  --shadow-drag: 0 16px 32px rgba(27, 36, 64, 0.2);
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-card: 20px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+  --radius-pill: 999px;
+
+  --text-display: 32px;
+  --text-display-lg: 44px; /* telefon / masaüstü */
+  --text-title: 24px;
+  --text-title-lg: 28px;
+  --text-heading: 18px;
+  --text-heading-lg: 20px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-micro: 12px;
+  --text-micro-lg: 12.5px;
+}
+
+/* ------------------------------------------------------------------
+   Clay yardımcıları (04 Bölüm 5). Clay kaptır, içerik düzdür.
+   ------------------------------------------------------------------ */
+@utility clay-sm {
+  background-color: var(--bg-raised);
+  box-shadow: var(--clay-sm), var(--clay-inner);
+}
+@utility clay-md {
+  background-color: var(--bg-raised);
+  box-shadow: var(--clay-md), var(--clay-inner);
+}
+@utility clay-lg {
+  background-color: var(--bg-raised);
+  box-shadow: var(--clay-lg), var(--clay-inner);
+}
+@utility clay-card {
+  background-color: var(--bg-raised);
+  box-shadow: var(--clay-md), var(--clay-inner);
+  border-radius: var(--radius-card);
+}
+@utility clay-well {
+  background-color: var(--bg-sunken);
+  box-shadow: var(--clay-well);
+}
+@utility clay-pressed {
+  box-shadow: var(--clay-pressed);
+  transform: scale(0.97);
+}
+/* Basılı durum: gölge içe döner, %3 küçülür, 120 ms */
+@utility clay-press {
+  transition-property: box-shadow, transform;
+  transition-duration: var(--motion-press);
+  transition-timing-function: ease-out;
+  &:active:not(:disabled) {
+    box-shadow: var(--clay-pressed);
+    transform: scale(0.97);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    background-color: var(--bg-app);
+    color: var(--ink-900);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

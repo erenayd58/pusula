@@ -72,6 +72,8 @@ pusula/
     │   ├── globals.css              # Tailwind + tasarım token'ları
     │   ├── manifest.ts              # PWA manifest
     │   ├── not-found.tsx
+    │   ├── dev/layout.tsx           # /dev altı sadece geliştirme ortamı (üretimde notFound)
+    │   ├── dev/design/page.tsx      # Tasarım sistemi sayfası: token'lar ve bileşenler, clay | flat yan yana
     │   ├── (auth)/
     │   │   ├── layout.tsx
     │   │   ├── login/page.tsx
@@ -145,12 +147,13 @@ pusula/
     │   ├── achievements/
     │   └── school-exams/
     ├── modules/
-    │   ├── define-module.ts         # defineModule() yardımcı fonksiyonu ve tipleri
-    │   ├── registry.ts              # Tüm modül manifestlerinin listesi
+    │   ├── define-module.ts         # defineModule() / defineWidgets() yardımcıları ve tipleri
+    │   ├── registry.ts              # Tüm modül manifestlerinin listesi (sadece metadata; menü ve sekmeler buradan)
+    │   ├── widgets.ts               # Panel kartlarının listesi (sadece panel sayfaları import eder)
     │   └── get-enabled-modules.ts   # Öğrenci için açık modülleri getirir (cache'li)
     ├── components/
     │   ├── ui/                      # shadcn/ui bileşenleri (sadece burada)
-    │   ├── layout/                  # SurfaceRoot (data-surface), StudentBottomNav, StudentRail, CoachSidebar, PageHeader
+    │   ├── layout/                  # SurfaceRoot (data-surface + useSurface), StudentBottomNav, StudentRail, CoachSidebar, PageHeader
     │   ├── charts/                  # Ortak grafik sarmalayıcıları
     │   └── shared/                  # EmptyState, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
     ├── lib/
@@ -193,7 +196,8 @@ Projenin "generic ve modüler" olmasını sağlayan çekirdek budur.
 
 ```
 src/features/question-log/
-├── module.ts              # Manifest: kimlik, menü, panel kartları, ayarlar
+├── module.ts              # Manifest: kimlik, menü, sekme, ayarlar — SADECE metadata, React bileşeni import etmez
+├── widgets.ts             # Panel kartları (studentToday, coachOverview, parentSummary) — bileşen import eder
 ├── index.ts               # DIŞA AÇIK API — başka yerler sadece buradan import eder
 ├── components/
 │   ├── quick-log-sheet.tsx
@@ -235,25 +239,32 @@ export type ModuleManifest<TSettings extends z.ZodTypeAny = z.ZodTypeAny> = {
   dependsOn?: string[];              // ["topics"]
   nav?: Partial<Record<Role, { href: string; label?: string; order: number; mobile?: boolean }>>;
   coachStudentTab?: { segment: string; label: string; order: number };
-  widgets?: {
-    studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
-    coachOverview?: { component: ComponentType<ModuleWidgetProps>; order: number };
-    parentSummary?: { component: ComponentType<ModuleWidgetProps>; order: number };
-  };
   settingsSchema?: TSettings;        // Öğrenci bazlı ayarlar (ör. varsayılan günlük hedef)
 };
 
 export function defineModule<T extends z.ZodTypeAny>(m: ModuleManifest<T>) {
   return m;
 }
+
+// Panel kartları manifestten AYRI tutulur: manifest React bileşeni import etmez,
+// böylece menü ve sekmeleri üreten kod widget bileşenlerini paket boyutuna eklemez.
+export type ModuleWidgets = {
+  moduleId: string;                  // manifest.id ile aynı
+  studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
+  coachOverview?: { component: ComponentType<ModuleWidgetProps>; order: number };
+  parentSummary?: { component: ComponentType<ModuleWidgetProps>; order: number };
+};
+
+export function defineWidgets(w: ModuleWidgets) {
+  return w;
+}
 ```
 
 ```ts
-// src/features/question-log/module.ts
+// src/features/question-log/module.ts  (sadece metadata)
 import { PencilLine } from "lucide-react";
 import { z } from "zod";
 import { defineModule } from "@/modules/define-module";
-import { StudentTodayWidget } from "./components/widgets/student-today-widget";
 
 export const questionLogModule = defineModule({
   id: "question-log",
@@ -266,19 +277,29 @@ export const questionLogModule = defineModule({
     student: { href: "/student/log", order: 30, mobile: true },
   },
   coachStudentTab: { segment: "questions", label: "Sorular", order: 30 },
-  widgets: {
-    studentToday: { component: StudentTodayWidget, order: 20 },
-  },
   settingsSchema: z.object({
     showBlankField: z.boolean().default(true),
   }),
 });
 ```
 
+```ts
+// src/features/question-log/widgets.ts  (panel kartları)
+import { defineWidgets } from "@/modules/define-module";
+import { StudentTodayWidget } from "./components/widgets/student-today-widget";
+
+export const questionLogWidgets = defineWidgets({
+  moduleId: "question-log",
+  studentToday: { component: StudentTodayWidget, order: 20 },
+});
+```
+
+`index.ts` her ikisini de dışa açar (`export { questionLogModule } from "./module"; export { questionLogWidgets } from "./widgets";`). `src/modules/registry.ts` manifestleri, `src/modules/widgets.ts` panel kartlarını toplar; menü/sekme üreten kod yalnızca `registry`'yi, panel sayfaları yalnızca `widgets`'ı import eder.
+
 ### 3.3 Modüllerin kullanıldığı yerler
 
 - **Menüler:** `BottomNav` ve `Sidebar`, `registry` içindeki `nav` alanlarını role ve açık modüllere göre filtreleyerek oluşturur. Menü öğesi elle yazılmaz.
-- **Paneller:** "Bugün", koç genel bakış ve veli özet sayfaları, ilgili `widgets` alanını `order`'a göre sıralayıp render eder.
+- **Paneller:** "Bugün", koç genel bakış ve veli özet sayfaları, `src/modules/widgets.ts` listesindeki ilgili alanı açık modüllere göre filtreleyip `order`'a göre sıralayarak render eder.
 - **Koç öğrenci sekmeleri:** `coachStudentTab` alanlarından üretilir.
 - **Rota koruması:** Her modül sayfası en üstte `await requireModule(studentId, "question-log")` çağırır; modül kapalıysa `notFound()`.
 - **Bağımlılık:** Koç bir modülü açarken `dependsOn` içindekiler kapalıysa uyarı verilir ve birlikte açılır.
@@ -287,9 +308,19 @@ export const questionLogModule = defineModule({
 ### 3.4 Modül sınırları (kesin kurallar)
 
 1. Bir modül, başka bir modülün iç dosyalarını import **edemez**. Sadece `@/features/<modul>` (yani `index.ts`) üzerinden erişir.
-2. `components/ui`, `components/shared`, `lib`, `modules`, `types` her yerden import edilebilir; ama bunlar hiçbir `features/*` dosyasını import **edemez**.
-3. Modüller arası veri ihtiyacı (ör. analiz modülünün soru kayıtlarını okuması) veritabanı **görünümleri** (views) üzerinden karşılanır, TypeScript import'u üzerinden değil.
-4. Bu kurallar ESLint `no-restricted-imports` (veya `eslint-plugin-boundaries`) ile otomatik denetlenir.
+2. `components`, `lib`, `types`, `content`, `config` ve `modules/` altındaki yardımcılar (`define-module.ts`, `get-enabled-modules.ts`) her yerden import edilebilir; ama bunlar hiçbir `features/*` dosyasını import **edemez**.
+3. **Tek istisna `registry` katmanıdır:** `src/modules/registry.ts` ve `src/modules/widgets.ts` yalnızca `@/features/<modul>` index dosyalarını import edebilir; başka hiçbir shared dosya `features`'a bakmaz.
+4. `features/*/module.ts` yalnızca metadata içerir: `react`, `@/components/**` veya modülün kendi bileşenlerini import **edemez**. Bileşen gerektiren panel kartları `features/*/widgets.ts` içindedir.
+5. `src/app/**` sayfaları `@/features/<modul>` index'lerini ve `@/modules/*` katmanını import edebilir.
+6. Modüller arası veri ihtiyacı (ör. analiz modülünün soru kayıtlarını okuması) veritabanı **görünümleri** (views) üzerinden karşılanır, TypeScript import'u üzerinden değil.
+7. Bu kurallar ESLint ile otomatik denetlenir: `eslint-plugin-boundaries` (element tipleri: `feature`, `feature-index`, `registry`, `modules`, `shared`, `app`) + `no-restricted-imports` (derin `@/features/<modul>/…` alias'ı ve `module.ts` için bileşen import'u).
+
+| Kaynak → Hedef | `feature-index` (başka modül) | `feature` iç dosya (başka modül) | `shared`, `modules` | `registry` |
+|---|---|---|---|---|
+| `feature` | ✔ | ✘ | ✔ | ✘ |
+| `shared`, `modules` | ✘ | ✘ | ✔ | ✘ |
+| `registry` | ✔ | ✘ | ✔ | ✔ |
+| `app` | ✔ | ✘ | ✔ | ✔ |
 
 ## 4. Veri Akışı
 
@@ -419,11 +450,13 @@ Supabase anahtar adları zaman içinde değişebildiği için (eski `anon` / `se
   "start": "next start",
   "lint": "eslint .",
   "format": "prettier --write .",
-  "typecheck": "tsc --noEmit",
+  "format:check": "prettier --check .",
+  "typecheck": "next typegen && tsc --noEmit",
   "test": "vitest run",
   "test:watch": "vitest",
   "test:e2e": "playwright test",
   "db:start": "supabase start",
+  "db:stop": "supabase stop",
   "db:reset": "supabase db reset",
   "db:test": "supabase test db",
   "db:types": "supabase gen types typescript --local > src/types/database.types.ts",
@@ -464,3 +497,8 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 8 | 2026-09 | Hibrit tasarım: öğrenci clay, veli sakin clay, koç sade; `data-surface` ile tek bileşen seti | Yaş grubuna uygun his + koç ekranlarında veri okunabilirliği | Tamamen clay, tamamen düz |
 | 9 | 2026-09 | Ders rengi `subjects.color` token öneki + `subjectVars()` CSS değişkenleri | Tailwind dinamik sınıf üretemez; yeni dersler kod değişmeden renk alır | Sabit sınıf eşleme tablosu |
 | 10 | 2026-09 | Tasarımdaki veli "Mesajlar" sekmesi "Notlar" olarak uygulanır | Mesajlaşma kapsam dışı | Mesajlaşma modülü eklemek |
+| 11 | 2026-09 | Modül sınırları `eslint-plugin-boundaries` ile denetlenir | Klasör tabanlı katman kuralları; göreli import kaçaklarını da yakalar | Sadece `no-restricted-imports` |
+| 12 | 2026-09 | shadcn/ui v4 (radix-nova) paketi tek seferde kabul: `radix-ui`, `class-variance-authority`, `cn` (clsx + tailwind-merge yerine shadcn'in motoru), `tw-animate-css`, `shadcn` (çalışma zamanında yalnızca `shadcn/tailwind.css` varyantları); semantik token'ları bizim token'lara takma ad. `cn` her zaman `@/lib/utils`'ten import edilir (özel `text-*`, `shadow-*`, `rounded-*` ölçekleri orada tanıtılır; ESLint kuralı) | shadcn bileşenleri bunları bekler; hex yazmadan paletle uyum | Her bileşeni elle yeniden yazmak; clsx + tailwind-merge |
+| 13 | 2026-09 | Modül manifesti (`module.ts`, metadata) ile panel kartları (`widgets.ts`, bileşen) ayrı; `registry.ts` / `widgets.ts` ayrı toplanır | Menü ve sekme üreten kod widget bileşenlerini paket boyutuna eklemesin; `registry` katmanı features'a bakan tek shared yer | Tek manifest içinde bileşen referansı |
+| 14 | 2026-09 | `typedRoutes` kapalı | Manifest `href` alanları düz string; Faz 1c'de `Route` tipine geçiş değerlendirilir | `typedRoutes: true` |
+| 15 | 2026-09 | Koç (flat) yüzeyinde `--bg-paper` (#FFFFFF) token'ı; `--focus-color` odak token'ı | Beyaz zemin ve odak rengi tek yerden değişsin (koyu tema); ders dışı öğe ders rengine bağlanmasın | Tailwind `bg-white`, `--subject-math` ile odak |

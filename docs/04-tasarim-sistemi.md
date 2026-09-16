@@ -36,6 +36,7 @@ Renk paleti, ders renkleri, Lexend yazı tipi, lucide ikonları ve yazım dili t
   /* mürekkep ve zemin */
   --ink-900:#1B2440; --ink-700:#39456B; --ink-500:#5A6485; --ink-300:#9AA2BC;
   --bg-app:#E9EDF6; --bg-surface:#F1F4FB; --bg-raised:#FAFBFE; --bg-sunken:#DFE5F1;
+  --bg-paper:#FFFFFF;        /* koç (flat) kart, giriş ve diyalog zemini */
   --line:#D6DDEC; --line-strong:#BCC6DE;
 
   /* ders renkleri: tam renk / soft zemin / koyu metin tonu */
@@ -70,7 +71,8 @@ Renk paleti, ders renkleri, Lexend yazı tipi, lucide ikonları ve yazım dili t
   --coach-sidebar:232px;
   --content-max-student:1240px;
   --content-max:1320px;
-  --focus-ring:3px solid #2E66D6; --focus-offset:3px;
+  --focus-color:#2E66D6;     /* odak halkası; ders rengi değil, ders dışı hiçbir öğe --subject-* token'ına bağlanmaz */
+  --focus-ring:3px solid var(--focus-color); --focus-offset:3px;
   --motion-press:120ms; --motion-marker:220ms;
 }
 ```
@@ -92,6 +94,7 @@ Tasarım dosyasındaki token listesinden farklar: koç gölgeleri, yarıçaplar 
   --color-bg-surface: var(--bg-surface);
   --color-bg-raised: var(--bg-raised);
   --color-bg-sunken: var(--bg-sunken);
+  --color-bg-paper: var(--bg-paper);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-marker: var(--accent-marker);
@@ -129,6 +132,7 @@ Tasarım dosyasındaki token listesinden farklar: koç gölgeleri, yarıçaplar 
   --radius-card: 20px;
   --radius-lg: 28px;
   --radius-xl: 36px;
+  --radius-pill: 999px;
 
   --text-display: 32px;    --text-display-lg: 44px;   /* telefon / masaüstü */
   --text-title: 24px;      --text-title-lg: 28px;
@@ -142,6 +146,24 @@ Tasarım dosyasındaki token listesinden farklar: koç gölgeleri, yarıçaplar 
 Kırılma noktaları Tailwind varsayılanlarıyla örtüşür: `md:` = tablet (768 px), `lg:` = masaüstü (1024 px). Ayrıca tanımlanmaz.
 
 Clay yardımcıları `@utility` ile tanımlanır (ör. `clay-card`: `bg-raised` + `--clay-md` + `--clay-inner`; `clay-press`: `:active` durumunda `--clay-pressed` ve `scale(.97)`, `--motion-press` süresiyle).
+
+### 3.2 Yüzey varyantları (`@custom-variant`)
+
+`data-surface` mekanizması Tailwind v4 özel varyantlarıyla çalışır; bileşen sınıfları `clay:` / `calm:` / `flat:` önekiyle yazılır, bileşene prop geçilmez:
+
+```css
+@custom-variant clay (&:where([data-surface="clay"], [data-surface="clay"] *, [data-surface="clay-calm"], [data-surface="clay-calm"] *));
+@custom-variant calm (&:where([data-surface="clay-calm"], [data-surface="clay-calm"] *));
+@custom-variant flat (&:where([data-surface="flat"], [data-surface="flat"] *));
+```
+
+- `clay` varyantı hem `clay` hem `clay-calm` yüzeyinde geçerlidir; `calm` yalnızca veli yüzeyinde ve `clay`'den sonra tanımlandığı için aynı öğede kazanır (ör. `clay:shadow-clay-md calm:shadow-clay-sm`).
+- Seçici "kendisi veya soyundan" biçimindedir: portal ile `body`'ye çıkan Dialog içeriği kendi üzerine `data-surface` alır (`useSurface()` ile) ve doğru varyantı korur.
+- Yüzeyler **iç içe konmaz**; her rol layout'unda tek `SurfaceRoot`. `data-surface` olmayan bağlamda bileşenler nötr (flat'e yakın) görünür.
+
+### 3.3 shadcn/ui takma adları
+
+shadcn bileşenlerinin beklediği semantik adlar (`--color-background`, `--color-primary`, `--color-border`, `--color-ring` …) `@theme inline` içinde **yalnızca yukarıdaki token'lara bağlanarak** tanımlanır (`--color-primary: var(--ink-900)`, `--color-border: var(--line)`, `--color-ring: var(--focus-color)` gibi). Hex yazılmaz, yeni renk tanımlanmaz; amaç sonraki fazlarda eklenen shadcn bileşenlerinin ilk andan paleti kullanmasıdır.
 
 ## 4. Renk Kuralları
 
@@ -289,7 +311,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 
 | Bileşen | Konum | Not |
 |---|---|---|
-| `Button` (primary, secondary, ghost) | `components/ui` | Durumlar: normal, hover, basılı, odak, devre dışı |
+| `Button` (primary, secondary, ghost) | `components/ui` | Durumlar: normal, hover, basılı, odak, devre dışı. Tasarım dosyasında koç ghost düğmesi `--subject-math-ink` (mavi) kullanır; Bölüm 4.2 gereği uygulamada `--ink-700` + altı çizili (öğrenci ghost ile aynı). |
 | `Input`, `Select` | `components/ui` | Clay'de kap clay, alan içi `clay-well` |
 | `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı |
 | `SubjectBadge`, `SubjectStripe` | `components/shared` | `subjectVars()` ile |
@@ -334,12 +356,14 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 
 - Metinde Türkçe biçim: `71,33 net` · `1.250 soru` · `%80` · `14 sa 20 dk` · `16 Eylül` · `14 – 20 Eylül`.
 - **Biçimlenmiş metin ile hesap/CSS değeri ayrı tutulur.** `%86` sadece ekranda gösterilir; çubuk genişliği gibi CSS değerlerine ham sayı (`86%`) verilir. (Tasarım dosyasında koç tablosundaki hedef çubukları bu yüzden yanlış görünür: `width:%86` geçersiz CSS'tir.)
-- Tüm biçimlendirme `lib/format` üzerinden: `formatPercent`, `formatNet`, `formatCount`, `formatDuration`, `formatDateTr`, `formatWeekRange`.
+- **Sayı ile birim arasında bölünmeyen boşluk (U+00A0)** vardır (`14 sa 20 dk`, `1.250 soru`, `71,33 net`, `16 Eylül`); satır sonunda sayı ile birim ayrılmaz. Birim `lib/format`'a parametre olarak verilir (`formatCount(1250, "soru")`) ya da `withUnit()` ile eklenir; hafta aralığı yalnızca dash çevresinde kırılabilir.
+- **Negatif sayılar tipografik eksi (U+2212) ile** yazılır: `−4,33`, `−0,50`; tire (`-`) kullanılmaz. Değişim ve trend değerleri işaretlidir: `+3,67` / `−0,50`, sıfırda işaret yok (`0,00`). `Intl` çıktısındaki işaret `lib/format` içinde normalize edilir.
+- Tüm biçimlendirme `lib/format` üzerinden: `formatPercent`, `formatNet`, `formatSigned`, `formatCount`, `formatDuration`, `formatDateTr`, `formatWeekRange`.
 
 ## 13. Erişilebilirlik
 
 - WCAG AA kontrast. Pastel zemin üzerinde soluk gri metin yok; ikincil metin en açık `--ink-500`.
-- Dokunma hedefi en az 44 × 44 px (sayı adımlayıcıda 48).
+- Dokunma hedefi en az 44 × 44 px (sayı adımlayıcıda 48). Koç (flat) yüzeyinde düğme, giriş ve diyalog kapat düğmesi fare/iz sürücüde görsel olarak 38 px'tir; dokunmatik cihazlarda (`pointer-coarse:`) en az 44 px'e çıkar.
 - Görünür odak halkası: `--focus-ring` / `--focus-offset`, her iki yüzey dilinde.
 - Bilgi sadece renkle verilmez (ders kısa adı, desen, ikon, metin).
 - Masaüstünde kritik akışlar klavyeyle yapılabilir (hızlı kayıt, konu haritasında ok tuşları, plan oluşturucuda sürükle-bırakın klavye alternatifi: dnd-kit klavye sensörü).
