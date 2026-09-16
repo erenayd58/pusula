@@ -38,7 +38,7 @@ Elle dolduracaksan `pnpm exec supabase status -o env` çıktısındaki şu değe
 
 ### Kimlik doğrulama yapılandırması
 
-- **E-posta doğrulama:** Veli kaydı doğrulama e-postası ister (`enable_confirmations = true`); yerelde e-postalar Mailpit'e düşer: http://127.0.0.1:54324. Şablon `supabase/templates/confirmation.html` (`/auth/confirm?token_hash=…`). Üretimde şablon ve özel SMTP dashboard'da yapılandırılır (02 §9 tablosu); doğrulama kapatılmaz.
+- **E-posta doğrulama:** Veli kaydı doğrulama e-postası ister (`enable_confirmations = true`); yerelde e-postalar Mailpit'e düşer: http://127.0.0.1:54324. Şablon `supabase/templates/confirmation.html` (`/auth/confirm?token_hash=…`). Bulutta doğrulama kapalıdır (veli davet koduyla gelir, kayıttan sonra doğrudan onay ekranı); kurulum için `docs/07-bulut-kurulum.md`.
 - **Rol claim'i:** `public.custom_access_token_hook` `profiles.role`'ü JWT'ye `app_metadata.user_role` olarak ekler; `proxy.ts` rol bazlı yönlendirmeyi bundan yapar. Yerelde `config.toml` `[auth.hook.custom_access_token]` açıktır. **Üretimde** Dashboard → Authentication → Hooks → "Customize Access Token (JWT) Claims" → `public.custom_access_token_hook` seçilir. Açılmazsa proxy yalnızca oturum kontrolü yapar; layout'lardaki `requireRole` yine korur.
 
 `pnpm db:reset` yerel veritabanına demo verisi yükler (`supabase/seed.sql`, sadece yerel).

@@ -85,10 +85,15 @@ test.describe("tasarım sistemi sayfası", () => {
     await button.focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Shift+Tab");
-    const outline = await button.evaluate((n) => {
-      const s = getComputedStyle(n);
-      return { width: s.outlineWidth, style: s.outlineStyle, offset: s.outlineOffset };
-    });
-    expect(outline).toEqual({ width: "3px", style: "solid", offset: "3px" });
+    await expect(button).toBeFocused();
+    // :focus-visible stili yük altında bir kare geç uygulanabiliyor; sonucu bekleyerek oku.
+    await expect
+      .poll(() =>
+        button.evaluate((n) => {
+          const s = getComputedStyle(n);
+          return { width: s.outlineWidth, style: s.outlineStyle, offset: s.outlineOffset };
+        }),
+      )
+      .toEqual({ width: "3px", style: "solid", offset: "3px" });
   });
 });

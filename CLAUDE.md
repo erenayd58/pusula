@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+Ölçek: tek koç, birkaç öğrenci, ücretsiz. Güvenlik (RLS) tavizsiz; diğer konularda en basit çalışan çözümü seç.
+
 Bu dosya Claude Code'un bu depoda nasıl çalışacağını tanımlar. Kısa tutulur; ayrıntılar `docs/` altındadır.
 
 ## Proje
@@ -15,6 +17,7 @@ Bu dosya Claude Code'un bu depoda nasıl çalışacağını tanımlar. Kısa tut
    - `docs/tasarim/`: onaylanan tasarım (HTML) ve ekran görüntüleri (PNG). Arayüz yaparken ilgili ekranın PNG'sine bak. Kural çelişirse 04 belgesi geçerli; tasarımdaki örnek veriler bağlayıcı değil.
 5. `docs/05-lgs-2027-sablonu.md`: seed verisi
 6. `docs/06-claude-code-rehberi.md`: faz istemleri
+7. `docs/07-bulut-kurulum.md`: Supabase/Vercel kurulum adımları
 
 Belge ile kod çelişirse dur ve sor. Onaylanan değişiklikte önce belgeyi güncelle.
 

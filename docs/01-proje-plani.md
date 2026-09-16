@@ -192,7 +192,8 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] Koç: öğrenci oluşturma (admin API + `create_student_account` RPC + telafi), şifre sıfırlama, veli davet kodu; owner: koç ataması (`assign_coach`), öğrenci silme (cascade doğrulandı); basit `/coach/students` listesi
 - [x] Veli: davetle kayıt (açık kayıt + davete bağlı profil, karar #20) → e-posta doğrulama (Mailpit) → `accept_invitation` → KVKK onayı (taslak metin, sürüm `config/constants`)
 - [x] Testler: birim (username, davet kodu, createAction, telafi), pgTAP (5 yeni dosya), Playwright (giriş, öğrenci oluşturma, owner yönetimi, veli daveti); CI e2e yerel Supabase + seed ile
-- Ertelenen: koçun kâğıt onayı sisteme işlemesi (Faz 7 veli paneli ile), `before_user_created` hook değerlendirmesi (karar #20)
+- Ertelenen: `before_user_created` hook değerlendirmesi (karar #20)
+- **Pilot öncesi: kâğıt onayı.** Koçun kâğıt üzerinde alınan veli onayını sisteme işleyebilmesi (`consents.recorded_by`) pilot başlamadan (Faz 3 sonu) eklenir; RLS politikası hazır.
 
 **1c. Modül sistemi ve uygulama kabukları**
 - Modül kayıt sistemi (`defineModule`, registry), role göre uygulama kabuğu (öğrenci alt menü, koç yan menü)

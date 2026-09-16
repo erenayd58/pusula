@@ -87,7 +87,7 @@ export async function registerParent(
   if (!invitation) return { error: INVITATION_INVALID };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
     options: {
@@ -102,6 +102,19 @@ export async function registerParent(
   if (error) {
     console.error("[registerParent] signUp başarısız", { code: error.code });
     return { error: "Kayıt başlatılamadı. Biraz sonra tekrar deneyin." };
+  }
+
+  // E-posta doğrulama kapalıysa (bulut, 07-bulut-kurulum) signUp oturum döndürür: daveti hemen
+  // kabul edip onaya geç. Açıksa oturum yoktur; kullanıcı e-postadaki bağlantıyı bekler.
+  if (data.session) {
+    const { error: acceptError } = await supabase.rpc("accept_invitation", {
+      p_code: input.code,
+      p_full_name: input.fullName,
+      p_relation: input.relation,
+    });
+    if (acceptError) redirect("/invite/accept");
+    await supabase.auth.refreshSession();
+    redirect("/consent");
   }
   redirect("/invite/check-email");
 }
