@@ -139,7 +139,7 @@ Birçok 8. sınıf öğrencisinin düzenli kullandığı bir e-postası yoktur. 
 - Şifre sıfırlama koç panelinden yapılır.
 - Veli ve koç hesapları gerçek e-posta ile açılır ve e-posta doğrulaması zorunludur.
 
-Uygulamaya geçmeden önce Supabase'in güncel e-posta doğrulama kurallarının bu kullanıma izin verdiği test edilmelidir.
+Yerel Supabase'de (CLI 2.117) admin API ile `ogrenci.pusula.local` alanında hesap oluşturma ve şifreli giriş deneyle doğrulandı (2026-09, 02 karar #19). Üretimde kontrol edilen alan adının alt alanı kullanılır; deney staging'de tekrarlanır.
 
 ## 9. KVKK ve Güvenlik
 
