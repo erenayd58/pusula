@@ -48,6 +48,19 @@ test.describe("tasarım sistemi sayfası", () => {
     expect(await shadow(page.getByTestId("card-md-flat"))).toBe("none");
   });
 
+  test("dar clay kartta süre tek satırda kalır (bölünmeyen boşluk)", async ({ page }) => {
+    await page.goto("/dev/design");
+    const duration = page.getByTestId("duration-sm-clay");
+    const nb = String.fromCharCode(0x00a0); // bölünmeyen boşluk
+    await expect(duration).toHaveText(`14${nb}sa${nb}20${nb}dk`);
+    const box = await duration.evaluate((n) => {
+      const rects = n.getClientRects();
+      return { lines: rects.length, height: n.getBoundingClientRect().height };
+    });
+    expect(box.lines).toBe(1);
+    expect(box.height).toBeLessThan(30);
+  });
+
   test("diyalog portal'a çıksa da yüzeyini korur", async ({ page }) => {
     await page.goto("/dev/design");
 

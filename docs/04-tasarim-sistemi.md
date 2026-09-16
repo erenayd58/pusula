@@ -356,6 +356,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 
 - Metinde Türkçe biçim: `71,33 net` · `1.250 soru` · `%80` · `14 sa 20 dk` · `16 Eylül` · `14 – 20 Eylül`.
 - **Biçimlenmiş metin ile hesap/CSS değeri ayrı tutulur.** `%86` sadece ekranda gösterilir; çubuk genişliği gibi CSS değerlerine ham sayı (`86%`) verilir. (Tasarım dosyasında koç tablosundaki hedef çubukları bu yüzden yanlış görünür: `width:%86` geçersiz CSS'tir.)
+- **Sayı ile birim arasında bölünmeyen boşluk (U+00A0)** vardır (`14 sa 20 dk`, `1.250 soru`, `71,33 net`, `16 Eylül`); satır sonunda sayı ile birim ayrılmaz. Birim `lib/format`'a parametre olarak verilir (`formatCount(1250, "soru")`) ya da `withUnit()` ile eklenir; hafta aralığı yalnızca dash çevresinde kırılabilir.
 - **Negatif sayılar tipografik eksi (U+2212) ile** yazılır: `−4,33`, `−0,50`; tire (`-`) kullanılmaz. Değişim ve trend değerleri işaretlidir: `+3,67` / `−0,50`, sıfırda işaret yok (`0,00`). `Intl` çıktısındaki işaret `lib/format` içinde normalize edilir.
 - Tüm biçimlendirme `lib/format` üzerinden: `formatPercent`, `formatNet`, `formatSigned`, `formatCount`, `formatDuration`, `formatDateTr`, `formatWeekRange`.
 

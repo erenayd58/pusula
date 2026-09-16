@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCount, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { subjects, upcoming } from "../_data";
 import { Note, Section } from "./primitives";
@@ -138,7 +139,9 @@ function Subjects() {
           <SubjectStripe />
           <div className="px-4 py-3.5 clay:px-4 clay:py-3.5">
             <div className="text-body font-semibold">Üslü İfadeler</div>
-            <div className="mt-1 text-small text-ink-500">Matematik · 40 soru</div>
+            <div className="mt-1 text-small text-ink-500">
+              Matematik · {formatCount(40, "soru")}
+            </div>
           </div>
         </Card>
         <Card
@@ -199,7 +202,10 @@ function Cards({ surface }: { surface: Surface }) {
                 {surface === "flat" ? "1 px kenarlık, gölge yok" : `elevation="${e}"`}
               </CardDescription>
             </CardHeader>
-            <CardContent>420 soru · 14 sa 20 dk</CardContent>
+            <CardContent>
+              {formatCount(420, "soru")} ·{" "}
+              <span data-testid={`duration-${e}-${surface}`}>{formatDuration(860)}</span>
+            </CardContent>
           </Card>
         ))}
       </div>
