@@ -178,11 +178,21 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - **Kabul:** `pnpm dev` açılıyor ✅ · CI yeşil (ilk push'ta doğrulanacak) · Vercel'e deploy (depo bağlanınca) · Docker ile `pnpm db:start` + `pnpm db:types` yerelde doğrulanacak
 
 ### Faz 1: Kimlik, Roller ve Modül Altyapısı (L)
-- `organizations`, `profiles`, `students`, `student_parents`, `invitations`, `consents`, `student_modules` tabloları + RLS + testleri
+
+**1a. Veritabanı ve RLS — ✅ 2026-09-16 (dal: `faz-1a-veritabani`)**
+- [x] Enum'lar (`user_role`, `student_status`, `parent_relation`, `consent_type`) ve `organizations`, `profiles`, `students`, `student_parents`, `invitations`, `consents`, `student_modules` tabloları (`students.curriculum_template_id` Faz 2'ye kadar nullable, FK yok)
+- [x] `private` yardımcıları (`my_role`, `my_org`, `is_coach_of`, `is_parent_of`, `can_read_student`, `can_write_student`, `can_see_profile`, `is_parent_profile_in_my_org`) ve yetki sertleştirme (anon sıfır yetki, kolon düzeyi GRANT, default privileges)
+- [x] RLS politikaları (03 §5.3) ve pgTAP testleri: tablo başına 5 senaryo, yetki/kolon testleri, katalog tabanlı şema koruma (225 test)
+- [x] `supabase/seed.sql` (1 kurum, 1 owner, 1 koç, 3 öğrenci, 2 veli) ve `database.types.ts`
+
+**1b. Kimlik doğrulama akışları**
 - Giriş (kullanıcı adı veya e-posta), çıkış, şifre sıfırlama
-- Koç: öğrenci oluşturma, davet kodu üretme; veli: davetle kayıt + KVKK onayı
+- Koç: öğrenci oluşturma (secret key; `profiles` + `students` satırları), davet kodu üretme; veli: davetle kayıt + KVKK onayı; owner: koç ataması (RPC)
+
+**1c. Modül sistemi ve uygulama kabukları**
 - Modül kayıt sistemi (`defineModule`, registry), role göre uygulama kabuğu (öğrenci alt menü, koç yan menü)
-- **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor; bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi).
+
+- **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor; bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi ✅).
 
 ### Faz 2: Müfredat Şablonları ve Konu Takibi (M)
 - `curriculum_templates`, `subjects`, `topics`, `student_topic_progress`
