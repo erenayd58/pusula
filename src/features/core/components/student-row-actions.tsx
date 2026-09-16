@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { assignCoach, deleteStudent, resetStudentPassword } from "../server/student-admin-actions";
 import { FormError } from "./form-error";
+import { InviteParentDialog } from "./invite-parent-dialog";
 import { NativeSelect } from "./native-select";
 
 type Student = { profileId: string; fullName: string; coachId: string };
@@ -34,6 +35,7 @@ export function StudentRowActions({
 }) {
   return (
     <div className="flex flex-wrap justify-end gap-2">
+      <InviteParentDialog student={student} />
       <ResetPasswordDialog student={student} />
       {viewerRole === "owner" ? (
         <>

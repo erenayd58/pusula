@@ -55,3 +55,53 @@ export async function listCoaches(): Promise<CoachOption[]> {
       : [],
   );
 }
+
+// Veli ---------------------------------------------------------------------------------
+
+export type ChildRow = { studentId: string; fullName: string };
+
+/** Velinin bağlı olduğu çocuklar (RLS: sadece kendi bağlantıları). */
+export async function listChildren(): Promise<ChildRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("student_parents")
+    .select(
+      "student_id, student:students!student_parents_student_id_fkey(profile:profiles!students_profile_id_fkey(full_name))",
+    )
+    .order("created_at");
+  if (error) throw error;
+  return data.map((row) => ({
+    studentId: row.student_id,
+    fullName: row.student.profile.full_name,
+  }));
+}
+
+const REQUIRED_CONSENT_TYPES = ["privacy_notice", "explicit_consent"] as const;
+
+/**
+ * Bu velinin henüz açık rıza vermediği çocuklar: her çocuk için iki onay türü de
+ * (`revoked_at` boş) bu veli tarafından verilmiş olmalı.
+ */
+export async function listChildrenNeedingConsent(parentId: string): Promise<ChildRow[]> {
+  const supabase = await createClient();
+  const children = await listChildren();
+  if (children.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("consents")
+    .select("student_id, type")
+    .eq("given_by", parentId)
+    .is("revoked_at", null)
+    .in("type", [...REQUIRED_CONSENT_TYPES]);
+  if (error) throw error;
+
+  const given = new Map<string, Set<string>>();
+  for (const row of data) {
+    const types = given.get(row.student_id) ?? new Set<string>();
+    types.add(row.type);
+    given.set(row.student_id, types);
+  }
+  return children.filter(
+    (c) => !REQUIRED_CONSENT_TYPES.every((t) => given.get(c.studentId)?.has(t)),
+  );
+}

@@ -13,3 +13,25 @@ export { createStudent } from "./server/student-actions";
 export { listStudents, listCoaches, type StudentListRow, type CoachOption } from "./server/queries";
 export { createStudentSchema, type CreateStudentInput } from "./schemas";
 export { assignCoach, deleteStudent, resetStudentPassword } from "./server/student-admin-actions";
+export { InviteParentDialog } from "./components/invite-parent-dialog";
+export { InviteCodeForm } from "./components/invite-code-form";
+export { RegisterParentForm } from "./components/register-parent-form";
+export { AcceptInvitationForm } from "./components/accept-invitation-form";
+export { ConsentForm } from "./components/consent-form";
+export {
+  createParentInvitation,
+  registerParent,
+  acceptInvitation,
+  type RegisterParentState,
+} from "./server/invitation-actions";
+export { giveConsent } from "./server/consent-actions";
+export { listChildren, listChildrenNeedingConsent, type ChildRow } from "./server/queries";
+export {
+  parentRelationValues,
+  registerParentSchema,
+  acceptInvitationSchema,
+  giveConsentSchema,
+  invitationCodeSchema,
+  INVITATION_CODE_MESSAGE,
+  INVITATION_INVALID,
+} from "./schemas";

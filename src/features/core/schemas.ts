@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { USERNAME_PATTERN, USERNAME_RULE_MESSAGE } from "@/lib/auth/username";
+import { isWellFormedInvitationCode, normalizeInvitationCode } from "@/lib/invitations/code";
+
+export const INVITATION_CODE_MESSAGE = "Davet kodu 8 karakterdir; harf ve rakamlardan oluşur.";
+/** Kod hatalı, süresi dolmuş ya da kullanılmışsa hep aynı mesaj (durum sızdırılmaz). */
+export const INVITATION_INVALID = "Davet kodu geçersiz veya süresi dolmuş.";
 
 /**
  * Çekirdek modül zod şemaları; form ve Server Action aynı şemayı kullanır (CLAUDE.md "Kod Stili").
@@ -45,4 +50,43 @@ export const resetStudentPasswordSchema = studentIdSchema.extend({
 
 export const assignCoachSchema = studentIdSchema.extend({
   coachId: z.uuid("Koç seçimi geçersiz."),
+});
+
+// Veli daveti ve kaydı ------------------------------------------------------------------
+
+export const parentRelationValues = ["mother", "father", "guardian", "other"] as const;
+
+const invitationCode = z
+  .string()
+  .transform((v) => normalizeInvitationCode(v))
+  .refine(isWellFormedInvitationCode, INVITATION_CODE_MESSAGE);
+
+export const invitationCodeSchema = z.object({ code: invitationCode });
+
+export const registerParentSchema = z.object({
+  code: invitationCode,
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Ad soyad en az 2 karakter olmalı.")
+    .max(80, "Ad soyad en fazla 80 karakter."),
+  email: z.email("Geçerli bir e-posta adresi yazın.").transform((v) => v.trim().toLowerCase()),
+  password: z
+    .string()
+    .min(8, "Şifre en az 8 karakter olmalı.")
+    .max(72, "Şifre en fazla 72 karakter."),
+  relation: z.enum(parentRelationValues, "Yakınlık seçin."),
+});
+export type RegisterParentInput = z.infer<typeof registerParentSchema>;
+
+export const acceptInvitationSchema = z.object({
+  code: invitationCode,
+  /** Profili olmayan kullanıcı için zorunlu; mevcut veli için yok sayılır. */
+  fullName: z.string().trim().max(80, "Ad soyad en fazla 80 karakter.").optional(),
+  relation: z.enum(parentRelationValues, "Yakınlık seçin."),
+});
+
+export const giveConsentSchema = z.object({
+  studentIds: z.array(z.uuid()).min(1, "Onay verilecek öğrenci bulunamadı."),
+  accepted: z.literal(true, "Devam etmek için onay kutusunu işaretleyin."),
 });

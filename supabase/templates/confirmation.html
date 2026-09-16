@@ -1,0 +1,11 @@
+<h2>Pusula'ya hoş geldiniz</h2>
+
+<p>Veli hesabınızı tamamlamak için e-posta adresinizi doğrulayın:</p>
+
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/invite/accept"
+    >E-postamı doğrula</a
+  >
+</p>
+
+<p>Bu bağlantı kısa süre geçerlidir. Kaydı siz başlatmadıysanız bu e-postayı yok sayabilirsiniz.</p>

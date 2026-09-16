@@ -380,6 +380,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: {
+          p_code: string
+          p_full_name: string
+          p_relation: Database["public"]["Enums"]["parent_relation"]
+        }
+        Returns: string
+      }
       assign_coach: {
         Args: { p_coach_id: string; p_student_id: string }
         Returns: undefined
