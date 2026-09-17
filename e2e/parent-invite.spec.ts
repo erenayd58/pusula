@@ -44,6 +44,7 @@ test.describe("veli daveti", () => {
     await expect(page).toHaveURL(/\/invite\/accept$/);
     await expect(page.getByLabel("Davet kodu")).toHaveValue(code!);
     await expect(page.getByLabel("Adınız soyadınız")).toHaveValue("E2E Veli");
+    await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Daveti kabul et" }).click();
 
     // KVKK onayı zorunlu: /parent onaysız açılmaz
@@ -62,6 +63,8 @@ test.describe("veli daveti", () => {
     await expect(page).toHaveURL(/\/parent$/);
     await page.goto(`/invite/${code}`);
     await expect(page).toHaveURL(/\/invite\/accept\?code=/);
+    // Hidrasyon bitmeden tıklanırsa form yerel submit ile sayfayı yeniler (yük altında flaky).
+    await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Daveti kabul et" }).click();
     await expect(formAlert(page)).toHaveText("Davet kodu geçersiz veya süresi dolmuş.");
   });
