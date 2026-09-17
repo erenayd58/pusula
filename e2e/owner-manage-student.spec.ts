@@ -41,7 +41,7 @@ test.describe("owner öğrenci yönetir", () => {
 
     // Yeni şifreyle giriş
     await login(page, username, newPassword);
-    await expect(page).toHaveURL(/\/student$/);
+    await expect(page).toHaveURL(/\/student\/today$/);
     await logout(page);
 
     // Sil

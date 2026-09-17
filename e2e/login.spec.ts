@@ -3,17 +3,17 @@ import { accounts } from "./fixtures/accounts";
 import { formAlert, login, logout } from "./fixtures/auth";
 
 test.describe("giriş", () => {
-  test("koç e-postayla girer, /coach'a gider, çıkış yapar", async ({ page }) => {
+  test("koç e-postayla girer, /coach/students'a gider, çıkış yapar", async ({ page }) => {
     await login(page, accounts.coach.identifier);
-    await expect(page).toHaveURL(/\/coach$/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Murat Kaya");
+    await expect(page).toHaveURL(/\/coach\/students$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Öğrenciler");
     await logout(page);
   });
 
-  test("öğrenci kullanıcı adıyla girer, /student'a gider", async ({ page }) => {
+  test("öğrenci kullanıcı adıyla girer, /student/today'e gider", async ({ page }) => {
     await login(page, accounts.student.identifier);
-    await expect(page).toHaveURL(/\/student$/);
-    await expect(page.getByText("Öğrenci", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/student\/today$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Ayşe");
   });
 
   test("yanlış şifrede her durumda aynı genel hata", async ({ page }) => {
@@ -32,10 +32,10 @@ test.describe("giriş", () => {
 
   test("öğrenci /coach'a giremez, kendi ana sayfasına döner", async ({ page }) => {
     await login(page, accounts.student.identifier);
-    await expect(page).toHaveURL(/\/student$/);
+    await expect(page).toHaveURL(/\/student\/today$/);
     await page.goto("/coach");
-    await expect(page).toHaveURL(/\/student$/);
+    await expect(page).toHaveURL(/\/student\/today$/);
     await page.goto("/login");
-    await expect(page).toHaveURL(/\/student$/);
+    await expect(page).toHaveURL(/\/student\/today$/);
   });
 });

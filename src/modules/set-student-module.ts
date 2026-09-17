@@ -5,7 +5,8 @@ import { ActionError, createAction } from "@/lib/actions/create-action";
 import { getEnabledModules } from "@/modules/get-enabled-modules";
 import { getModule, resolveToggle } from "@/modules/registry";
 
-export const setStudentModuleSchema = z.object({
+// "use server" dosyası yalnızca async fonksiyon dışa açar; şema yerel kalır.
+const setStudentModuleSchema = z.object({
   studentId: z.uuid("Öğrenci kimliği geçersiz."),
   moduleId: z.string().min(1),
   enabled: z.boolean(),
