@@ -1,7 +1,8 @@
 /**
- * Çekirdek modül (`core`) dışa açık API'si. Manifest (`module.ts`) Faz 1c'de eklenir.
+ * Çekirdek modül (`core`) dışa açık API'si.
  * İstemci bileşenleri bu dosyayı import etmez (sunucu dosyaları da dışa açılır).
  */
+export { coreModule } from "./module";
 export { LoginForm } from "./components/login-form";
 export { LogoutButton } from "./components/logout-button";
 export { FormError } from "./components/form-error";
