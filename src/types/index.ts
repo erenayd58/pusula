@@ -21,3 +21,4 @@ export type PlanStatus = Enums<"plan_status">;
 export type PlanItemKind = Enums<"plan_item_kind">;
 export type WeeklyPlan = Tables<"weekly_plans">;
 export type PlanItemRow = Tables<"plan_items">;
+export type TopicAlertKind = Enums<"topic_alert_kind">;

@@ -108,3 +108,14 @@ export const planItemKindLabels = {
   link: "Bağlantı",
   custom: "Serbest",
 } as const;
+
+/** Konu uyarı türü (Faz 4c; öğrenciye yalnızca bakım türleri ve başlanmamış gösterilir, karar A7). */
+export const topicAlertKindLabels = {
+  knowledge_gap: "Bilgi eksiği",
+  low_accuracy: "Düşük başarı",
+  review_due: "Tekrar zamanı",
+  forgetting_risk: "Unutma riski",
+  stale: "Soğumuş konu",
+  not_started: "Başlanmamış",
+  neglected_subject: "İhmal edilen ders",
+} as const;

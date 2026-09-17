@@ -56,6 +56,14 @@ export function daysUntil(dateKey: string, now: Date = new Date()): number {
   return differenceInCalendarDays(target, todayInIstanbul(now));
 }
 
+/**
+ * Verilen tarih ya da zaman damgasından `todayKey` (YYYY-MM-DD, İstanbul günü) gününe geçen tam
+ * gün sayısı; aynı gün → 0, gelecek → negatif. Uyarı kuralları ("12 gündür bakılmadı") için.
+ */
+export function daysSince(value: Date | number | string, todayKey: string): number {
+  return differenceInCalendarDays(new TZDate(todayKey, TIME_ZONE), toIstanbul(value));
+}
+
 /** Saate göre selamlama (İstanbul): 05–12 Günaydın, 12–18 İyi günler, sonrası İyi akşamlar. */
 export function greetingFor(now: Date = new Date()): string {
   const hour = toIstanbul(now).getHours();

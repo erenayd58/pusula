@@ -1,3 +1,4 @@
+import { analyticsModule } from "@/features/analytics";
 import { announcementsModule } from "@/features/announcements";
 import { coachNotesModule } from "@/features/coach-notes";
 import { coreModule } from "@/features/core";
@@ -23,6 +24,7 @@ export const modules: readonly ModuleManifest[] = [
   topicsModule,
   questionLogModule,
   goalsModule,
+  analyticsModule,
   scheduleModule,
   plannerModule,
   mockExamsModule,
