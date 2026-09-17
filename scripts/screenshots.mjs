@@ -199,180 +199,86 @@ const SHOTS = [
     width: 1440,
     path: `/coach/students/${SEED.ayse}`,
   },
-  // Faz 4a: haftalık program
+  // Faz 4: plan sistemi (program, plan, uyarılar, öneriler)
   {
-    dir: "uygulama-4a",
-    file: "ogrenci-program-390.png",
-    as: "student",
-    width: 390,
-    path: "/student/schedule",
-  },
-  {
-    dir: "uygulama-4a",
-    file: "ogrenci-program-1440.png",
-    as: "student",
-    width: 1440,
-    path: "/student/schedule",
-  },
-  {
-    dir: "uygulama-4a",
-    file: "ogrenci-mesguliyet-formu-390.png",
-    as: "student",
-    width: 390,
-    path: "/student/schedule",
-    before: async (page) => {
-      await page.getByRole("button", { name: "Meşguliyet ekle" }).click();
-      await page.getByRole("dialog").waitFor();
-    },
-  },
-  {
-    dir: "uygulama-4a",
-    file: "koc-program-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.ayse}/schedule`,
-  },
-  // Faz 4b: haftalık plan
-  {
-    dir: "uygulama-4b",
-    file: "koc-plan-olusturucu-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.ayse}/plan`,
-  },
-  {
-    dir: "uygulama-4b",
-    file: "koc-plan-bos-hafta-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.zeynep}/plan`,
-  },
-  {
-    dir: "uygulama-4b",
-    file: "koc-gorev-formu-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.ayse}/plan`,
-    before: async (page) => {
-      await page.getByTestId("day-5").getByRole("button", { name: "Görev ekle" }).click();
-      await page.getByRole("dialog").waitFor();
-    },
-  },
-  {
-    dir: "uygulama-4b",
-    file: "koc-planlar-1440.png",
-    as: "coach",
-    width: 1440,
-    path: "/coach/plans",
-  },
-  {
-    dir: "uygulama-4b",
-    file: "ogrenci-plan-390.png",
-    as: "student",
-    width: 390,
-    path: "/student/plan",
-  },
-  {
-    dir: "uygulama-4b",
-    file: "ogrenci-plan-1440.png",
-    as: "student",
-    width: 1440,
-    path: "/student/plan",
-  },
-  {
-    dir: "uygulama-4b",
+    dir: "uygulama-4",
     file: "ogrenci-bugun-390.png",
     as: "student",
     width: 390,
     path: "/student/today",
   },
   {
-    dir: "uygulama-4b",
-    file: "ogrenci-gorev-tamamla-390.png",
+    dir: "uygulama-4",
+    file: "ogrenci-plan-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/plan",
+  },
+  {
+    dir: "uygulama-4",
+    file: "ogrenci-plan-gorev-390.png",
     as: "student",
     width: 390,
     path: "/student/plan",
     before: async (page) => {
-      await page.getByRole("tab", { name: /^Salı,/ }).click();
       await page
-        .getByRole("checkbox", { name: /^Tamamla: / })
+        .getByRole("button", { name: /^Görev detayı: / })
         .first()
         .click();
       await page.getByRole("dialog").waitFor();
     },
   },
-  // Faz 4c: konu uyarıları
   {
-    dir: "uygulama-4c",
-    file: "koc-dikkat-gerektirenler-1440.png",
-    as: "coach",
-    width: 1440,
-    path: "/coach/students",
-  },
-  {
-    dir: "uygulama-4c",
-    file: "koc-zayif-konular-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.ayse}/topics`,
-  },
-  {
-    dir: "uygulama-4c",
-    file: "koc-havuz-uyarilar-1440.png",
-    as: "coach",
-    width: 1440,
-    path: `/coach/students/${SEED.ayse}/plan`,
-  },
-  {
-    dir: "uygulama-4c",
-    file: "sahip-ayarlar-1440.png",
-    as: "owner",
-    width: 1440,
-    path: "/coach/settings",
-  },
-  {
-    dir: "uygulama-4c",
-    file: "ogrenci-bugun-konu-karti-390.png",
+    dir: "uygulama-4",
+    file: "ogrenci-program-390.png",
     as: "student",
     width: 390,
-    path: "/student/today",
+    path: "/student/schedule",
   },
-  // Faz 4d: öneri motoru
   {
-    dir: "uygulama-4d",
-    file: "koc-oneriler-1440.png",
+    dir: "uygulama-4",
+    file: "koc-ogrenciler-1440.png",
     as: "coach",
     width: 1440,
     path: "/coach/students",
   },
   {
-    dir: "uygulama-4d",
-    file: "koc-plana-ekle-1440.png",
-    as: "coach",
-    width: 1440,
-    path: "/coach/students",
-    before: async (page) => {
-      await page
-        .getByRole("region", { name: "Öneriler" })
-        .getByRole("button", { name: /^Plana ekle: / })
-        .first()
-        .click();
-      await page.getByRole("dialog").waitFor();
-    },
-  },
-  {
-    dir: "uygulama-4d",
-    file: "koc-genel-bakis-oneriler-1440.png",
+    dir: "uygulama-4",
+    file: "koc-genel-bakis-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}`,
   },
   {
-    dir: "uygulama-4d",
-    file: "koc-havuz-oneriler-1440.png",
+    dir: "uygulama-4",
+    file: "koc-plan-havuz-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}/plan`,
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-plan-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+    before: async (page) => {
+      await page.getByRole("button", { name: "Görev havuzunu daralt" }).click();
+    },
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-plan-bos-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.zeynep}/plan`,
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-ayarlar-1440.png",
+    as: "owner",
+    width: 1440,
+    path: "/coach/settings",
   },
 ];
 

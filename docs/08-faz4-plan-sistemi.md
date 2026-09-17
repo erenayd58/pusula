@@ -1,6 +1,8 @@
 # Faz 4: Plan Sistemi Tasarımı
 
 > Faz 4'ün dört parçasının (program, plan, konu uyarıları, öneri motoru) ortak tasarım belgesi. Veri modeli bölümü onaylandığında `03-veri-modeli.md` §4.4'ün yerine geçer; parça oturumları bu belgeyi okuyarak başlar. Belge ile kod çelişirse dur ve sor. Ölçek kuralı: tek koç, birkaç öğrenci; RLS tavizsiz, gerisi en basit çalışan çözüm.
+>
+> **Durum:** dört parça da uygulandı (2026-09-17/18; ✅ notları ilgili bölümlerde). Uygulamayla farklar bölüm sonlarındaki notlarda; ekran görüntüleri `docs/tasarim/uygulama-4/`. Faz 5 §5'teki kancaları imza değiştirmeden genişletir.
 
 ## 0. Özet ve parça sırası
 
