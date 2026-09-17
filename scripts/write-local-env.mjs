@@ -34,7 +34,7 @@ const lines = [
   `NEXT_PUBLIC_SUPABASE_URL=${status.API_URL}`,
   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${status.PUBLISHABLE_KEY}`,
   `SUPABASE_SECRET_KEY=${status.SECRET_KEY}`,
-  "STUDENT_EMAIL_DOMAIN=ogrenci.pusula.local",
+  "STUDENT_EMAIL_DOMAIN=ogrenci.pusula.local", // koddaki varsayılanla aynı (config/constants)
   "NEXT_PUBLIC_SITE_URL=http://localhost:3000",
   `MAILPIT_URL=${status.MAILPIT_URL}`,
   "",

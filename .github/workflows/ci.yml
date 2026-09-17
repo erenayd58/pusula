@@ -14,7 +14,7 @@ env:
   NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
   NEXT_PUBLIC_SITE_URL: http://localhost:3000
-  STUDENT_EMAIL_DOMAIN: ogrenci.example.com
+  # STUDENT_EMAIL_DOMAIN verilmez: iş düzeyi env .env.local'ı ezer; koddaki varsayılan seed ile aynı.
 
 jobs:
   check:

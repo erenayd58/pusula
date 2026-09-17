@@ -3,6 +3,8 @@
  * istemciye derlenir; diğerleri yalnızca sunucuda okunur. Eksik değer açık bir hata verir
  * ki yanlış yapılandırma sessizce boş dizeyle ilerlemesin.
  */
+import { DEFAULT_STUDENT_EMAIL_DOMAIN } from "@/config/constants";
+
 function required(name: string, value: string | undefined): string {
   if (!value) throw new Error(`Ortam değişkeni eksik: ${name}`);
   return value;
@@ -30,6 +32,6 @@ export const serverEnv = {
     return required("SUPABASE_SECRET_KEY", process.env.SUPABASE_SECRET_KEY);
   },
   get studentEmailDomain() {
-    return required("STUDENT_EMAIL_DOMAIN", process.env.STUDENT_EMAIL_DOMAIN);
+    return process.env.STUDENT_EMAIL_DOMAIN || DEFAULT_STUDENT_EMAIL_DOMAIN;
   },
 };

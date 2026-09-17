@@ -447,7 +447,7 @@ Migration akışı:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=                 # sadece sunucu
-STUDENT_EMAIL_DOMAIN=ogrenci.example.com
+STUDENT_EMAIL_DOMAIN=ogrenci.pusula.local   # boşsa koddaki varsayılan; bulutta da aynı kalmalı
 YOUTUBE_API_KEY=                     # sadece sunucu, Faz 5
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
@@ -465,7 +465,7 @@ Yerel `config.toml`'daki şu ayarların üretim/staging projesinde elle yapılma
 | Onay e-postası şablonu | `supabase/templates/confirmation.html` | Sadece doğrulama açılırsa: Email Templates → Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/invite/accept` |
 | Site URL / redirect | `site_url`, `additional_redirect_urls` | Üretim alan adı |
 | SMTP | Mailpit | Doğrulama kapalıyken gerekmez (Faz 7 e-posta bildirimleri ayrı karar) |
-| Öğrenci e-posta alanı | `ogrenci.pusula.local` | `STUDENT_EMAIL_DOMAIN=ogrenci.<alan-adi>`; deney staging'de tekrarlanır (karar #19) |
+| Öğrenci e-posta alanı | `ogrenci.pusula.local` | Aynı değer (`DEFAULT_STUDENT_EMAIL_DOMAIN`); değişirse mevcut öğrenciler giriş yapamaz |
 
 ### package.json betikleri
 

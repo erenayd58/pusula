@@ -29,7 +29,7 @@ Elle dolduracaksan `pnpm exec supabase status -o env` çıktısındaki şu değe
 | `NEXT_PUBLIC_SUPABASE_URL` | `API_URL` | `http://127.0.0.1:54321` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `PUBLISHABLE_KEY` | `sb_publishable_…`; eski `ANON_KEY` kullanılmaz |
 | `SUPABASE_SECRET_KEY` | `SECRET_KEY` | `sb_secret_…`; sadece sunucu (`lib/supabase/admin.ts`); eski `SERVICE_ROLE_KEY` kullanılmaz |
-| `STUDENT_EMAIL_DOMAIN` | — | yerelde `ogrenci.pusula.local` |
+| `STUDENT_EMAIL_DOMAIN` | — | `ogrenci.pusula.local` (boşsa koddaki varsayılan; bulutta da aynı kalmalı) |
 | `NEXT_PUBLIC_SITE_URL` | — | `http://localhost:3000` (`config.toml` `site_url` ile aynı) |
 | `MAILPIT_URL` | `MAILPIT_URL` | `http://127.0.0.1:54324`; doğrulama e-postaları burada (Playwright de okur) |
 

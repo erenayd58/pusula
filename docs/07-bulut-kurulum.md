@@ -30,7 +30,7 @@ Supabase → Project Settings → API Keys'ten (yeni anahtarlar):
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` |
 | `SUPABASE_SECRET_KEY` | `sb_secret_…` (sadece sunucu; "Sensitive" işaretle) |
-| `STUDENT_EMAIL_DOMAIN` | `ogrenci.<alan-adi>` (bu adrese e-posta gitmez) |
+| `STUDENT_EMAIL_DOMAIN` | `ogrenci.pusula.local` (koddaki varsayılanla aynı; bu adrese e-posta gitmez). **Bulutta da aynı kalmalı; değişirse mevcut öğrenciler giriş yapamaz.** |
 | `NEXT_PUBLIC_SITE_URL` | `https://<uygulama-alan-adi>` |
 
 Production ve Preview için ayrı Supabase projesi yoksa aynı değerler ikisine de girilir. `MAILPIT_URL` bulutta yok.
