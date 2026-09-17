@@ -47,7 +47,13 @@ export async function deleteStudentAsOwner(page: Page, username: string) {
   // Yönlendirme zinciri bitmeden (/ → /student → /student/today) yeni gezinme başlatma (ERR_ABORTED).
   await page.waitForURL(/\/(login|coach\/students|student\/today|parent)(\/|$)/);
   if (!/\/login$/.test(page.url())) {
-    if (!(await page.getByText(accounts.owner.name).first().isVisible().catch(() => false))) {
+    if (
+      !(await page
+        .getByText(accounts.owner.name)
+        .first()
+        .isVisible()
+        .catch(() => false))
+    ) {
       await logout(page);
       await login(page, accounts.owner.identifier);
     }

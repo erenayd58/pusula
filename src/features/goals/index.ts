@@ -5,6 +5,11 @@
 export { goalsModule } from "./module";
 export { goalsWidgets } from "./widgets";
 export { GoalForm } from "./components/goal-form";
-export { getActiveGoals, getGoalProgress, type ActiveGoals, type GoalProgress } from "./server/queries";
+export {
+  getActiveGoals,
+  getGoalProgress,
+  type ActiveGoals,
+  type GoalProgress,
+} from "./server/queries";
 export { setGoals } from "./server/actions";
 export { setGoalsSchema, goalPeriodValues, type SetGoalsInput } from "./schemas";

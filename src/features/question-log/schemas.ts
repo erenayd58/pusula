@@ -45,8 +45,8 @@ export const updateQuestionLogSchema = withTotal(
   z.object({
     ...logFields,
     id: z.uuid("Kayıt kimliği geçersiz."),
-    logDate: z
-      .iso.date("Tarih YYYY-AA-GG biçiminde olmalı.")
+    logDate: z.iso
+      .date("Tarih YYYY-AA-GG biçiminde olmalı.")
       .refine((d) => d <= toDateKey(todayInIstanbul()), "Gelecek tarihe kayıt girilemez."),
   }),
 );

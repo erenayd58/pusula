@@ -25,9 +25,11 @@ export function QuickLogProvider({
   options: QuickLogOptions | null;
   children: ReactNode;
 }) {
-  const [state, setState] = useState<{ open: boolean; initial: QuickLogInitial | null; seq: number }>(
-    { open: false, initial: null, seq: 0 },
-  );
+  const [state, setState] = useState<{
+    open: boolean;
+    initial: QuickLogInitial | null;
+    seq: number;
+  }>({ open: false, initial: null, seq: 0 });
 
   const open = useCallback(
     (initial?: QuickLogInitial) => {

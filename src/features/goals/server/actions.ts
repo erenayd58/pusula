@@ -28,7 +28,10 @@ export const setGoals = createAction({
       const id = byPeriod.get(period);
       if (target === null) {
         if (!id) continue;
-        const { error } = await ctx.supabase.from("goals").update({ is_active: false }).eq("id", id);
+        const { error } = await ctx.supabase
+          .from("goals")
+          .update({ is_active: false })
+          .eq("id", id);
         if (error) throw error;
       } else if (id) {
         const { error } = await ctx.supabase

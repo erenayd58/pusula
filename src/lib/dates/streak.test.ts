@@ -3,7 +3,9 @@ import { streakFrom } from "./streak";
 
 describe("streakFrom", () => {
   it("bugün dahil ardışık günleri sayar", () => {
-    expect(streakFrom(["2026-09-17", "2026-09-16", "2026-09-15", "2026-09-13"], "2026-09-17")).toBe(3);
+    expect(streakFrom(["2026-09-17", "2026-09-16", "2026-09-15", "2026-09-13"], "2026-09-17")).toBe(
+      3,
+    );
   });
 
   it("bugün kayıt yoksa dünkü seri korunur", () => {
@@ -16,7 +18,9 @@ describe("streakFrom", () => {
   });
 
   it("tekrar eden ve sırasız anahtarlar sorun değil", () => {
-    expect(streakFrom(["2026-09-15", "2026-09-17", "2026-09-16", "2026-09-17"], "2026-09-17")).toBe(3);
+    expect(streakFrom(["2026-09-15", "2026-09-17", "2026-09-16", "2026-09-17"], "2026-09-17")).toBe(
+      3,
+    );
   });
 
   it("ay sınırını geçer", () => {
