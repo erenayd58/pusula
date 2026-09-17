@@ -53,6 +53,7 @@ export async function createStudentAccount(opts: {
     p_username: input.username,
     p_season: input.season,
     p_exam_date: input.examDate,
+    p_curriculum_template_id: input.curriculumTemplateId,
   });
 
   if (rpcError) {

@@ -32,6 +32,7 @@ export const createStudentSchema = z.object({
     .max(72, "Geçici şifre en fazla 72 karakter."),
   season: z.string().trim().regex(seasonPattern, "Sezon 2026-2027 biçiminde olmalı."),
   examDate: z.iso.date("Sınav tarihi YYYY-AA-GG biçiminde olmalı."),
+  curriculumTemplateId: z.uuid("Konu listesi (şablon) seçimi geçersiz."),
   /** Sadece owner seçer; koç için boş bırakılır ve kendisi atanır. */
   coachId: z.uuid("Koç seçimi geçersiz.").optional(),
 });

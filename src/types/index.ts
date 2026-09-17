@@ -10,3 +10,7 @@ export type Invitation = Tables<"invitations">;
 export type Consent = Tables<"consents">;
 export type ParentRelation = Enums<"parent_relation">;
 export type ConsentType = Enums<"consent_type">;
+export type TopicStatus = Enums<"topic_status">;
+export type CurriculumTemplate = Tables<"curriculum_templates">;
+export type Subject = Tables<"subjects">;
+export type Topic = Tables<"topics">;

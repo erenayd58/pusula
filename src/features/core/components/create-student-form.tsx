@@ -16,14 +16,18 @@ import { FormError } from "./form-error";
 import { NativeSelect } from "./native-select";
 
 type CoachOption = { id: string; fullName: string };
+type TemplateOption = { id: string; name: string };
 
 export function CreateStudentForm({
   coaches,
+  templates,
   defaultSeason,
   defaultExamDate,
 }: {
   /** Owner için koç seçenekleri; koçta boş (kendisi atanır). */
   coaches: CoachOption[];
+  /** Müfredat şablonları; ilki (sistem şablonu) varsayılan seçili. */
+  templates: TemplateOption[];
   defaultSeason: string;
   defaultExamDate: string;
 }) {
@@ -38,6 +42,7 @@ export function CreateStudentForm({
       temporaryPassword: "",
       season: defaultSeason,
       examDate: defaultExamDate,
+      curriculumTemplateId: templates[0]?.id ?? "",
       coachId: coaches[0]?.id,
     },
   });
@@ -128,6 +133,25 @@ export function CreateStudentForm({
           />
           <FieldError message={errors.examDate?.message} />
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="curriculumTemplateId">Konu listesi (şablon)</Label>
+        <NativeSelect
+          id="curriculumTemplateId"
+          aria-invalid={!!errors.curriculumTemplateId}
+          {...form.register("curriculumTemplateId")}
+        >
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </NativeSelect>
+        <p className="mt-1.5 text-micro-lg text-ink-500">
+          Öğrencinin konu haritası bu şablonun ders ve konularından oluşur.
+        </p>
+        <FieldError message={errors.curriculumTemplateId?.message} />
       </div>
 
       {coaches.length > 0 ? (

@@ -252,3 +252,69 @@
     }
   }
 }
+
+/* ------------------------------------------------------------------
+   Konu haritası hücresi (04 Bölüm 9). Durum üç kanalla ayrılır: doluluk, desen, ikon;
+   renk sadece dersi söyler (--s, subjectVars ile). Tarama desenleri beyaz yarı saydam
+   çizgilerdir; ders rengi değişince kendiliğinden uyar.
+   ------------------------------------------------------------------ */
+@layer components {
+  .topic-cell {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xs);
+    background-color: var(--bg-sunken);
+    border: 1.5px dashed var(--line-strong);
+    color: var(--bg-paper);
+    transition-property: box-shadow, transform, outline-color;
+    transition-duration: var(--motion-press);
+  }
+  .topic-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .topic-cell[data-status="studying"] {
+    border: 1.5px solid var(--s);
+    background-image: linear-gradient(to top, var(--s) 45%, transparent 45%);
+  }
+  .topic-cell[data-status="studying"]::before {
+    top: 55%;
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.45) 0 2px,
+      transparent 2px 7px
+    );
+  }
+  .topic-cell[data-status="completed"],
+  .topic-cell[data-status="mastered"] {
+    border-color: transparent;
+    background-color: var(--s);
+  }
+  .topic-cell[data-status="mastered"]::before {
+    inset: 4px;
+    border-radius: calc(var(--radius-xs) - 3px);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+  }
+  .topic-cell[data-status="needs_review"] {
+    border: 1.5px dashed var(--s);
+    background-image: linear-gradient(to top, var(--s) 60%, transparent 60%);
+  }
+  .topic-cell[data-status="needs_review"]::before {
+    top: 40%;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.45) 0 2px,
+      transparent 2px 6px
+    );
+  }
+  .topic-cell[data-selected="true"] {
+    outline: 2px solid var(--ink-900);
+    outline-offset: 2px;
+  }
+  [data-surface^="clay"] .topic-cell[data-selected="true"] {
+    box-shadow: var(--clay-pressed);
+    transform: scale(0.97);
+  }
+}

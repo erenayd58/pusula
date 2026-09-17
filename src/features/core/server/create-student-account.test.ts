@@ -11,6 +11,7 @@ const input = {
   temporaryPassword: "gecici-sifre-1",
   season: "2026-2027",
   examDate: "2027-06-13",
+  curriculumTemplateId: "c0000000-0000-4000-8000-000000000001",
 };
 
 function makeAdmin(opts: {
