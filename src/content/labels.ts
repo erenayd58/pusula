@@ -93,3 +93,18 @@ export const dayOfWeekShortLabels: Record<number, string> = {
   6: "Cmt",
   7: "Paz",
 };
+
+/** Plan durumu (Faz 4b). */
+export const planStatusLabels = {
+  draft: "Taslak",
+  published: "Yayınlandı",
+} as const;
+
+/** Plan görev türü (Faz 4b; kitap/video Faz 5). */
+export const planItemKindLabels = {
+  topic_study: "Konu çalışması",
+  questions: "Soru",
+  review: "Tekrar",
+  link: "Bağlantı",
+  custom: "Serbest",
+} as const;

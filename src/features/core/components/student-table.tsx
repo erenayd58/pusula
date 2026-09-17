@@ -71,6 +71,14 @@ export function StudentTable({
               <dd>
                 <WeekGoal row={s} />
               </dd>
+              <dt className="text-ink-500">Plan uyumu</dt>
+              <dd className="text-ink-900">
+                {s.planPercentWeek === null ? (
+                  <span className="text-ink-500">—</span>
+                ) : (
+                  formatPercent(s.planPercentWeek)
+                )}
+              </dd>
             </dl>
             <StudentRowActions
               student={{ profileId: s.profileId, fullName: s.fullName, coachId: s.coachId }}
@@ -89,6 +97,7 @@ export function StudentTable({
               <th className="px-4 py-3 font-medium">Son kayıt</th>
               <th className="px-4 py-3 text-right font-medium">Bu hafta</th>
               <th className="px-4 py-3 font-medium">Haftalık hedef</th>
+              <th className="px-4 py-3 text-right font-medium">Plan uyumu</th>
               <th className="px-4 py-3 font-medium">Durum</th>
               {viewerRole === "owner" ? <th className="px-4 py-3 font-medium">Koç</th> : null}
               <th className="px-4 py-3 text-right font-medium">Eylemler</th>
@@ -120,6 +129,13 @@ export function StudentTable({
                 </td>
                 <td className="w-44 px-4 py-3">
                   <WeekGoal row={s} />
+                </td>
+                <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
+                  {s.planPercentWeek === null ? (
+                    <span className="text-ink-500">—</span>
+                  ) : (
+                    formatPercent(s.planPercentWeek)
+                  )}
                 </td>
                 <td className="px-4 py-3 text-ink-700">{studentStatusLabels[s.status]}</td>
                 {viewerRole === "owner" ? (

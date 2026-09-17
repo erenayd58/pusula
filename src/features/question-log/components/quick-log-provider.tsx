@@ -1,20 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import type { QuickLogInitial, QuickLogOptions } from "../types";
+import { QuickLogContext, type QuickLogRequest } from "@/components/shared/quick-log-context";
+import type { QuickLogOptions } from "../types";
 import { QuickLogSheet } from "./quick-log-sheet";
 
-type QuickLogContextValue = {
-  /** Sheet'i açar; `initial` verilirse düzenleme modunda. */
-  open: (initial?: QuickLogInitial) => void;
-};
-
-const QuickLogContext = createContext<QuickLogContextValue | null>(null);
+export { useQuickLog } from "@/components/shared/quick-log-context";
 
 /**
- * Hızlı kayıt sheet'ini tek kez render eder; (+) düğmesi ve geçmiş sayfası `useQuickLog().open()`
- * ile açar. Seçenekler (dersler, konular, net kuralı) öğrenci layout'unda sunucudan gelir.
+ * Hızlı kayıt sheet'ini tek kez render eder; (+) düğmesi, geçmiş sayfası ve plan görevi kartı
+ * `useQuickLog().open()` ile açar. Seçenekler (dersler, konular, net kuralı) öğrenci
+ * layout'unda sunucudan gelir. Context tanımı `components/shared/quick-log-context`.
  */
 export function QuickLogProvider({
   studentId,
@@ -27,17 +24,17 @@ export function QuickLogProvider({
 }) {
   const [state, setState] = useState<{
     open: boolean;
-    initial: QuickLogInitial | null;
+    request: QuickLogRequest;
     seq: number;
-  }>({ open: false, initial: null, seq: 0 });
+  }>({ open: false, request: {}, seq: 0 });
 
   const open = useCallback(
-    (initial?: QuickLogInitial) => {
+    (request?: QuickLogRequest) => {
       if (!options || options.subjects.length === 0) {
         toast("Kayıt için önce koçunun sana bir konu listesi (şablon) ataması gerekiyor.");
         return;
       }
-      setState((s) => ({ open: true, initial: initial ?? null, seq: s.seq + 1 }));
+      setState((s) => ({ open: true, request: request ?? {}, seq: s.seq + 1 }));
     },
     [options],
   );
@@ -53,15 +50,10 @@ export function QuickLogProvider({
           onOpenChange={(o) => setState((s) => ({ ...s, open: o }))}
           studentId={studentId}
           options={options}
-          initial={state.initial}
+          initial={state.request.edit ?? null}
+          planItem={state.request.planItem ?? null}
         />
       ) : null}
     </QuickLogContext.Provider>
   );
-}
-
-export function useQuickLog(): QuickLogContextValue {
-  const ctx = useContext(QuickLogContext);
-  if (!ctx) throw new Error("useQuickLog yalnızca QuickLogProvider içinde kullanılır.");
-  return ctx;
 }

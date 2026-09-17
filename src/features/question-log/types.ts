@@ -1,3 +1,5 @@
+import type { QuickLogEdit } from "@/components/shared/quick-log-context";
+
 /** Hızlı kayıt seçenekleri: şablonun dersleri, ünite düzeyi konuları ve net kuralı. */
 export type QuickLogSubject = {
   subjectId: string;
@@ -31,17 +33,8 @@ export type QuestionLogRow = {
   durationMinutes: number | null;
 };
 
-/** Düzenleme için sheet'e verilen başlangıç değerleri. */
-export type QuickLogInitial = {
-  id: string;
-  logDate: string;
-  subjectId: string;
-  topicId: string | null;
-  correct: number;
-  wrong: number;
-  blank: number;
-  durationMinutes: number | null;
-};
+/** Düzenleme için sheet'e verilen başlangıç değerleri (tanım paylaşılan context'te). */
+export type QuickLogInitial = QuickLogEdit;
 
 export type SubjectWeekBar = {
   subjectId: string;

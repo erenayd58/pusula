@@ -25,12 +25,18 @@ export function CoachSidebar({
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[var(--coach-sidebar)] flex-col gap-6 border-r border-line bg-bg-paper px-3 py-4 lg:flex">
+      <aside
+        data-print="hide"
+        className="fixed inset-y-0 left-0 z-40 hidden w-[var(--coach-sidebar)] flex-col gap-6 border-r border-line bg-bg-paper px-3 py-4 lg:flex"
+      >
         {brand}
         {nav}
         {account}
       </aside>
-      <header className="flex items-center justify-between gap-3 border-b border-line bg-bg-paper px-3 py-2 lg:hidden">
+      <header
+        data-print="hide"
+        className="flex items-center justify-between gap-3 border-b border-line bg-bg-paper px-3 py-2 lg:hidden"
+      >
         <CoachMobileMenu>
           {brand}
           {nav}

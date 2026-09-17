@@ -4,6 +4,7 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormError } from "@/components/shared/form-error";
+import type { QuickLogPlanItem } from "@/components/shared/quick-log-context";
 import { NativeSelect } from "@/components/shared/native-select";
 import { NumberStepper } from "@/components/shared/number-stepper";
 import { subjectVars } from "@/components/shared/subject-scope";
@@ -64,12 +65,15 @@ export function QuickLogSheet({
   studentId,
   options,
   initial,
+  planItem,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   studentId: string;
   options: QuickLogOptions;
   initial: QuickLogInitial | null;
+  /** Plan görevinden açıldıysa: ders/konu ön dolu, kayıt görevi tamamlar. */
+  planItem: QuickLogPlanItem | null;
 }) {
   return (
     <ResponsiveSheet open={open} onOpenChange={onOpenChange}>
@@ -79,6 +83,7 @@ export function QuickLogSheet({
           studentId={studentId}
           options={options}
           initial={initial}
+          planItem={planItem}
           onOpenChange={onOpenChange}
         />
       </ResponsiveSheetContent>
@@ -90,11 +95,13 @@ function QuickLogForm({
   studentId,
   options,
   initial,
+  planItem,
   onOpenChange,
 }: {
   studentId: string;
   options: QuickLogOptions;
   initial: QuickLogInitial | null;
+  planItem: QuickLogPlanItem | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
@@ -109,6 +116,17 @@ function QuickLogForm({
   const [{ subjectId, topicId }, setSelection] = useState(() => {
     if (initial) return { subjectId: initial.subjectId, topicId: initial.topicId };
     const fallback = { subjectId: options.subjects[0]!.subjectId, topicId: null };
+    // Plan görevi: görevin dersi/konusu (güncel seçeneklerde varsa) ön dolu gelir.
+    const planSubject =
+      planItem && options.subjects.find((s) => s.subjectId === planItem.subjectId);
+    if (planSubject) {
+      return {
+        subjectId: planSubject.subjectId,
+        topicId: planSubject.topics.some((t) => t.topicId === planItem.topicId)
+          ? planItem.topicId
+          : null,
+      };
+    }
     if (typeof window === "undefined") return fallback;
     const last = readLastUsed();
     const subject = last && options.subjects.find((s) => s.subjectId === last.subjectId);
@@ -151,9 +169,10 @@ function QuickLogForm({
       blank,
       durationMinutes: duration.trim() === "" ? null : Number(duration),
     };
+    const createInput = { ...base, planItemId: planItem?.id ?? null };
     const parsed = editing
       ? updateQuestionLogSchema.safeParse({ ...base, id: initial.id, logDate })
-      : createQuestionLogSchema.safeParse(base);
+      : createQuestionLogSchema.safeParse(createInput);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Formu kontrol et.");
       return;
@@ -164,13 +183,19 @@ function QuickLogForm({
       try {
         const result = editing
           ? await updateQuestionLog({ ...base, id: initial.id, logDate })
-          : await createQuestionLog(base);
+          : await createQuestionLog(createInput);
         if (!result.ok) {
           setError(result.error);
           return;
         }
         writeLastUsed({ subjectId, topicId });
-        toast.success(editing ? "Kayıt güncellendi." : saveToastMessage(result.data));
+        toast.success(
+          editing
+            ? "Kayıt güncellendi."
+            : planItem
+              ? `Görev tamamlandı. ${saveToastMessage(result.data)}`
+              : saveToastMessage(result.data),
+        );
         onOpenChange(false);
         router.refresh();
       } finally {
@@ -186,11 +211,15 @@ function QuickLogForm({
       noValidate
     >
       <ResponsiveSheetHeader className="shrink-0">
-        <ResponsiveSheetTitle>{editing ? "Kaydı düzenle" : "Soru kaydı"}</ResponsiveSheetTitle>
+        <ResponsiveSheetTitle>
+          {editing ? "Kaydı düzenle" : planItem ? "Görevi tamamla" : "Soru kaydı"}
+        </ResponsiveSheetTitle>
         <ResponsiveSheetDescription>
           {editing
             ? "Sayıları veya tarihi değiştir, kaydet."
-            : `${formatDateTr(todayInIstanbul(), { weekday: true })} · dersi seç, sayıları gir, kaydet.`}
+            : planItem
+              ? `${planItem.title} · sayıları gir, kaydet; görev tamamlanır.`
+              : `${formatDateTr(todayInIstanbul(), { weekday: true })} · dersi seç, sayıları gir, kaydet.`}
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 

@@ -108,6 +108,11 @@ export function formatDateTr(
   return format(toIstanbul(date), options?.weekday ? `EEEE, ${pattern}` : pattern, { locale: tr });
 }
 
+/** Saat, İstanbul: `14:02` (otomatik kayıt zamanı gibi). */
+export function formatTimeTr(date: Date | number | string): string {
+  return format(toIstanbul(date), "HH:mm");
+}
+
 /**
  * Hafta aralığı (pazartesi → pazar): `14 – 20 Eylül`; ay değişirse `28 Eylül – 4 Ekim`;
  * yıl değişirse `29 Aralık 2026 – 4 Ocak 2027`. `{ year: true }` ile yıl her zaman yazılır.

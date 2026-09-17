@@ -17,3 +17,7 @@ export type Topic = Tables<"topics">;
 export type BusySlotKind = Enums<"busy_slot_kind">;
 export type BusySlot = Tables<"busy_slots">;
 export type ScheduleException = Tables<"schedule_exceptions">;
+export type PlanStatus = Enums<"plan_status">;
+export type PlanItemKind = Enums<"plan_item_kind">;
+export type WeeklyPlan = Tables<"weekly_plans">;
+export type PlanItemRow = Tables<"plan_items">;

@@ -28,6 +28,7 @@ export function BottomNav({
 
   return (
     <nav
+      data-print="hide"
       aria-label={label}
       className={cn(
         "fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)] lg:hidden",

@@ -36,8 +36,13 @@ function withTotal<T extends z.ZodObject<typeof logFields>>(schema: T) {
   });
 }
 
-/** Yeni kayıt: tarih istemciden gelmez, sunucu İstanbul bugününü atar. */
-export const createQuestionLogSchema = withTotal(z.object(logFields));
+/**
+ * Yeni kayıt: tarih istemciden gelmez, sunucu İstanbul bugününü atar. `planItemId` doluysa
+ * kayıt plan görevini tamamlar (Faz 4b, `complete_plan_item` RPC'si, tek transaction).
+ */
+export const createQuestionLogSchema = withTotal(
+  z.object({ ...logFields, planItemId: z.uuid("Görev kimliği geçersiz.").nullable().optional() }),
+);
 export type CreateQuestionLogInput = z.infer<typeof createQuestionLogSchema>;
 
 /** Düzenleme: tarih değişebilir ama gelecek olamaz (veritabanı check'i de var). */

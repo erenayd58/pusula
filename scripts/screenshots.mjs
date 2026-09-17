@@ -231,6 +231,72 @@ const SHOTS = [
     width: 1440,
     path: `/coach/students/${SEED.ayse}/schedule`,
   },
+  // Faz 4b: haftalık plan
+  {
+    dir: "uygulama-4b",
+    file: "koc-plan-olusturucu-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+  },
+  {
+    dir: "uygulama-4b",
+    file: "koc-plan-bos-hafta-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.zeynep}/plan`,
+  },
+  {
+    dir: "uygulama-4b",
+    file: "koc-gorev-formu-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+    before: async (page) => {
+      await page.getByTestId("day-5").getByRole("button", { name: "Görev ekle" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-4b",
+    file: "koc-planlar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/plans",
+  },
+  {
+    dir: "uygulama-4b",
+    file: "ogrenci-plan-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/plan",
+  },
+  {
+    dir: "uygulama-4b",
+    file: "ogrenci-plan-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/plan",
+  },
+  {
+    dir: "uygulama-4b",
+    file: "ogrenci-bugun-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-4b",
+    file: "ogrenci-gorev-tamamla-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/plan",
+    before: async (page) => {
+      await page.getByRole("tab", { name: /^Salı,/ }).click();
+      await page.getByRole("checkbox", { name: /^Tamamla: / }).first().click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */

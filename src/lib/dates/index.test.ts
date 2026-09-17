@@ -3,8 +3,12 @@ import {
   currentSeason,
   daysUntil,
   greetingFor,
+  isoDayOfWeek,
+  resolveWeekParam,
+  shiftWeek,
   toDateKey,
   todayInIstanbul,
+  weekDates,
   weekEnd,
   weekStart,
 } from "./index";
@@ -57,5 +61,25 @@ describe("lib/dates", () => {
     expect(greetingFor(new Date("2026-09-16T10:00:00Z"))).toBe("İyi günler"); // 13:00
     expect(greetingFor(new Date("2026-09-16T16:30:00Z"))).toBe("İyi akşamlar"); // 19:30
     expect(greetingFor(new Date("2026-09-16T00:00:00Z"))).toBe("İyi akşamlar"); // 03:00
+  });
+});
+
+describe("hafta yardımcıları (Faz 4b)", () => {
+  it("resolveWeekParam geçerli pazartesiyi kabul eder, diğerlerinde bu haftaya düşer", () => {
+    const now = new Date("2026-09-16T09:00:00Z"); // çarşamba
+    expect(resolveWeekParam("2026-09-14", now)).toBe("2026-09-14");
+    expect(resolveWeekParam("2026-09-21", now)).toBe("2026-09-21");
+    expect(resolveWeekParam("2026-09-15", now)).toBe("2026-09-14"); // salı → bu hafta
+    expect(resolveWeekParam("bozuk", now)).toBe("2026-09-14");
+    expect(resolveWeekParam(undefined, now)).toBe("2026-09-14");
+    expect(resolveWeekParam("2026-02-31", now)).toBe("2026-09-14");
+  });
+
+  it("shiftWeek, weekDates ve isoDayOfWeek", () => {
+    expect(shiftWeek("2026-09-14", 1)).toBe("2026-09-21");
+    expect(shiftWeek("2026-09-14", -1)).toBe("2026-09-07");
+    expect(weekDates("2026-09-14")[7]).toBe("2026-09-20");
+    expect(isoDayOfWeek(new Date("2026-09-20T09:00:00Z"))).toBe(7);
+    expect(isoDayOfWeek(new Date("2026-09-14T09:00:00Z"))).toBe(1);
   });
 });
