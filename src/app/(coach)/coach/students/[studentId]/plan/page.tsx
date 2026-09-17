@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { alertReason, getTopicAlerts } from "@/features/analytics";
 import { getStudentHeader, listStudents } from "@/features/core";
 import {
   PlanBuilder,
   PlanPrintSheet,
+  alertsToPoolItems,
   buildTaskPool,
   getExistingItemCounts,
   getFrequentTasks,
@@ -35,7 +37,7 @@ export default async function CoachPlanPage({
   const prevWeek = shiftWeek(week, -1);
   const nextWeek = shiftWeek(week, 1);
 
-  const [student, plan, days, options, frequent, students, lastWeek, nextWeekPlan] =
+  const [student, plan, days, options, frequent, students, lastWeek, nextWeekPlan, alerts] =
     await Promise.all([
       getStudentHeader(studentId),
       getWeekPlan(studentId, week),
@@ -45,6 +47,7 @@ export default async function CoachPlanPage({
       listStudents(),
       getPlanCompletion(studentId, prevWeek),
       getPlanCompletion(studentId, nextWeek),
+      getTopicAlerts(studentId),
     ]);
   if (!student) notFound();
 
@@ -80,7 +83,10 @@ export default async function CoachPlanPage({
         plan={plan}
         days={days}
         options={options}
-        pool={buildTaskPool({ frequent })}
+        pool={buildTaskPool({
+          ...alertsToPoolItems(alerts, { ...options, reason: alertReason }),
+          frequent,
+        })}
         otherStudents={otherStudents}
         lastWeekPlan={lastWeek ? { id: lastWeek.planId, items: lastWeek.itemsTotal } : null}
         nextWeekExisting={nextWeekPlan?.itemsTotal ?? 0}

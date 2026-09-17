@@ -4,6 +4,7 @@
  * Bağımlılık yönü (08 §0): planner → analytics; analytics → planner / schedule YOK.
  */
 export { analyticsModule } from "./module";
+export { analyticsWidgets } from "./widgets";
 export { evaluateTopicAlerts, groupAlerts, alertReason, type AlertThresholds } from "./lib/alerts";
 export { pickStudentNudge, nudgeText } from "./lib/nudge";
 export type { TopicAlertFacts, TopicAlert, AlertGroup, AlertSubject } from "./types";

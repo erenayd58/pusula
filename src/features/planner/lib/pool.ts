@@ -10,17 +10,17 @@ const CATEGORY_META: { id: TaskPoolCategoryId; title: string; emptyText: string 
   {
     id: "weak",
     title: "Zayıf konular",
-    emptyText: "Konu uyarıları sonraki güncellemeyle geliyor.",
+    emptyText: "Son dönemde düşük başarılı konu yok.",
   },
   {
     id: "not_started",
     title: "Hiç başlanmamış",
-    emptyText: "Sıradaki konular burada listelenecek.",
+    emptyText: "Her derste sıradaki konu burada; hepsine başlanmış.",
   },
   {
     id: "review_due",
     title: "Tekrar zamanı",
-    emptyText: "Tekrar zamanı gelen konular burada listelenecek.",
+    emptyText: "Tekrar bekleyen konu yok.",
   },
   {
     id: "frequent",

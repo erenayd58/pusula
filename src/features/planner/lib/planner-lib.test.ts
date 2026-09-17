@@ -8,6 +8,7 @@ import {
   postponedCount,
   weekTotals,
 } from "./plan-summary";
+import { alertsToPoolItems } from "./alert-pool";
 import { buildTaskPool, filterPool } from "./pool";
 import { taskMeta, taskTitle } from "./task-title";
 
@@ -181,5 +182,65 @@ describe("task pool", () => {
     expect(pool[4]?.items).toHaveLength(1);
     expect(filterPool(pool, "PARAGRAF")[4]?.items).toHaveLength(1);
     expect(filterPool(pool, "olasılık")[4]?.items).toHaveLength(0);
+  });
+});
+
+describe("alertsToPoolItems", () => {
+  const subject = {
+    id: "mat",
+    name: "Matematik",
+    shortName: "Mat",
+    color: "subject-math",
+    sortOrder: 2,
+    examQuestionCount: 20,
+  };
+  const base = {
+    studentId: "s1",
+    subject,
+    topicSortOrder: 1,
+    questions: 0,
+    accuracy: null,
+    threshold: null,
+    idleDays: null,
+    delayDays: 0,
+  };
+
+  it("uyarı türünü görev türü ve kategoriye eşler; süre ve başlık üretilir", () => {
+    const pool = alertsToPoolItems(
+      [
+        {
+          ...base,
+          kind: "knowledge_gap",
+          topicId: "t1",
+          topicName: "Üslü",
+          questions: 40,
+          accuracy: 50,
+        },
+        {
+          ...base,
+          kind: "low_accuracy",
+          topicId: "t2",
+          topicName: "Kök",
+          questions: 20,
+          accuracy: 55,
+        },
+        { ...base, kind: "not_started", topicId: "t3", topicName: "Olasılık" },
+        { ...base, kind: "review_due", topicId: "t4", topicName: "Çarpanlar", idleDays: 12 },
+        { ...base, kind: "stale", topicId: "t5", topicName: "Veri", idleDays: 50 },
+        { ...base, kind: "neglected_subject", topicId: null, topicName: null, idleDays: 12 },
+      ],
+      { pace: { mat: 2 }, defaults: DEFAULTS, reason: (a) => `sebep:${a.kind}` },
+    );
+    expect(pool.weak.map((i) => [i.kind, i.title, i.estimatedMinutes])).toEqual([
+      ["topic_study", "Üslü · konu çalışması", 40],
+      ["questions", `Kök · 20${NBSP}soru`, 40],
+    ]);
+    expect(pool.weak[1]).toMatchObject({ targetValue: 20, targetUnit: "questions", topicId: "t2" });
+    expect(pool.not_started.map((i) => i.kind)).toEqual(["topic_study"]);
+    expect(pool.review_due.map((i) => [i.kind, i.reason])).toEqual([
+      ["review", "sebep:review_due"],
+      ["review", "sebep:stale"],
+    ]);
+    expect(pool.weak[0]?.reason).toBe("sebep:knowledge_gap");
   });
 });

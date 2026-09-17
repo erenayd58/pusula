@@ -20,6 +20,7 @@ export {
   getExistingItemCounts,
 } from "./server/queries";
 export { buildTaskPool } from "./lib/pool";
+export { alertsToPoolItems } from "./lib/alert-pool";
 export { completionPercent, weekTotals } from "./lib/plan-summary";
 export type {
   PlanItem,

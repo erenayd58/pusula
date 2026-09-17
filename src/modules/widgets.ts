@@ -1,3 +1,4 @@
+import { analyticsWidgets } from "@/features/analytics";
 import { goalsWidgets } from "@/features/goals";
 import { plannerWidgets } from "@/features/planner";
 import { questionLogWidgets } from "@/features/question-log";
@@ -9,6 +10,7 @@ import type { ModuleWidgets, StudentTodayWidget } from "@/modules/define-module"
  * import eder; açık modüllere göre filtreler ve `order`'a göre sıralar.
  */
 export const widgets: readonly ModuleWidgets[] = [
+  analyticsWidgets,
   goalsWidgets,
   plannerWidgets,
   questionLogWidgets,
