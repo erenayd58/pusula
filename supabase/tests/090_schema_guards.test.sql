@@ -8,9 +8,10 @@
 --   * authenticated her tabloda TAM OLARAK beklenen yetkilere sahip (aşağıdaki matris);
 --     matriste olmayan tablo testi düşürür → yeni tablo eklerken satırı da ekle.
 --   * service_role her tabloda tam yetkili (admin istemcisi).
+--   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants ve faz2_topics_schema ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema ve faz3_question_logs_goals ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -65,7 +66,15 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('student_topic_progress', 'select', true,  null),
   ('student_topic_progress', 'insert', true,  null),
   ('student_topic_progress', 'update', true,  null),
-  ('student_topic_progress', 'delete', false, null);
+  ('student_topic_progress', 'delete', false, null),
+  ('question_logs',          'select', true,  null),
+  ('question_logs',          'insert', true,  null),
+  ('question_logs',          'update', true,  null),
+  ('question_logs',          'delete', true,  null),
+  ('goals',                  'select', true,  null),
+  ('goals',                  'insert', true,  null),
+  ('goals',                  'update', true,  null),
+  ('goals',                  'delete', true,  null);
 
 select plan((
     (select count(*) from pg_class c
@@ -73,6 +82,8 @@ select plan((
   + (select count(*) from expected_grants where columns is not null)
   + (select count(*) from pg_proc p where p.pronamespace = 'public'::regnamespace)
   + (select count(*) from pg_proc p where p.pronamespace = 'private'::regnamespace) * 2
+  + (select count(*) from pg_class c
+      where c.relnamespace = 'public'::regnamespace and c.relkind = 'v') * 3
   + 1
 )::int);
 
@@ -105,6 +116,35 @@ select ok(
 )
 from pg_class c
 where c.relnamespace = 'public'::regnamespace and c.relkind in ('r', 'p')
+order by c.relname;
+
+-- Görünümler (Faz 3+): security_invoker açık, anon yetkisiz, authenticated yalnızca select ---
+select ok(
+  coalesce(c.reloptions::text[] @> array['security_invoker=true'], false)
+    or coalesce(c.reloptions::text[] @> array['security_invoker=on'], false),
+  format('security_invoker açık: public.%I', c.relname)
+)
+from pg_class c
+where c.relnamespace = 'public'::regnamespace and c.relkind = 'v'
+order by c.relname;
+
+select ok(
+  not has_any_column_privilege('anon', c.oid, 'select'),
+  format('anon select yetkisi yok (görünüm): public.%I', c.relname)
+)
+from pg_class c
+where c.relnamespace = 'public'::regnamespace and c.relkind = 'v'
+order by c.relname;
+
+select ok(
+  has_table_privilege('authenticated', c.oid, 'select')
+    and not has_any_column_privilege('authenticated', c.oid, 'insert')
+    and not has_any_column_privilege('authenticated', c.oid, 'update')
+    and not has_table_privilege('authenticated', c.oid, 'delete'),
+  format('authenticated yalnızca select (görünüm): public.%I', c.relname)
+)
+from pg_class c
+where c.relnamespace = 'public'::regnamespace and c.relkind = 'v'
 order by c.relname;
 
 -- authenticated: tam olarak beklenen yetkiler -----------------------------------------
