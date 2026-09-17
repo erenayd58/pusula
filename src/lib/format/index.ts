@@ -96,9 +96,16 @@ export function formatDuration(minutes: number): string {
 const DAY_MONTH = `d'${NBSP}'MMMM`;
 const DAY_MONTH_YEAR = `d'${NBSP}'MMMM'${NBSP}'yyyy`;
 
-/** Tarih, İstanbul saat diliminde: `16 Eylül`; `{ year: true }` ile `16 Eylül 2026`. Bölünmez. */
-export function formatDateTr(date: Date | number | string, options?: { year?: boolean }): string {
-  return format(toIstanbul(date), options?.year ? DAY_MONTH_YEAR : DAY_MONTH, { locale: tr });
+/**
+ * Tarih, İstanbul saat diliminde: `16 Eylül`; `{ year: true }` ile `16 Eylül 2026`;
+ * `{ weekday: true }` ile `Çarşamba, 16 Eylül`. Gün–ay arası bölünmez.
+ */
+export function formatDateTr(
+  date: Date | number | string,
+  options?: { year?: boolean; weekday?: boolean },
+): string {
+  const pattern = options?.year ? DAY_MONTH_YEAR : DAY_MONTH;
+  return format(toIstanbul(date), options?.weekday ? `EEEE, ${pattern}` : pattern, { locale: tr });
 }
 
 /**

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { currentSeason, toDateKey, todayInIstanbul, weekEnd, weekStart } from "./index";
+import {
+  currentSeason,
+  daysUntil,
+  greetingFor,
+  toDateKey,
+  todayInIstanbul,
+  weekEnd,
+  weekStart,
+} from "./index";
 
 describe("lib/dates", () => {
   it("gece 00:30 İstanbul kaydı yeni güne aittir (UTC'de bir önceki gün)", () => {
@@ -36,5 +44,18 @@ describe("lib/dates", () => {
     expect(currentSeason(new Date("2026-09-16T10:00:00+03:00"))).toBe("2026-2027");
     expect(currentSeason(new Date("2027-03-01T10:00:00+03:00"))).toBe("2026-2027");
     expect(currentSeason(new Date("2027-07-01T00:30:00+03:00"))).toBe("2027-2028");
+  });
+  it("daysUntil İstanbul gününe göre tam gün sayar", () => {
+    // 2026-09-16 00:30 İstanbul (UTC'de hâlâ 15'i): sınav 2027-06-13 → 270 gün
+    expect(daysUntil("2027-06-13", new Date("2026-09-15T21:30:00Z"))).toBe(270);
+    expect(daysUntil("2026-09-16", new Date("2026-09-16T20:59:00Z"))).toBe(0);
+    expect(daysUntil("2026-09-15", new Date("2026-09-16T05:00:00Z"))).toBe(-1);
+  });
+
+  it("greetingFor İstanbul saatine göre selamlar", () => {
+    expect(greetingFor(new Date("2026-09-16T05:00:00Z"))).toBe("Günaydın"); // 08:00
+    expect(greetingFor(new Date("2026-09-16T10:00:00Z"))).toBe("İyi günler"); // 13:00
+    expect(greetingFor(new Date("2026-09-16T16:30:00Z"))).toBe("İyi akşamlar"); // 19:30
+    expect(greetingFor(new Date("2026-09-16T00:00:00Z"))).toBe("İyi akşamlar"); // 03:00
   });
 });

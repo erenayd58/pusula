@@ -101,6 +101,9 @@ describe("formatDateTr", () => {
   it("İstanbul saat diliminde Türkçe ay adı; gün–ay arası bölünmez", () => {
     // 2026-09-15 21:30 UTC = 16 Eylül 00:30 İstanbul
     expect(formatDateTr(new Date("2026-09-15T21:30:00Z"))).toBe(`16${NB}Eylül`);
+    expect(formatDateTr(new Date("2026-09-15T21:30:00Z"), { weekday: true })).toBe(
+      `Çarşamba, 16${NB}Eylül`,
+    );
     expect(formatDateTr(new Date("2026-09-15T21:30:00Z"), { year: true })).toBe(
       `16${NB}Eylül${NB}2026`,
     );

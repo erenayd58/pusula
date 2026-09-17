@@ -7,9 +7,9 @@ import { requireRole } from "@/lib/auth";
 
 /** Veli kabuğu yer tutucu: menü ve registry Faz 1c'de. requireRole sunucu tarafında kesin kontrol. */
 export default async function Layout({ children }: LayoutProps<"/parent">) {
-  const { profile, userId } = await requireRole("parent");
+  const { profile } = await requireRole("parent");
   // KVKK: açık rızası eksik çocuk varsa veli paneli açılmaz (01-proje-plani Bölüm 9).
-  const pending = await listChildrenNeedingConsent(userId);
+  const pending = await listChildrenNeedingConsent();
   if (pending.length > 0) redirect("/consent");
   return (
     <SurfaceRoot surface="clay-calm">

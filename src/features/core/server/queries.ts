@@ -79,10 +79,11 @@ export async function listChildren(): Promise<ChildRow[]> {
 const REQUIRED_CONSENT_TYPES = ["privacy_notice", "explicit_consent"] as const;
 
 /**
- * Bu velinin henüz açık rıza vermediği çocuklar: her çocuk için iki onay türü de
- * (`revoked_at` boş) bu veli tarafından verilmiş olmalı.
+ * Velinin çocukları arasında onayı tam olmayanlar: iki zorunlu tür de (`revoked_at` boş)
+ * kayıtlı olmalı; kaynak veli dijital onayı ya da koçun işlediği kâğıt onayı olabilir
+ * (02 karar #23). Tamsa veli paneli açılır, değilse /consent.
  */
-export async function listChildrenNeedingConsent(parentId: string): Promise<ChildRow[]> {
+export async function listChildrenNeedingConsent(): Promise<ChildRow[]> {
   const supabase = await createClient();
   const children = await listChildren();
   if (children.length === 0) return [];
@@ -90,7 +91,10 @@ export async function listChildrenNeedingConsent(parentId: string): Promise<Chil
   const { data, error } = await supabase
     .from("consents")
     .select("student_id, type")
-    .eq("given_by", parentId)
+    .in(
+      "student_id",
+      children.map((c) => c.studentId),
+    )
     .is("revoked_at", null)
     .in("type", [...REQUIRED_CONSENT_TYPES]);
   if (error) throw error;
@@ -104,4 +108,80 @@ export async function listChildrenNeedingConsent(parentId: string): Promise<Chil
   return children.filter(
     (c) => !REQUIRED_CONSENT_TYPES.every((t) => given.get(c.studentId)?.has(t)),
   );
+}
+
+// Öğrenci başlığı ---------------------------------------------------------------------
+
+export type StudentHeader = {
+  studentId: string;
+  fullName: string;
+  grade: number;
+  classSection: string | null;
+  schoolName: string | null;
+  examDate: string | null;
+  status: "active" | "paused" | "archived";
+};
+
+/**
+ * Kabuk başlıkları için öğrenci özeti (öğrenci kendisi, koç öğrencisi, veli çocuğu).
+ * RLS satırı vermezse null; çağıran `notFound()` kararını verir.
+ */
+export async function getStudentHeader(studentId: string): Promise<StudentHeader | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("students")
+    .select(
+      "profile_id, grade, class_section, school_name, exam_date, status, profile:profiles!students_profile_id_fkey(full_name)",
+    )
+    .eq("profile_id", studentId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    studentId: data.profile_id,
+    fullName: data.profile.full_name,
+    grade: data.grade,
+    classSection: data.class_section,
+    schoolName: data.school_name,
+    examDate: data.exam_date,
+    status: data.status,
+  };
+}
+
+// KVKK onay durumu ---------------------------------------------------------------------
+
+export type ConsentStatus = {
+  /** İki zorunlu tür de (herhangi bir kaynaktan, geri çekilmemiş) kayıtlıysa true. */
+  complete: boolean;
+  latest: { givenAt: string; source: "parent" | "paper"; documentVersion: string } | null;
+};
+
+/**
+ * Öğrencinin onay tamlığı: `privacy_notice` + `explicit_consent`, `revoked_at` boş; veli
+ * dijital (given_by) ya da koçun işlediği kâğıt onayı (recorded_by) fark etmez (02 karar #23).
+ */
+export async function getConsentStatus(studentId: string): Promise<ConsentStatus> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("consents")
+    .select("type, given_at, given_by, document_version")
+    .eq("student_id", studentId)
+    .is("revoked_at", null)
+    .in("type", [...REQUIRED_CONSENT_TYPES])
+    .order("given_at", { ascending: false });
+  if (error) throw error;
+
+  const types = new Set(data.map((r) => r.type));
+  const complete = REQUIRED_CONSENT_TYPES.every((t) => types.has(t));
+  const first = data[0];
+  return {
+    complete,
+    latest: first
+      ? {
+          givenAt: first.given_at,
+          source: first.given_by ? "parent" : "paper",
+          documentVersion: first.document_version,
+        }
+      : null,
+  };
 }

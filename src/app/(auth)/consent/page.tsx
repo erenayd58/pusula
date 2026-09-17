@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: "KVKK onayı" };
 
 /** Veli: aydınlatma metni + açık rıza. Onayı eksik çocuk yoksa veli paneline geçer. */
 export default async function ConsentPage() {
-  const { userId } = await requireRole("parent");
-  const children = await listChildrenNeedingConsent(userId);
+  await requireRole("parent");
+  const children = await listChildrenNeedingConsent();
   if (children.length === 0) redirect("/parent");
 
   return (

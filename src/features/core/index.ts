@@ -28,6 +28,12 @@ export {
 export { giveConsent } from "./server/consent-actions";
 export { listChildren, listChildrenNeedingConsent, type ChildRow } from "./server/queries";
 export {
+  getStudentHeader,
+  getConsentStatus,
+  type StudentHeader,
+  type ConsentStatus,
+} from "./server/queries";
+export {
   parentRelationValues,
   registerParentSchema,
   acceptInvitationSchema,
