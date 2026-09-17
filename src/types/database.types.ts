@@ -93,6 +93,13 @@ export type Database = {
             referencedRelation: "v_coach_student_overview"
             referencedColumns: ["student_id"]
           },
+          {
+            foreignKeyName: "busy_slots_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
         ]
       }
       consents: {
@@ -156,6 +163,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "consents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -289,11 +303,25 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "goals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "goals_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
           },
         ]
       }
@@ -361,6 +389,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "invitations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
           {
@@ -483,11 +518,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "plan_items_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
             foreignKeyName: "plan_items_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_items_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
         ]
       }
@@ -613,6 +662,13 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "question_logs_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
@@ -620,11 +676,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "question_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
             foreignKeyName: "question_logs_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
         ]
       }
@@ -687,6 +757,13 @@ export type Database = {
             referencedRelation: "v_coach_student_overview"
             referencedColumns: ["student_id"]
           },
+          {
+            foreignKeyName: "schedule_exceptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
         ]
       }
       student_modules: {
@@ -724,6 +801,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_modules_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -770,6 +854,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_parents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -824,11 +915,25 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "student_topic_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "student_topic_progress_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_topic_progress_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
         ]
       }
@@ -1005,11 +1110,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "topics_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
             foreignKeyName: "topics_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
           },
         ]
       }
@@ -1070,6 +1189,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "weekly_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -1144,6 +1270,13 @@ export type Database = {
             referencedRelation: "v_coach_student_overview"
             referencedColumns: ["student_id"]
           },
+          {
+            foreignKeyName: "weekly_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
         ]
       }
       v_student_daily_summary: {
@@ -1169,6 +1302,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -1197,11 +1337,25 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "question_logs_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
           },
         ]
       }
@@ -1230,10 +1384,73 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "question_logs_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+        ]
+      }
+      v_topic_alert_facts: {
+        Row: {
+          coach_id: string | null
+          completed_at: string | null
+          correct_window: number | null
+          exam_question_count: number | null
+          is_next_topic: boolean | null
+          last_reviewed_at: string | null
+          last_topic_log_date: string | null
+          organization_id: string | null
+          questions_window: number | null
+          status: Database["public"]["Enums"]["topic_status"] | null
+          status_changed_at: string | null
+          student_first_log_date: string | null
+          student_id: string | null
+          subject_color: string | null
+          subject_id: string | null
+          subject_last_log_date: string | null
+          subject_name: string | null
+          subject_short_name: string | null
+          subject_sort_order: number | null
+          topic_id: string | null
+          topic_name: string | null
+          topic_sort_order: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_profile_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1261,11 +1478,25 @@ export type Database = {
             referencedColumns: ["student_id"]
           },
           {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "question_logs_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
         ]
       }
@@ -1285,11 +1516,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "plan_items_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
             foreignKeyName: "plan_items_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_items_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
           {
             foreignKeyName: "weekly_plans_student_id_fkey"
@@ -1303,6 +1548,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "weekly_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["student_id"]
           },
         ]
@@ -1384,6 +1636,14 @@ export type Database = {
       plan_status: "draft" | "published"
       question_source: "resource" | "plan" | "school" | "online" | "free"
       student_status: "active" | "paused" | "archived"
+      topic_alert_kind:
+        | "knowledge_gap"
+        | "low_accuracy"
+        | "review_due"
+        | "forgetting_risk"
+        | "stale"
+        | "not_started"
+        | "neglected_subject"
       topic_status:
         | "not_started"
         | "studying"
@@ -1536,6 +1796,15 @@ export const Constants = {
       plan_status: ["draft", "published"],
       question_source: ["resource", "plan", "school", "online", "free"],
       student_status: ["active", "paused", "archived"],
+      topic_alert_kind: [
+        "knowledge_gap",
+        "low_accuracy",
+        "review_due",
+        "forgetting_risk",
+        "stale",
+        "not_started",
+        "neglected_subject",
+      ],
       topic_status: [
         "not_started",
         "studying",
