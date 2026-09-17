@@ -271,12 +271,17 @@ export function defineModule<T extends z.ZodType>(m: ModuleManifest<T>) {
 
 // Panel kartları manifestten AYRI tutulur: manifest React bileşeni import etmez,
 // böylece menü ve sekmeleri üreten kod widget bileşenlerini paket boyutuna eklemez.
-// defineWidgets / ModuleWidgets Faz 2'de ilk kartla (Konular) eklendi; şimdilik yalnızca studentToday:
+// defineWidgets / ModuleWidgets Faz 2'de ilk kartla (Konular) eklendi; Faz 3'te dizi + sütun
+// (karar #33): bir modül birden fazla kart verebilir, masaüstünde main/side iki sütun.
+export type StudentTodayWidget = {
+  component: ComponentType<ModuleWidgetProps>;
+  order: number;
+  column?: "main" | "side";          // main: hedef/kayıt/plan; side: hafta/konular/tekrar
+};
 export type ModuleWidgets = {
   moduleId: string;                  // manifest.id ile aynı
-  studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
-  coachOverview?: { component: ComponentType<ModuleWidgetProps>; order: number };
-  parentSummary?: { component: ComponentType<ModuleWidgetProps>; order: number };
+  studentToday?: StudentTodayWidget[];
+  // coachOverview, parentSummary: ilk ihtiyaçla aynı kalıpla eklenir
 };
 ```
 
@@ -305,11 +310,15 @@ export const questionLogModule = defineModule({
 ```ts
 // src/features/question-log/widgets.ts  (panel kartları)
 import { defineWidgets } from "@/modules/define-module";
-import { StudentTodayWidget } from "./components/widgets/student-today-widget";
+import { TodayLogsWidget } from "./components/widgets/today-logs-widget";
+import { WeekSubjectsWidget } from "./components/widgets/week-subjects-widget";
 
 export const questionLogWidgets = defineWidgets({
   moduleId: "question-log",
-  studentToday: { component: StudentTodayWidget, order: 20 },
+  studentToday: [
+    { component: TodayLogsWidget, order: 20, column: "main" },
+    { component: WeekSubjectsWidget, order: 20, column: "side" },
+  ],
 });
 ```
 
@@ -553,3 +562,9 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 29 | 2026-09 | Konu haritası yalnızca **ünite düzeyi** konuları (parent_id boş) gösterir; alt konular şablon editöründe girintili, ilerleme ünite düzeyinde | Tasarımdaki hücre sayısı (Matematik 12) ve sade harita; alt konu ayrıntısı Faz 3+ kayıtlarında kullanılır | Yaprak konuları göstermek, iki seviyeli harita |
 | 30 | 2026-09 | Konu hücresi detayı `ResponsiveSheet` (telefonda alt panel, masaüstünde ortada diyalog); tasarımdaki sağ yan panel yapılmadı. Hücre durumları `.topic-cell` CSS sınıfları (globals.css) ile, ders rengi `subjectVars` | Tek bileşen, ek yerleşim yok; desenler beyaz yarı saydam olduğu için ders rengine otomatik uyar | Masaüstünde ayrı sağ panel; Tailwind arbitrary gradient sınıfları |
 | 31 | 2026-09 | `FormError` `components/shared`'a taşındı (çekirdek yeniden dışa açar) | İstemci bileşenleri `@/features/core` index'ini import edemez (sunucu kodu taşır); diğer modüllerin istemci formları ortak bileşene ihtiyaç duyar | Her modülde kopya |
+| 32 | 2026-09 | `goals` sadeleştirildi: `goal_metric` yalnızca `questions`, `goal_period` `daily`/`weekly`; öğrenci başına dönem başına tek aktif hedef (kısmi tekil indeks `(student_id, period) where is_active`); hedefi yalnızca koç/owner yazar; ilerleme saklanmaz, `v_student_daily_summary`'den uygulamada hesaplanır (`private.goal_progress` yok) | Pilot ölçeğinde en basit çalışan çözüm; enum'a değer eklemek (`alter type … add value`) geriye uyumlu | 03'teki tam enum kümesi, `goal_progress` fonksiyonu |
+| 33 | 2026-09 | Bugün kartları: `ModuleWidgets.studentToday` dizi (bir modül birden fazla kart) + `column: main \| side`; sayfa masaüstünde iki sütun çizer, telefonda `order` sırası | 04 §8.2 iki sütun (solda "bugün ne yapacağım", sağda "neyi kaçırıyorum"); kartlar elle yazılmaz | Tek kart/modül, CSS grid otomatik yerleşim |
+| 34 | 2026-09 | Hızlı kayıtta son ders/konu `localStorage` (`pusula:quick-log:last`), sheet açılırken güncel seçeneklerde yoksa yok sayılır; form yalnızca istemcide kurulduğu için lazy `useState` ile okunur | Sunucu tarafı gerekmez; cihaz başına hatırlama yeterli | `students` tablosunda kolon, cookie |
+| 35 | 2026-09 | `curriculum_templates.exam_date`: yeni öğrenci formunun sınav tarihi varsayılanı seçili şablondan (LGS 2027 → 2027-06-13, migration ile) | Tarih koda gömülmez; yeni sezon şablonu kendi tarihini taşır | `config/constants` sabiti |
+| 36 | 2026-09 | Net ve seri saf fonksiyon (`lib/exam/net`, `lib/dates/streak`), veritabanı fonksiyonu yok; `wrong_penalty` şablon `scoring`'inden. "Bugün" her yerde İstanbul: SQL'de `(now() at time zone 'Europe/Istanbul')::date` (`current_date` yasak), TS'te `lib/dates`; `question_logs.log_date` sunucuda atanır, gelecek tarih zod + check ile reddedilir | Birim testlenebilir, kural tek yerde; UTC sunucuda gün kayması olmaz | `public.student_streak` RPC, istemciden tarih |
+| 37 | 2026-09 | Görünümler `with (security_invoker = true)`, `authenticated`'a yalnızca `select`; `090_schema_guards` her `public` görünümü için bunu denetler. Modüller arası veri (konu istatistiği, koç listesi) görünümle | RLS alttaki tablodan uygulanır; koç listesi tek sorgu (N+1 yok) | Security definer görünüm, modülün diğer modülün tablosunu doğrudan okuması |

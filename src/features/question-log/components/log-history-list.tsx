@@ -45,10 +45,14 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
               </h2>
               <ul className="flex flex-col divide-y divide-line rounded-card clay-sm px-4">
                 {items.map((r) => (
-                  <li key={r.id} className="flex items-center gap-3 py-3">
-                    <SubjectBadge color={r.subjectColor} shortName={r.subjectShortName} />
+                  <li key={r.id} className="flex items-center gap-2 py-3 sm:gap-3">
+                    <SubjectBadge
+                      color={r.subjectColor}
+                      shortName={r.subjectShortName}
+                      className="clay:min-h-8 clay:px-2.5 clay:text-micro-lg"
+                    />
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-body text-ink-900">
+                      <span className="line-clamp-2 text-body text-ink-900">
                         {r.topicName ?? r.subjectName}
                       </span>
                       <span className="text-small text-ink-500">
@@ -60,6 +64,7 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      className="clay:size-11"
                       aria-label={`Düzenle: ${r.topicName ?? r.subjectName}, ${formatDateTr(r.logDate)}`}
                       onClick={() =>
                         open({
@@ -80,6 +85,7 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      className="clay:size-11"
                       aria-label={`Sil: ${r.topicName ?? r.subjectName}, ${formatDateTr(r.logDate)}`}
                       onClick={() => setToDelete(r)}
                     >

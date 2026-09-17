@@ -56,17 +56,18 @@ En basiti Supabase dashboard + SQL Editor, iki adım:
 - Bir test öğrencisi oluştur, kullanıcı adıyla giriş yap, sonra sil.
 - Veli daveti üret, kendi e-postanla kayıt ol → `/consent` → `/parent`.
 
-## 6. Migration içeren bir dal main'e birleşince
+## 6. Migration içeren bir dal main'e birleşmeden önce
 
-Bulutta seed çalışmaz; şema ve şablon verisi (ör. LGS 2027) yalnızca migration'larla gider. Birleştirmeden sonra yerelde:
+Bulutta seed çalışmaz; şema ve şablon verisi (ör. LGS 2027) yalnızca migration'larla gider. Sıra: **faz dalında CI yeşil olunca** → dalın güncel olduğundan emin ol → `db push` → sonra PR'ı birleştir. Böylece üretim şeması, main'e giren kodla aynı anda hazır olur.
 
 ```bash
-git switch main
-git pull
+git switch faz-<n>-<ad>
+git pull                          # dal güncel mi (uzak dalda başka commit var mı)
+pnpm exec supabase db push --dry-run   # hangi dosyalar gidecek
 pnpm exec supabase db push        # bağlı projeye uygulanmamış migration'ları sırayla uygular
+# ardından GitHub'da PR'ı birleştir
 ```
 
-- `supabase db push --dry-run` önce hangi dosyaların gideceğini listeler.
 - Proje bağlı değilse bir kez `pnpm exec supabase link --project-ref <ref>`.
 - Migration'lar tekrar çalışmaya karşı güvenli yazılır (`on conflict do nothing`); yine de aynı dosya iki kez uygulanmaz, CLI `supabase_migrations.schema_migrations` tablosundan takip eder.
 - Uzak projede `supabase test db --linked` çalıştırılmaz (pgTAP yalnızca yerel ve CI).
