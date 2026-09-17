@@ -6,7 +6,11 @@ import type { TaskPoolCategory, TaskPoolCategoryId, TaskPoolItem } from "../type
  * Boş kategoriler de listede kalır (boş metniyle) — koç havuzun yapısını görür.
  */
 const CATEGORY_META: { id: TaskPoolCategoryId; title: string; emptyText: string }[] = [
-  { id: "suggestions", title: "Öneriler", emptyText: "Öneriler sonraki güncellemeyle geliyor." },
+  {
+    id: "suggestions",
+    title: "Öneriler",
+    emptyText: "Bu hafta için yeni öneri yok; uyarılar plana girdikçe burası boşalır.",
+  },
   {
     id: "weak",
     title: "Zayıf konular",

@@ -55,9 +55,8 @@ export type SubjectPace = { subjectId: string; minutesPerQuestion: number };
 export type TaskPoolCategoryId = "suggestions" | "weak" | "not_started" | "review_due" | "frequent";
 // Faz 5: "resources" | "videos"
 
-export type TaskPoolItem = {
-  key: string;
-  categoryId: TaskPoolCategoryId;
+/** Ön dolu görev (havuz öğesi, öneri "Plana ekle"): `addPlanItems` alanları. */
+export type PoolTask = {
   kind: PlanItemKind;
   title: string;
   subjectId: string | null;
@@ -65,8 +64,13 @@ export type TaskPoolItem = {
   targetValue: number | null;
   targetUnit: TargetUnit | null;
   estimatedMinutes: number;
-  reason?: string;
   url?: string;
+};
+
+export type TaskPoolItem = PoolTask & {
+  key: string;
+  categoryId: TaskPoolCategoryId;
+  reason?: string;
 };
 
 export type TaskPoolCategory = {

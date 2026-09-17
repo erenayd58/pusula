@@ -1,8 +1,12 @@
 "use server";
 
+import { distributeTasks, getSuggestions, type ExistingItem } from "@/features/analytics";
+import { getOrgSettings } from "@/features/core";
+import { getWeekAvailability } from "@/features/schedule";
 import { ActionError, createAction } from "@/lib/actions/create-action";
-import type { ServerSupabaseClient } from "@/lib/supabase/server";
+import { isoDayOfWeek, todayInIstanbul, toDateKey, weekStart } from "@/lib/dates";
 import { taskTitle } from "@/lib/plan/task-title";
+import type { ServerSupabaseClient } from "@/lib/supabase/server";
 import {
   addPlanItemsSchema,
   coachMessageSchema,
@@ -235,6 +239,87 @@ export const setCoachMessage = createAction({
     if (error) rethrow(error);
     if (data.length === 0) throw new ActionError(NOT_FOUND);
     return { planId: input.planId };
+  },
+});
+
+/**
+ * "Önerilen planı hazırla" (08 §2 Parça 4, karar A8): yalnızca taslak ya da plan yokken.
+ * Öneriler (`getSuggestions`, o hafta planlı konular elenmiş) + müsait süre
+ * (`getWeekAvailability`; geçmiş günler dizide yok) + mevcut görevler → `distributeTasks` →
+ * tek insert. Kapasite oranı ve ders/gün sınırı kurum ayarından.
+ */
+export const prepareSuggestedPlan = createAction({
+  name: "prepareSuggestedPlan",
+  schema: planWeekSchema,
+  roles: COACH,
+  revalidate: PATHS,
+  handler: async (input, ctx) => {
+    const plan = await ensurePlan(ctx.supabase, ctx.userId, input.studentId, input.weekStart);
+    if (plan.status === "published") {
+      throw new ActionError(
+        "Yayınlanmış plana toplu öneri eklenmez; önerileri tek tek “Plana ekle” ile ekle.",
+      );
+    }
+    const [suggestions, days, settings, existingRes] = await Promise.all([
+      getSuggestions(input.studentId, input.weekStart),
+      getWeekAvailability(input.studentId, input.weekStart),
+      getOrgSettings(),
+      ctx.supabase
+        .from("plan_items")
+        .select("day_of_week, sort_order, subject_id, estimated_minutes")
+        .eq("plan_id", plan.id),
+    ]);
+    if (existingRes.error) rethrow(existingRes.error);
+    if (suggestions.length === 0) return { planId: plan.id, added: 0, unscheduled: 0 };
+
+    // Bu haftaysa bugünden itibaren, geçmiş haftaysa hiç gün yok (hepsi "bu hafta içinde").
+    const now = todayInIstanbul();
+    const thisWeek = toDateKey(weekStart(now));
+    const firstDay =
+      input.weekStart === thisWeek ? isoDayOfWeek(now) : input.weekStart > thisWeek ? 1 : 8;
+    const existing: ExistingItem[] = existingRes.data.map((r) => ({
+      dayOfWeek: r.day_of_week,
+      subjectId: r.subject_id,
+      minutes: r.estimated_minutes,
+    }));
+    const placements = distributeTasks({
+      suggestions,
+      days: days.filter((d) => d.dayOfWeek >= firstDay),
+      existing,
+      ratio: settings.planner.day_capacity_ratio,
+      maxPerSubjectPerDay: settings.planner.max_items_per_subject_per_day,
+    });
+
+    const nextOrder = new Map<string, number>();
+    for (const r of existingRes.data) {
+      const k = String(r.day_of_week);
+      nextOrder.set(k, Math.max(nextOrder.get(k) ?? 0, r.sort_order + 1));
+    }
+    const rows = placements.map(({ dayOfWeek, suggestion: s }) => {
+      const k = String(dayOfWeek);
+      const order = nextOrder.get(k) ?? 0;
+      nextOrder.set(k, order + 1);
+      return {
+        plan_id: plan.id,
+        day_of_week: dayOfWeek,
+        sort_order: order,
+        kind: s.task.kind,
+        title: s.task.title,
+        subject_id: s.subjectId,
+        topic_id: s.topicId,
+        url: null,
+        target_value: s.task.targetValue,
+        target_unit: s.task.targetUnit,
+        estimated_minutes: s.task.estimatedMinutes,
+      };
+    });
+    const { error } = await ctx.supabase.from("plan_items").insert(rows);
+    if (error) rethrow(error);
+    return {
+      planId: plan.id,
+      added: rows.length,
+      unscheduled: placements.filter((p) => p.dayOfWeek === null).length,
+    };
   },
 });
 

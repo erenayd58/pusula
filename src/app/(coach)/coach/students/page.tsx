@@ -2,28 +2,41 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AttentionList, getTopicAlerts } from "@/features/analytics";
-import { StudentTable, listCoaches, listStudents } from "@/features/core";
+import {
+  AttentionList,
+  SuggestionList,
+  alertToTask,
+  getSuggestions,
+  getTopicAlerts,
+} from "@/features/analytics";
+import { StudentTable, getOrgSettings, listCoaches, listStudents } from "@/features/core";
+import { AddSuggestionButton } from "@/features/planner";
 import { requireRole } from "@/lib/auth";
+import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { formatDateTr } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Öğrenciler" };
 
 /**
- * K1 Öğrenciler: başlık, "Dikkat gerektirenler" (karar A12; Parça 4'te "Öneriler" de buraya),
- * liste. Uyarılar tek sorguyla görünen tüm öğrenciler için; sıradaki konu (`not_started`)
- * dikkat gerektirmez, listeye girmez. Parça 4 `action` yuvasına "Plana ekle" takar.
+ * K1 Öğrenciler: başlık, "Dikkat gerektirenler" ve "Öneriler" (karar A12), liste. Uyarı ve
+ * öneriler tek sorguyla görünen tüm öğrenciler için; sıradaki konu (`not_started`) dikkat
+ * gerektirmez, listeye girmez. Her iki listenin `action` yuvasında planner'ın "Plana ekle"
+ * düğmesi (bu haftanın taslağına yazar; analytics planner'ı import etmez, sayfa takar).
  */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
-  const [students, coaches, alerts] = await Promise.all([
+  const [students, coaches, alerts, suggestions, settings] = await Promise.all([
     listStudents(),
     profile.role === "owner" ? listCoaches() : Promise.resolve([]),
     getTopicAlerts(),
+    getSuggestions(),
+    getOrgSettings(),
   ]);
   const active = new Set(students.filter((s) => s.status === "active").map((s) => s.profileId));
   const attention = alerts.filter((a) => a.kind !== "not_started" && active.has(a.studentId));
+  const activeSuggestions = suggestions.filter((s) => active.has(s.studentId));
   const studentNames = new Map(students.map((s) => [s.profileId, s.fullName]));
+  const week = toDateKey(weekStart(todayInIstanbul()));
 
   return (
     <>
@@ -42,7 +55,37 @@ export default async function StudentsPage() {
         </Button>
       </header>
       {students.length > 0 ? (
-        <AttentionList alerts={attention} studentNames={studentNames} />
+        <>
+          <AttentionList
+            alerts={attention}
+            studentNames={studentNames}
+            action={(a) => (
+              <AddSuggestionButton
+                studentId={a.studentId}
+                weekStart={week}
+                weekLabel="Bu hafta"
+                task={{
+                  ...alertToTask(a, settings.planner),
+                  subjectId: a.subject.id,
+                  topicId: a.topicId,
+                }}
+              />
+            )}
+          />
+          <SuggestionList
+            suggestions={activeSuggestions}
+            studentNames={studentNames}
+            dismissDays={settings.suggestions.dismiss_days}
+            action={(s) => (
+              <AddSuggestionButton
+                studentId={s.studentId}
+                weekStart={week}
+                weekLabel="Bu hafta"
+                task={{ ...s.task, subjectId: s.subjectId, topicId: s.topicId }}
+              />
+            )}
+          />
+        </>
       ) : null}
       <section aria-labelledby="students-heading" className="flex flex-col gap-3">
         <h2 id="students-heading" className="text-heading font-semibold text-ink-900">

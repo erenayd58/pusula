@@ -1,4 +1,4 @@
-import type { TopicAlert } from "@/features/analytics";
+import type { Suggestion, TopicAlert } from "@/features/analytics";
 import type { PlanItemKind, TopicAlertKind } from "@/types";
 import type { TargetUnit, TaskPoolCategoryId, TaskPoolItem } from "../types";
 import { estimateMinutes, type PlannerDefaults } from "./estimate";
@@ -73,4 +73,23 @@ export function alertsToPoolItems(
     });
   }
   return out;
+}
+
+/**
+ * Önerileri havuzun `suggestions` kategorisine çevirir (Parça 4): görev alanları öneri
+ * motorundan hazır gelir (`alertToTask`), sebep `Suggestion.reason`. Sıra puana göre.
+ */
+export function suggestionsToPoolItems(suggestions: readonly Suggestion[]): TaskPoolItem[] {
+  return suggestions.map((s) => ({
+    key: `suggestions:${s.kind}:${s.subjectId}:${s.topicId ?? ""}`,
+    categoryId: "suggestions",
+    kind: s.task.kind,
+    title: s.task.title,
+    subjectId: s.subjectId,
+    topicId: s.topicId,
+    targetValue: s.task.targetValue,
+    targetUnit: s.task.targetUnit,
+    estimatedMinutes: s.task.estimatedMinutes,
+    reason: s.reason,
+  }));
 }

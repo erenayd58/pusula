@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ExamDateForm, getStudentHeader } from "@/features/core";
+import { SuggestionList, getSuggestions } from "@/features/analytics";
+import { ExamDateForm, getOrgSettings, getStudentHeader } from "@/features/core";
 import { GoalForm, getActiveGoals } from "@/features/goals";
-import { PlanCompletionTile, getPlanCompletion, getWeekPlan } from "@/features/planner";
+import {
+  AddSuggestionButton,
+  PlanCompletionTile,
+  getPlanCompletion,
+  getWeekPlan,
+} from "@/features/planner";
 import { CoachOverview } from "@/features/question-log";
 import { requireRole } from "@/lib/auth";
 import { shiftWeek, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
@@ -12,7 +18,8 @@ export const metadata: Metadata = { title: "Genel bakış" };
 
 /**
  * K2 Genel bakış (flat): bugün/bu hafta soru, hedef durumu, son 14 gün çubukları (question-log
- * açıksa); hedef formu (goals açıksa); sınav tarihi. Deneme, plan ve tekrar özetleri kendi
+ * açıksa); plan uyumu kutusu ve "Öneriler" kartı (planner / analytics açıksa; "Plana ekle" bu
+ * haftanın taslağına); hedef formu (goals açıksa); sınav tarihi. Deneme ve tekrar özetleri kendi
  * fazlarında eklenir.
  */
 export default async function OverviewPage({ params }: PageProps<"/coach/students/[studentId]">) {
@@ -26,14 +33,18 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
   const goalsOn = enabled.has("goals");
   const logsOn = enabled.has("question-log");
   const plannerOn = enabled.has("planner");
+  const analyticsOn = enabled.has("analytics");
   const week = toDateKey(weekStart(todayInIstanbul()));
   const lastWeek = shiftWeek(week, -1);
-  const [goals, planThisWeek, planLastWeek, lastWeekPlan] = await Promise.all([
-    goalsOn ? getActiveGoals(studentId) : Promise.resolve({ daily: null, weekly: null }),
-    plannerOn ? getPlanCompletion(studentId, week) : Promise.resolve(null),
-    plannerOn ? getPlanCompletion(studentId, lastWeek) : Promise.resolve(null),
-    plannerOn ? getWeekPlan(studentId, lastWeek) : Promise.resolve(null),
-  ]);
+  const [goals, planThisWeek, planLastWeek, lastWeekPlan, suggestions, settings] =
+    await Promise.all([
+      goalsOn ? getActiveGoals(studentId) : Promise.resolve({ daily: null, weekly: null }),
+      plannerOn ? getPlanCompletion(studentId, week) : Promise.resolve(null),
+      plannerOn ? getPlanCompletion(studentId, lastWeek) : Promise.resolve(null),
+      plannerOn ? getWeekPlan(studentId, lastWeek) : Promise.resolve(null),
+      analyticsOn ? getSuggestions(studentId) : Promise.resolve([]),
+      getOrgSettings(),
+    ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,6 +68,26 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
             </div>
           ) : null}
         </div>
+      ) : null}
+
+      {analyticsOn ? (
+        <SuggestionList
+          suggestions={suggestions}
+          dismissDays={settings.suggestions.dismiss_days}
+          emptyText="Şu an bu öğrenci için yeni öneri yok."
+          action={
+            plannerOn
+              ? (s) => (
+                  <AddSuggestionButton
+                    studentId={studentId}
+                    weekStart={week}
+                    weekLabel="Bu hafta"
+                    task={{ ...s.task, subjectId: s.subjectId, topicId: s.topicId }}
+                  />
+                )
+              : undefined
+          }
+        />
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">

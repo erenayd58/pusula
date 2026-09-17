@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { alertReason, getTopicAlerts } from "@/features/analytics";
+import { alertReason, getSuggestions, getTopicAlerts } from "@/features/analytics";
 import { getStudentHeader, listStudents } from "@/features/core";
 import {
   PlanBuilder,
@@ -12,6 +12,7 @@ import {
   getPlanCompletion,
   getPlanOptions,
   getWeekPlan,
+  suggestionsToPoolItems,
   type CopyTarget,
 } from "@/features/planner";
 import { getWeekAvailability } from "@/features/schedule";
@@ -37,18 +38,29 @@ export default async function CoachPlanPage({
   const prevWeek = shiftWeek(week, -1);
   const nextWeek = shiftWeek(week, 1);
 
-  const [student, plan, days, options, frequent, students, lastWeek, nextWeekPlan, alerts] =
-    await Promise.all([
-      getStudentHeader(studentId),
-      getWeekPlan(studentId, week),
-      getWeekAvailability(studentId, week),
-      getPlanOptions(studentId),
-      getFrequentTasks(userId),
-      listStudents(),
-      getPlanCompletion(studentId, prevWeek),
-      getPlanCompletion(studentId, nextWeek),
-      getTopicAlerts(studentId),
-    ]);
+  const [
+    student,
+    plan,
+    days,
+    options,
+    frequent,
+    students,
+    lastWeek,
+    nextWeekPlan,
+    alerts,
+    suggestions,
+  ] = await Promise.all([
+    getStudentHeader(studentId),
+    getWeekPlan(studentId, week),
+    getWeekAvailability(studentId, week),
+    getPlanOptions(studentId),
+    getFrequentTasks(userId),
+    listStudents(),
+    getPlanCompletion(studentId, prevWeek),
+    getPlanCompletion(studentId, nextWeek),
+    getTopicAlerts(studentId),
+    getSuggestions(studentId, week),
+  ]);
   if (!student) notFound();
 
   const others = students.filter((s) => s.profileId !== studentId && s.status === "active");
@@ -84,6 +96,7 @@ export default async function CoachPlanPage({
         days={days}
         options={options}
         pool={buildTaskPool({
+          suggestions: suggestionsToPoolItems(suggestions),
           ...alertsToPoolItems(alerts, { ...options, reason: alertReason }),
           frequent,
         })}

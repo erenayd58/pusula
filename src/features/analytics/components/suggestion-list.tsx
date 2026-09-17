@@ -59,7 +59,11 @@ export function SuggestionList({
       ) : (
         <div className="flex flex-col gap-4">
           {groups.map((g) => (
-            <div key={g.studentId ?? "all"} className="flex flex-col gap-2">
+            <div
+              key={g.studentId ?? "all"}
+              data-testid="suggestion-group"
+              className="flex flex-col gap-2"
+            >
               {g.studentId ? (
                 <h3 className="text-small font-semibold text-ink-900">
                   {studentNames?.get(g.studentId) ?? "Öğrenci"}

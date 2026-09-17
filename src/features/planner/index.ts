@@ -9,6 +9,7 @@ export { StudentPlan } from "./components/student-plan";
 export { PlanPrintSheet } from "./components/plan-print-sheet";
 export { PrintButton } from "./components/print-button";
 export { PlanCompletionTile } from "./components/plan-completion-tile";
+export { AddSuggestionButton } from "./components/add-suggestion-button";
 export type { CopyTarget } from "./components/copy-plan-dialog";
 export {
   getWeekPlan,
@@ -20,7 +21,7 @@ export {
   getExistingItemCounts,
 } from "./server/queries";
 export { buildTaskPool } from "./lib/pool";
-export { alertsToPoolItems } from "./lib/alert-pool";
+export { alertsToPoolItems, suggestionsToPoolItems } from "./lib/alert-pool";
 export { completionPercent, weekTotals } from "./lib/plan-summary";
 export type {
   PlanItem,
@@ -30,4 +31,5 @@ export type {
   TaskPoolCategory,
   TaskPoolItem,
   TaskPoolCategoryId,
+  PoolTask,
 } from "./types";

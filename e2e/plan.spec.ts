@@ -55,7 +55,7 @@ test.describe("haftalık plan", () => {
       await expect(
         page.getByRole("button", { name: "Geçen haftayı kopyala" }).first(),
       ).toBeVisible();
-      await expect(page.getByRole("button", { name: "Önerilen planı hazırla" })).toBeDisabled();
+      await expect(page.getByRole("button", { name: "Önerilen planı hazırla" })).toBeEnabled();
       await expect(page.getByRole("complementary", { name: "Görev havuzu" })).toBeVisible();
 
       // İlk görev: soru, Matematik, 20 soru, bugüne

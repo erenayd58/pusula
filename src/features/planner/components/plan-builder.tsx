@@ -26,6 +26,7 @@ import { DayColumn, columnId, dayFromColumnId, type DayHeaderInfo } from "./day-
 import { PlanHeader } from "./plan-header";
 import { PlanItemForm, type PlanItemFormState, type PlanOptions } from "./plan-item-form";
 import { PlanItemMenu } from "./plan-item-menu";
+import { PreparePlanButton } from "./prepare-plan-button";
 import { POOL_PREFIX, TaskPool } from "./task-pool";
 
 const DAYS: (number | null)[] = [1, 2, 3, 4, 5, 6, 7, null];
@@ -304,14 +305,12 @@ export function PlanBuilder(props: PlanBuilderProps) {
                       >
                         Geçen haftayı kopyala
                       </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled
-                        title="Öneriler sonraki güncellemeyle geliyor"
-                      >
-                        Önerilen planı hazırla
-                      </Button>
+                      <PreparePlanButton
+                        studentId={studentId}
+                        weekStart={weekStart}
+                        disabled={pending || plan?.status === "published"}
+                        disabledReason="Yayınlanmış plana öneriler tek tek eklenir"
+                      />
                       <Button
                         type="button"
                         onClick={() => setForm({ mode: "add", days: [1] })}
