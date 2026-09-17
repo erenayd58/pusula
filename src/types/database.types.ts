@@ -34,6 +34,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      busy_slots: {
+        Row: {
+          created_at: string
+          created_by: string
+          day_of_week: number
+          ends_at: string
+          id: string
+          kind: Database["public"]["Enums"]["busy_slot_kind"]
+          note: string | null
+          starts_at: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          day_of_week: number
+          ends_at: string
+          id?: string
+          kind?: Database["public"]["Enums"]["busy_slot_kind"]
+          note?: string | null
+          starts_at: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          day_of_week?: number
+          ends_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["busy_slot_kind"]
+          note?: string | null
+          starts_at?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "busy_slots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "busy_slots_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "busy_slots_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
       consents: {
         Row: {
           created_at: string
@@ -462,6 +523,67 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "topics"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_exceptions: {
+        Row: {
+          created_at: string
+          created_by: string
+          ends_at: string | null
+          id: string
+          note: string | null
+          on_date: string
+          starts_at: string | null
+          student_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          ends_at?: string | null
+          id?: string
+          note?: string | null
+          on_date: string
+          starts_at?: string | null
+          student_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          ends_at?: string | null
+          id?: string
+          note?: string | null
+          on_date?: string
+          starts_at?: string | null
+          student_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_exceptions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_exceptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "schedule_exceptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -956,6 +1078,12 @@ export type Database = {
       }
     }
     Enums: {
+      busy_slot_kind:
+        | "school"
+        | "tutoring_center"
+        | "private_lesson"
+        | "course"
+        | "other"
       consent_type: "privacy_notice" | "explicit_consent" | "photo_upload"
       goal_metric: "questions"
       goal_period: "daily" | "weekly"
@@ -1099,6 +1227,13 @@ export const Constants = {
   },
   public: {
     Enums: {
+      busy_slot_kind: [
+        "school",
+        "tutoring_center",
+        "private_lesson",
+        "course",
+        "other",
+      ],
       consent_type: ["privacy_notice", "explicit_consent", "photo_upload"],
       goal_metric: ["questions"],
       goal_period: ["daily", "weekly"],
