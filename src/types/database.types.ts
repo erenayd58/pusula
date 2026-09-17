@@ -380,7 +380,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_invitation: {
+        Args: {
+          p_code: string
+          p_full_name: string
+          p_relation: Database["public"]["Enums"]["parent_relation"]
+        }
+        Returns: string
+      }
+      assign_coach: {
+        Args: { p_coach_id: string; p_student_id: string }
+        Returns: undefined
+      }
+      can_delete_student: { Args: { p_student_id: string }; Returns: boolean }
+      can_manage_student: { Args: { p_student_id: string }; Returns: boolean }
+      create_student_account: {
+        Args: {
+          p_actor_id: string
+          p_auth_user_id: string
+          p_coach_id: string
+          p_exam_date: string
+          p_full_name: string
+          p_season: string
+          p_username: string
+        }
+        Returns: string
+      }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
     }
     Enums: {
       consent_type: "privacy_notice" | "explicit_consent" | "photo_upload"

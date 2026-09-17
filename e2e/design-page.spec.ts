@@ -5,9 +5,19 @@ import { expect, test, type Locator } from "@playwright/test";
  * Burada yüzey mekanizmasının ölçülebilir kuralları doğrulanır:
  * düğme/giriş yükseklikleri, calm > clay önceliği, portal'a çıkan diyaloğun yüzeyi.
  */
-const shadow = (el: Locator) => el.evaluate((n) => getComputedStyle(n).boxShadow);
-const height = (el: Locator) => el.evaluate((n) => n.getBoundingClientRect().height);
-const radius = (el: Locator) => el.evaluate((n) => getComputedStyle(n).borderRadius);
+// Yük altında ölçüm CSS uygulanmadan alınabiliyor (0 px); önce öğenin görünür (yerleşmiş) olması beklenir.
+const shadow = async (el: Locator) => {
+  await expect(el).toBeVisible();
+  return el.evaluate((n) => getComputedStyle(n).boxShadow);
+};
+const height = async (el: Locator) => {
+  await expect(el).toBeVisible();
+  return el.evaluate((n) => n.getBoundingClientRect().height);
+};
+const radius = async (el: Locator) => {
+  await expect(el).toBeVisible();
+  return el.evaluate((n) => getComputedStyle(n).borderRadius);
+};
 
 test.describe("tasarım sistemi sayfası", () => {
   test("açılır ve altı bölümü listeler", async ({ page }) => {
@@ -53,12 +63,15 @@ test.describe("tasarım sistemi sayfası", () => {
     const duration = page.getByTestId("duration-sm-clay");
     const nb = String.fromCharCode(0x00a0); // bölünmeyen boşluk
     await expect(duration).toHaveText(`14${nb}sa${nb}20${nb}dk`);
-    const box = await duration.evaluate((n) => {
-      const rects = n.getClientRects();
-      return { lines: rects.length, height: n.getBoundingClientRect().height };
-    });
-    expect(box.lines).toBe(1);
-    expect(box.height).toBeLessThan(30);
+    // CSS uygulanmadan ölçülürse yükseklik büyük çıkabiliyor; yerleşim oturana kadar bekle.
+    await expect
+      .poll(() =>
+        duration.evaluate((n) => ({
+          lines: n.getClientRects().length,
+          singleLine: n.getBoundingClientRect().height < 30,
+        })),
+      )
+      .toEqual({ lines: 1, singleLine: true });
   });
 
   test("diyalog portal'a çıksa da yüzeyini korur", async ({ page }) => {
@@ -82,13 +95,23 @@ test.describe("tasarım sistemi sayfası", () => {
   test("klavye odağı 3 px odak halkası verir", async ({ page }) => {
     await page.goto("/dev/design");
     const button = page.getByTestId("button-primary-clay");
-    await button.focus();
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Shift+Tab");
-    const outline = await button.evaluate((n) => {
-      const s = getComputedStyle(n);
-      return { width: s.outlineWidth, style: s.outlineStyle, offset: s.outlineOffset };
-    });
-    expect(outline).toEqual({ width: "3px", style: "solid", offset: "3px" });
+    // Klavye modalitesi için Tab ileri-geri; yük altında odak kayabiliyor, sıra tutana kadar yinele.
+    await expect
+      .poll(async () => {
+        await button.focus();
+        await page.keyboard.press("Tab");
+        await page.keyboard.press("Shift+Tab");
+        return button.evaluate((n) => n === document.activeElement);
+      })
+      .toBe(true);
+    // :focus-visible stili yük altında bir kare geç uygulanabiliyor; sonucu bekleyerek oku.
+    await expect
+      .poll(() =>
+        button.evaluate((n) => {
+          const s = getComputedStyle(n);
+          return { width: s.outlineWidth, style: s.outlineStyle, offset: s.outlineOffset };
+        }),
+      )
+      .toEqual({ width: "3px", style: "solid", offset: "3px" });
   });
 });

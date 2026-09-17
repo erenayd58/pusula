@@ -60,6 +60,32 @@ begin
 end;
 $$;
 
+-- Sadece auth.users satırı (profilsiz): RPC'lerin profil oluşturmasını test etmek için --
+
+create or replace function tests.create_auth_user(p_name text, p_email text default null)
+returns uuid
+language plpgsql
+as $$
+declare
+  v_id uuid := tests.id(p_name);
+begin
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change_token_new, email_change,
+    email_change_token_current, phone_change, phone_change_token, reauthentication_token
+  )
+  values (
+    '00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated',
+    coalesce(p_email, p_name || '@test.pusula.local'), 'not-a-real-hash', now(),
+    '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now(),
+    '', '', '', '', '', '', '', ''
+  )
+  on conflict (id) do nothing;
+  return v_id;
+end;
+$$;
+
 -- Öğrenci satırı (profil önceden create_user ile oluşturulmuş olmalı) ---------
 
 create or replace function tests.create_student(p_name text, p_org uuid, p_coach_name text)
@@ -190,6 +216,20 @@ begin
 end;
 $$;
 
+-- service_role: Server Action'ın admin istemcisi (RLS'yi atlar).
+create or replace function tests.authenticate_as_service_role()
+returns void
+language plpgsql
+as $$
+begin
+  perform set_config('role', 'service_role', true);
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.role', 'service_role', true);
+  perform set_config('request.jwt.claim.email', '', true);
+  perform set_config('request.jwt.claims', json_build_object('role', 'service_role')::text, true);
+end;
+$$;
+
 create or replace function tests.clear_authentication()
 returns void
 language plpgsql
@@ -206,15 +246,16 @@ $$;
 -- Yetkiler: rol değiştiren üç fonksiyon, row_count ve saf id() anon/authenticated'dan
 -- da çağrılabilir (bir testte roller arası geçiş için); fixture fonksiyonları sadece postgres.
 
-grant usage on schema tests to anon, authenticated;
+grant usage on schema tests to anon, authenticated, service_role;
 revoke execute on all functions in schema tests from public, anon, authenticated;
 grant execute on function
   tests.authenticate_as(text),
   tests.authenticate_as_anon(),
+  tests.authenticate_as_service_role(),
   tests.clear_authentication(),
   tests.row_count(text),
   tests.id(text)
-to anon, authenticated;
+to anon, authenticated, service_role;
 
 -- pg_prove'un sayacağı en az bir test ---------------------------------------
 

@@ -63,15 +63,15 @@ select throws_ok(
   '42501', null,
   'koç recorded_by''ı başka koç yapamaz'
 );
-select is(
-  tests.row_count($$update public.consents set revoked_at = now() where id = tests.id('con_a') returning 1$$),
-  0::bigint,
-  'koç onayı güncelleyemez (UPDATE politikası yok)'
+select throws_ok(
+  $$update public.consents set revoked_at = now() where id = tests.id('con_a')$$,
+  '42501', null,
+  'koç onayı güncelleyemez (UPDATE yetkisi yok)'
 );
-select is(
-  tests.row_count($$delete from public.consents where id = tests.id('con_a') returning 1$$),
-  0::bigint,
-  'koç onay silemez (DELETE politikası yok)'
+select throws_ok(
+  $$delete from public.consents where id = tests.id('con_a')$$,
+  '42501', null,
+  'koç onay silemez (DELETE yetkisi yok)'
 );
 
 -- 4. Veli kendi çocuğunun onayını görür ve kendi adına ekler.

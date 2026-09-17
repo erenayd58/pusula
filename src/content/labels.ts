@@ -15,3 +15,22 @@ export const surfaceLabels = {
   "clay-calm": "Veli · sakin clay",
   flat: "Koç · sade",
 } as const;
+
+export const studentStatusLabels = {
+  active: "Aktif",
+  paused: "Ara verdi",
+  archived: "Arşiv",
+} as const;
+
+export const parentRelationLabels = {
+  mother: "Anne",
+  father: "Baba",
+  guardian: "Vasi",
+  other: "Diğer",
+} as const;
+
+export const consentTypeLabels = {
+  privacy_notice: "Aydınlatma metni",
+  explicit_consent: "Açık rıza",
+  photo_upload: "Fotoğraf yükleme izni",
+} as const;
