@@ -107,11 +107,16 @@ export async function listTemplates(): Promise<TemplateOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("curriculum_templates")
-    .select("id, name, organization_id")
+    .select("id, name, organization_id, exam_date")
     .order("organization_id", { ascending: true, nullsFirst: true })
     .order("name");
   if (error) throw error;
-  return data.map((t) => ({ id: t.id, name: t.name, isSystem: t.organization_id === null }));
+  return data.map((t) => ({
+    id: t.id,
+    name: t.name,
+    isSystem: t.organization_id === null,
+    examDate: t.exam_date,
+  }));
 }
 
 function nestTopics(rows: TopicRow[], progressStudents: Map<string, number>): TemplateTopic[] {

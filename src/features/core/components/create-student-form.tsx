@@ -16,20 +16,18 @@ import { FormError } from "./form-error";
 import { NativeSelect } from "./native-select";
 
 type CoachOption = { id: string; fullName: string };
-type TemplateOption = { id: string; name: string };
+type TemplateOption = { id: string; name: string; examDate: string | null };
 
 export function CreateStudentForm({
   coaches,
   templates,
   defaultSeason,
-  defaultExamDate,
 }: {
   /** Owner için koç seçenekleri; koçta boş (kendisi atanır). */
   coaches: CoachOption[];
-  /** Müfredat şablonları; ilki (sistem şablonu) varsayılan seçili. */
+  /** Müfredat şablonları; ilki (sistem şablonu) varsayılan seçili, sınav tarihi şablondan. */
   templates: TemplateOption[];
   defaultSeason: string;
-  defaultExamDate: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -41,7 +39,7 @@ export function CreateStudentForm({
       username: "",
       temporaryPassword: "",
       season: defaultSeason,
-      examDate: defaultExamDate,
+      examDate: templates[0]?.examDate ?? "",
       curriculumTemplateId: templates[0]?.id ?? "",
       coachId: coaches[0]?.id,
     },
@@ -140,7 +138,13 @@ export function CreateStudentForm({
         <NativeSelect
           id="curriculumTemplateId"
           aria-invalid={!!errors.curriculumTemplateId}
-          {...form.register("curriculumTemplateId")}
+          {...form.register("curriculumTemplateId", {
+            // Şablon değişince sınav tarihi (koç elle değiştirmediyse) şablondan gelir.
+            onChange: (e) => {
+              const next = templates.find((t) => t.id === e.target.value)?.examDate;
+              if (next && !form.formState.dirtyFields.examDate) form.setValue("examDate", next);
+            },
+          })}
         >
           {templates.map((t) => (
             <option key={t.id} value={t.id}>

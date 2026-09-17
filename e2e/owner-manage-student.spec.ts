@@ -18,7 +18,7 @@ test.describe("owner öğrenci yönetir", () => {
     await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
     await expect(page).toHaveURL(/\/coach\/students$/);
 
-    const row = page.getByRole("row").filter({ hasText: username });
+    const row = page.getByTestId("student-row").filter({ hasText: username });
     await expect(row).toBeVisible();
     await expect(row).toContainText("Murat Kaya");
 
@@ -50,7 +50,7 @@ test.describe("owner öğrenci yönetir", () => {
     await row.getByRole("button", { name: "Sil" }).click();
     await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
     await expect(page.getByText("silindi.")).toBeVisible();
-    await expect(page.getByRole("row").filter({ hasText: username })).toHaveCount(0);
+    await expect(page.getByTestId("student-row").filter({ hasText: username })).toHaveCount(0);
     await logout(page);
 
     await login(page, username, newPassword, { expectSuccess: false });

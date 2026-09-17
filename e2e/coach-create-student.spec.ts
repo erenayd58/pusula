@@ -16,7 +16,7 @@ test.describe("koç öğrenci oluşturur", () => {
     await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
 
     await expect(page).toHaveURL(/\/coach\/students$/);
-    await expect(page.getByRole("cell", { name: username })).toBeVisible();
+    await expect(page.getByTestId("student-row").filter({ hasText: username })).toBeVisible();
     await logout(page);
 
     await login(page, username, password);

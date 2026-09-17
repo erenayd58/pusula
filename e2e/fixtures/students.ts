@@ -24,7 +24,8 @@ export async function createStudentAsOwner(
   await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
   await expect(page).toHaveURL(/\/coach\/students$/);
 
-  const row = page.getByRole("row").filter({ hasText: username });
+  // Satır ≥ md tablo satırı, telefonda kart; ikisi de data-testid="student-row" taşır.
+  const row = page.getByTestId("student-row").filter({ hasText: username });
   const href = await row.getByRole("link", { name: fullName }).getAttribute("href");
   const studentId = href?.split("/").pop();
   expect(studentId).toMatch(/^[0-9a-f-]{36}$/);
@@ -40,7 +41,7 @@ export async function deleteStudentAsOwner(page: Page, username: string) {
     await login(page, accounts.owner.identifier);
   }
   await page.goto("/coach/students");
-  const row = page.getByRole("row").filter({ hasText: username });
+  const row = page.getByTestId("student-row").filter({ hasText: username });
   await row.getByRole("button", { name: "Sil" }).click();
   await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
   await expect(page.getByText("silindi.")).toBeVisible();

@@ -49,6 +49,11 @@ export const resetStudentPasswordSchema = studentIdSchema.extend({
     .max(72, "Yeni şifre en fazla 72 karakter."),
 });
 
+export const updateExamDateSchema = studentIdSchema.extend({
+  examDate: z.iso.date("Sınav tarihi YYYY-AA-GG biçiminde olmalı."),
+});
+export type UpdateExamDateInput = z.infer<typeof updateExamDateSchema>;
+
 export const assignCoachSchema = studentIdSchema.extend({
   coachId: z.uuid("Koç seçimi geçersiz."),
 });

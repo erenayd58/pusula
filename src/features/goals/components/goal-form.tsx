@@ -32,8 +32,12 @@ export function GoalForm({
     defaultValues: { studentId, daily: initial.daily, weekly: initial.weekly },
   });
   const { errors } = form.formState;
-  // Boş alan null'a çevrilir (valueAsNumber boşta NaN verir).
-  const asNullableInt = (v: string) => (v.trim() === "" ? null : Number(v));
+  // Boş alan null'a çevrilir (valueAsNumber boşta NaN verir); varsayılan değer sayı/null gelir.
+  const asNullableInt = (v: unknown) => {
+    if (v === null || v === undefined || v === "") return null;
+    if (typeof v === "number") return v;
+    return typeof v === "string" && v.trim() !== "" ? Number(v) : null;
+  };
 
   const onSubmit = form.handleSubmit((values) => {
     setFormError(undefined);

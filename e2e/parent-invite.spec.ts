@@ -22,7 +22,7 @@ test.describe("veli daveti", () => {
     await page.getByLabel("Sınav tarihi").fill("2027-06-13");
     await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
     await expect(page).toHaveURL(/\/coach\/students$/);
-    const row = page.getByRole("row").filter({ hasText: studentUsername });
+    const row = page.getByTestId("student-row").filter({ hasText: studentUsername });
     await row.getByRole("button", { name: "Veli daveti" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("button", { name: "Davet kodu üret" }).click();

@@ -33,8 +33,7 @@ export default async function NewStudentPage() {
       <CreateStudentForm
         coaches={coaches.map((c) => ({ id: c.id, fullName: c.fullName }))}
         defaultSeason={currentSeason()}
-        defaultExamDate=""
-        templates={templates}
+        templates={templates.map((t) => ({ id: t.id, name: t.name, examDate: t.examDate }))}
       />
     </>
   );

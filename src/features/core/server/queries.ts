@@ -15,27 +15,59 @@ export type StudentListRow = {
   season: string;
   coachId: string;
   coachName: string | null;
+  /** Son kayıt günü (YYYY-AA-GG) ya da hiç kayıt yoksa null. */
+  lastLogDate: string | null;
+  /** Bu hafta (pazartesiden) çözülen soru. */
+  weekQuestions: number;
+  weeklyTarget: number | null;
+  /** 0-100; haftalık hedef yoksa null. */
+  weekGoalPercent: number | null;
 };
 
+/**
+ * K1 öğrenci listesi: tek sorgu, `v_coach_student_overview` (security_invoker; koç kendi
+ * öğrencilerini, owner kurumu görür). Koç adları ikinci küçük sorguyla (owner sütunu).
+ */
 export async function listStudents(): Promise<StudentListRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("students")
+    .from("v_coach_student_overview")
     .select(
-      "profile_id, coach_id, season, status, profile:profiles!students_profile_id_fkey(full_name, username), coach:profiles!students_coach_id_fkey(full_name)",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent",
     )
-    .order("created_at", { ascending: false });
+    .order("full_name");
   if (error) throw error;
 
-  return data.map((row) => ({
-    profileId: row.profile_id,
-    fullName: row.profile.full_name,
-    username: row.profile.username,
-    status: row.status,
-    season: row.season,
-    coachId: row.coach_id,
-    coachName: row.coach?.full_name ?? null,
-  }));
+  const coachIds = [...new Set(data.map((r) => r.coach_id).filter((id): id is string => !!id))];
+  const coachNames = new Map<string, string>();
+  if (coachIds.length > 0) {
+    const { data: coaches, error: coachError } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", coachIds);
+    if (coachError) throw coachError;
+    for (const c of coaches) coachNames.set(c.id, c.full_name);
+  }
+
+  return data.flatMap((row) =>
+    row.student_id && row.coach_id && row.full_name && row.status && row.season
+      ? [
+          {
+            profileId: row.student_id,
+            fullName: row.full_name,
+            username: row.username,
+            status: row.status,
+            season: row.season,
+            coachId: row.coach_id,
+            coachName: coachNames.get(row.coach_id) ?? null,
+            lastLogDate: row.last_log_date,
+            weekQuestions: row.week_questions ?? 0,
+            weeklyTarget: row.weekly_target === null ? null : Number(row.weekly_target),
+            weekGoalPercent: row.week_goal_percent,
+          },
+        ]
+      : [],
+  );
 }
 
 export type CoachOption = { id: string; fullName: string; role: "coach" | "owner" };

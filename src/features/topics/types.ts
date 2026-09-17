@@ -53,4 +53,5 @@ export type TemplateEditor = {
   subjects: TemplateSubject[];
 };
 
-export type TemplateOption = { id: string; name: string; isSystem: boolean };
+/** `examDate`: şablonun sınav tarihi (YYYY-AA-GG); yeni öğrenci formunun varsayılanı. */
+export type TemplateOption = { id: string; name: string; isSystem: boolean; examDate: string | null };

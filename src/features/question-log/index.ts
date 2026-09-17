@@ -6,6 +6,9 @@ export { questionLogModule } from "./module";
 export { questionLogWidgets } from "./widgets";
 export { QuickLogButton } from "./components/quick-log-button";
 export { QuickLogProvider } from "./components/quick-log-provider";
+export { CoachOverview } from "./components/coach-overview";
+export { QuestionLogFilters } from "./components/question-log-filters";
+export { QuestionLogTable } from "./components/question-log-table";
 export {
   getQuickLogOptions,
   getTodayLogs,
