@@ -1061,6 +1061,96 @@ export type Database = {
           },
         ]
       }
+      suggestion_dismissals: {
+        Row: {
+          created_at: string
+          dismissed_by: string
+          dismissed_until: string
+          id: string
+          kind: Database["public"]["Enums"]["topic_alert_kind"]
+          student_id: string
+          subject_id: string
+          topic_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dismissed_by: string
+          dismissed_until: string
+          id?: string
+          kind: Database["public"]["Enums"]["topic_alert_kind"]
+          student_id: string
+          subject_id: string
+          topic_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dismissed_by?: string
+          dismissed_until?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["topic_alert_kind"]
+          student_id?: string
+          subject_id?: string
+          topic_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suggestion_dismissals_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestion_dismissals_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
       topics: {
         Row: {
           created_at: string
