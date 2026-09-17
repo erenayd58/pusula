@@ -25,4 +25,7 @@ export {
 export type { TopicAlertFacts, TopicAlert, AlertGroup, AlertSubject } from "./types";
 export { AttentionList } from "./components/attention-list";
 export { WeakTopics } from "./components/weak-topics";
-export { getTopicAlertFacts, getTopicAlerts } from "./server/queries";
+export { SuggestionList } from "./components/suggestion-list";
+export { getTopicAlertFacts, getTopicAlerts, getSuggestions } from "./server/queries";
+export { dismissSuggestion } from "./server/actions";
+export { dismissSuggestionSchema, type DismissSuggestionInput } from "./schemas";

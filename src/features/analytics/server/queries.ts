@@ -1,9 +1,10 @@
 import "server-only";
 
 import { getOrgSettings } from "@/features/core";
-import { toDateKey, todayInIstanbul } from "@/lib/dates";
+import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { evaluateTopicAlerts } from "../lib/alerts";
+import { buildSuggestions, dismissalKey, plannedKey, type Suggestion } from "../lib/suggestions";
 import type { TopicAlert, TopicAlertFacts } from "../types";
 
 /**
@@ -87,4 +88,65 @@ export async function getTopicAlerts(studentIds?: string | string[]): Promise<To
   const ids = typeof studentIds === "string" ? [studentIds] : studentIds;
   const [facts, settings] = await Promise.all([getTopicAlertFacts(ids), getOrgSettings()]);
   return evaluateTopicAlerts(facts, settings.alerts, toDateKey(todayInIstanbul()));
+}
+
+/**
+ * Öneriler (08 §2 Parça 4): uyarılar + haftada planlı konular (`v_week_plan_topics`) + süresi
+ * geçmemiş reddetmeler → `buildSuggestions`. `week` verilmezse İstanbul'a göre bu hafta (K1, K2
+ * ve "Plana ekle" bu haftaya yazar); plan oluşturucu görüntülenen haftayı geçirir.
+ */
+export async function getSuggestions(
+  studentIds?: string | string[],
+  week?: string,
+): Promise<Suggestion[]> {
+  const ids = typeof studentIds === "string" ? [studentIds] : studentIds;
+  if (ids && ids.length === 0) return [];
+  const today = toDateKey(todayInIstanbul());
+  const weekKey = week ?? toDateKey(weekStart(todayInIstanbul()));
+  const supabase = await createClient();
+
+  let plannedQuery = supabase
+    .from("v_week_plan_topics")
+    .select("student_id, subject_id, topic_id")
+    .eq("week_start", weekKey);
+  if (ids) plannedQuery = plannedQuery.in("student_id", ids);
+  let dismissedQuery = supabase
+    .from("suggestion_dismissals")
+    .select("student_id, subject_id, topic_id, kind, dismissed_until")
+    .gte("dismissed_until", today);
+  if (ids) dismissedQuery = dismissedQuery.in("student_id", ids);
+
+  const [alerts, settings, planned, dismissed] = await Promise.all([
+    getTopicAlerts(ids),
+    getOrgSettings(),
+    plannedQuery,
+    dismissedQuery,
+  ]);
+  if (planned.error) throw planned.error;
+  if (dismissed.error) throw dismissed.error;
+
+  const plannedTopicIds = new Set<string>();
+  const plannedSubjectIds = new Set<string>();
+  for (const r of planned.data) {
+    if (!r.student_id) continue;
+    if (r.topic_id) plannedTopicIds.add(plannedKey(r.student_id, r.topic_id));
+    if (r.subject_id) plannedSubjectIds.add(plannedKey(r.student_id, r.subject_id));
+  }
+  const dismissedMap = new Map(
+    dismissed.data.map((r) => [
+      dismissalKey(r.student_id, r.kind, r.subject_id, r.topic_id),
+      r.dismissed_until,
+    ]),
+  );
+  const maxExamQuestionCount = Math.max(0, ...alerts.map((a) => a.subject.examQuestionCount ?? 0));
+
+  return buildSuggestions({
+    alerts,
+    plannedTopicIds,
+    plannedSubjectIds,
+    dismissed: dismissedMap,
+    settings,
+    maxExamQuestionCount,
+    today,
+  });
 }
