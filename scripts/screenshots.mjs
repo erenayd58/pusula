@@ -1,9 +1,10 @@
 /**
- * Uygulama ekran görüntüleri (belge amaçlı): `pnpm screenshots [--out docs/tasarim/uygulama-1c]`.
+ * Uygulama ekran görüntüleri (belge amaçlı): `pnpm screenshots [--only <faz>] [--out docs/tasarim]`.
  *
  * Çalışan bir sunucu bekler (varsayılan http://localhost:3000; `PLAYWRIGHT_BASE_URL` ile değişir)
  * ve yerel seed hesaplarını kullanır (supabase/seed.sql). e2e testlerinin parçası değildir;
- * Playwright'ı yalnızca tarayıcı olarak kullanır. Her faz kendi listesini `SHOTS` içine ekler.
+ * Playwright'ı yalnızca tarayıcı olarak kullanır. Her faz kendi listesini `SHOTS` içine ekler;
+ * her kayıt `dir` ile kendi klasörüne (uygulama-<faz>) yazılır. `--only 2` yalnızca o klasörü üretir.
  */
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -30,11 +31,25 @@ const VIEWPORTS = {
   1440: { viewport: { width: 1440, height: 900 } },
 };
 
-/** @type {Array<{ file: string; as: keyof typeof ACCOUNTS; width: 390 | 1440; path: string; before?: (page: import("@playwright/test").Page) => Promise<void> }>} */
+/** @type {Array<{ dir: string; file: string; as: keyof typeof ACCOUNTS; width: 390 | 1440; path: string; before?: (page: import("@playwright/test").Page) => Promise<void> }>} */
 const SHOTS = [
-  { file: "ogrenci-today-390.png", as: "student", width: 390, path: "/student/today" },
-  { file: "ogrenci-today-1440.png", as: "student", width: 1440, path: "/student/today" },
+  // Faz 1c: kabuklar
   {
+    dir: "uygulama-1c",
+    file: "ogrenci-today-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-1c",
+    file: "ogrenci-today-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-1c",
     file: "ogrenci-hizli-kayit-390.png",
     as: "student",
     width: 390,
@@ -44,20 +59,29 @@ const SHOTS = [
       await page.getByText("Hızlı kayıt yakında").waitFor();
     },
   },
-  { file: "koc-ogrenciler-1440.png", as: "coach", width: 1440, path: "/coach/students" },
   {
+    dir: "uygulama-1c",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-1c",
     file: "koc-ogrenci-detay-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}`,
   },
   {
+    dir: "uygulama-1c",
     file: "koc-moduller-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}/modules`,
   },
   {
+    dir: "uygulama-1c",
     file: "koc-kagit-onayi-1440.png",
     as: "coach",
     width: 1440,
@@ -68,6 +92,7 @@ const SHOTS = [
     },
   },
   {
+    dir: "uygulama-1c",
     file: "koc-menu-390.png",
     as: "coach",
     width: 390,
@@ -77,12 +102,55 @@ const SHOTS = [
       await page.getByRole("dialog").waitFor();
     },
   },
-  { file: "veli-ozet-390.png", as: "parent", width: 390, path: "/parent" },
+  { dir: "uygulama-1c", file: "veli-ozet-390.png", as: "parent", width: 390, path: "/parent" },
+
+  // Faz 2: konu haritası ve şablon editörü
+  {
+    dir: "uygulama-2",
+    file: "ogrenci-konular-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/topics",
+  },
+  {
+    dir: "uygulama-2",
+    file: "ogrenci-konular-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/topics",
+  },
+  {
+    dir: "uygulama-2",
+    file: "ogrenci-konu-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/topics",
+    before: async (page) => {
+      await page.getByRole("button", { name: "Paragrafta Anlam: Tamamlandı" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-2",
+    file: "koc-ogrenci-konular-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/topics`,
+  },
+  {
+    dir: "uygulama-2",
+    file: "koc-sablon-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/templates",
+  },
 ];
 
 const outArg = process.argv.indexOf("--out");
-const outDir = resolve(outArg > -1 ? process.argv[outArg + 1] : "docs/tasarim/uygulama-1c");
-mkdirSync(outDir, { recursive: true });
+const outRoot = resolve(outArg > -1 ? process.argv[outArg + 1] : "docs/tasarim");
+const onlyArg = process.argv.indexOf("--only");
+const only = onlyArg > -1 ? `uygulama-${process.argv[onlyArg + 1]}` : null;
+const shots = only ? SHOTS.filter((s) => s.dir === only) : SHOTS;
 
 const browser = await chromium.launch();
 /** Aynı hesap + genişlik için tek oturum. */
@@ -107,15 +175,17 @@ async function contextFor(as, width) {
 }
 
 let failed = 0;
-for (const shot of SHOTS) {
+for (const shot of shots) {
   try {
+    const outDir = resolve(outRoot, shot.dir);
+    mkdirSync(outDir, { recursive: true });
     const page = await contextFor(shot.as, shot.width);
     await page.goto(`${BASE_URL}${shot.path}`, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
     if (shot.before) await shot.before(page);
     await page.waitForTimeout(400); // giriş animasyonları
     await page.screenshot({ path: resolve(outDir, shot.file), fullPage: true });
-    console.log(`✓ ${shot.file}`);
+    console.log(`✓ ${shot.dir}/${shot.file}`);
   } catch (error) {
     failed += 1;
     console.error(`✗ ${shot.file}: ${error instanceof Error ? error.message : error}`);
@@ -123,5 +193,5 @@ for (const shot of SHOTS) {
 }
 
 await browser.close();
-console.log(`${SHOTS.length - failed}/${SHOTS.length} görüntü → ${outDir}`);
+console.log(`${shots.length - failed}/${shots.length} görüntü → ${outRoot}`);
 process.exit(failed > 0 ? 1 : 0);
