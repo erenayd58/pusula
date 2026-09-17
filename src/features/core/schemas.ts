@@ -107,3 +107,49 @@ export const recordPaperConsentSchema = studentIdSchema.extend({
     .max(40, "Belge sürümü en fazla 40 karakter."),
 });
 export type RecordPaperConsentInput = z.infer<typeof recordPaperConsentSchema>;
+
+/**
+ * Kurum ayarı formu (08 §1.2, karar A5): owner sayı alanlarını düzenler. `orgSettingsSchema`
+ * (lib/org-settings) eksik anahtar güvencesidir; bu şema formun tam ve Türkçe mesajlı halidir,
+ * çıktısı `OrgSettings` ile aynı yapıdadır. Form ve `updateOrgSettings` aynı şemayı kullanır.
+ */
+const timeOfDay = z
+  .string("Saat gir.")
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "SS:DD biçiminde saat gir.");
+const int = (min: number) =>
+  z.number("Sayı gir.").int("Tam sayı gir.").min(min, `En az ${min} olmalı.`);
+const percent = z.number("Sayı gir.").min(0, "0–100 arası gir.").max(100, "0–100 arası gir.");
+const accuracyRule = z.object({ min_questions: int(1), max_accuracy: percent });
+
+export const orgSettingsFormSchema = z.object({
+  schedule: z
+    .object({ wake_start: timeOfDay, wake_end: timeOfDay })
+    .refine((v) => v.wake_end > v.wake_start, {
+      message: "Bitiş başlangıçtan sonra olmalı.",
+      path: ["wake_end"],
+    }),
+  planner: z.object({
+    minutes_per_question: z.number("Sayı gir.").positive("Sıfırdan büyük olmalı."),
+    topic_study_minutes: int(1),
+    review_minutes: int(1),
+    link_minutes: int(1),
+    custom_minutes: int(1),
+    questions_target: int(1),
+    day_capacity_ratio: z
+      .number("Sayı gir.")
+      .min(0.1, "0,1 ile 1 arası gir.")
+      .max(1, "0,1 ile 1 arası gir."),
+    max_items_per_subject_per_day: int(1),
+  }),
+  alerts: z.object({
+    lookback_days: int(7),
+    knowledge_gap: accuracyRule,
+    low_accuracy: accuracyRule,
+    review_due_days: z.array(int(1)).min(1, "En az bir gün gir (ör. 7, 15, 30)."),
+    forgetting_risk: z.object({ min_accuracy: percent, idle_days: int(1) }),
+    stale_days: int(1),
+    neglected_subject_days: int(1),
+  }),
+  suggestions: z.object({ max_per_student: int(1), dismiss_days: int(1) }),
+});
+export type OrgSettingsFormInput = z.infer<typeof orgSettingsFormSchema>;
