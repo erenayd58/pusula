@@ -206,12 +206,16 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] `pnpm screenshots` → `docs/tasarim/uygulama-1c/` (belge amaçlı, e2e dışı)
 - **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor (e2e ✅); bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi ✅).
 
-### Faz 2: Müfredat Şablonları ve Konu Takibi (M)
-- `curriculum_templates`, `subjects`, `topics`, `student_topic_progress`
-- LGS 2027 şablonunun seed edilmesi (`05-lgs-2027-sablonu.md`)
-- Koç: şablon editörü (ders, konu ekle/sırala/düzenle, şablon kopyala)
-- Öğrenci: ders ders konu listesi, durum ve güven puanı işaretleme
-- **Kabul:** Koç şablona konu ekleyince tüm öğrencilerde görünüyor; öğrenci konu durumunu değiştirebiliyor.
+### Faz 2: Müfredat Şablonları ve Konu Takibi (M) — ✅ 2026-09-17 (dal: `faz-2-konular`)
+- [x] `topic_status` enum; `curriculum_templates`, `subjects`, `topics`, `student_topic_progress` (tembel satır); `students.curriculum_template_id` FK (nullable kaldı, form zorunlu); RLS: şablon/ders/konu sistem + kendi kurumu okunur, koç/owner düzenler (karar #28); pgTAP `130`, `140` + `090` matrisi
+- [x] LGS 2027 şablonu **migration** olarak (`faz2_lgs_2027_template`, sabit kimlikler, `on conflict do nothing`; karar #27); mevcut öğrencilere atanır; `create_student_account` şablon parametresi alır (eski imza kaldırıldı), `move_topic` RPC (eşit `sort_order`'da deterministik)
+- [x] Öğrenci `/student/topics`: konu haritası (5 durum: doluluk + desen + ikon, `.topic-cell`), telefonda ders kartları sarmalı, masaüstünde tek ızgara; ok tuşlarıyla gezinme; hücre detayı `ResponsiveSheet` (durum + 1-5 güven; karar #30); ders başlığında tamamlanma yüzdesi; şablon yoksa boş durum
+- [x] Koç: öğrenci detayında Konular sekmesi (aynı bileşen, flat, durum değiştirebilir; şablon yoksa "Şablon ata"); `/coach/templates` ders/konu listesi — konu ekle (dersin sonuna), adını değiştir, sil (onayda ilerlemesi olan öğrenci sayısı), ↑↓ taşı; alt konular girintili, haritada ünite düzeyi (karar #29). Sürükle-bırak ve şablon kopyalama yok
+- [x] Bugün ekranı: `defineWidgets` / `src/modules/widgets.ts` altyapısı (yalnızca `studentToday`) ve "tamamlanan konu" kartı
+- [x] Yeni öğrenci formunda şablon seçimi (sistem şablonu varsayılan)
+- [x] Testler: birim (`completionPercent`), pgTAP (39 yeni), e2e (`topics.spec.ts`: öğrenci durum değiştirir → yüzde → koç görür; koç konu ekler → öğrencide görünür → siler); `pnpm screenshots --only 2` → `docs/tasarim/uygulama-2/`
+- Ertelenen: `next_review_at` / tekrar aralıkları (Faz 6, tekrar modülü); şablon kopyalama (`based_on_id`) ve şablon seçici; hücre detayında soru sayısı/başarı/kaynaklar (Faz 3, 5)
+- **Kabul:** Koç şablona konu ekleyince tüm öğrencilerde görünüyor (e2e ✅); öğrenci konu durumunu değiştirebiliyor (e2e ✅).
 
 ### Faz 3: Soru Takibi, Hedefler ve "Bugün" Ekranı (L) → **MVP**
 - `question_logs`, `goals`, özet görünümleri

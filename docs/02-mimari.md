@@ -164,7 +164,7 @@ pusula/
     ├── modules/
     │   ├── define-module.ts         # defineModule() / defineWidgets() yardımcıları ve tipleri
     │   ├── registry.ts              # Tüm modül manifestlerinin listesi (sadece metadata; menü ve sekmeler buradan)
-    │   ├── widgets.ts               # Panel kartlarının listesi (sadece panel sayfaları import eder; Faz 3)
+    │   ├── widgets.ts               # Panel kartlarının listesi (sadece panel sayfaları import eder; Faz 2'den itibaren)
     │   ├── get-enabled-modules.ts   # Öğrenci için açık modülleri getirir (cache'li) + requireModule
     │   ├── set-student-module.ts    # Koçun modül aç/kapat Server Action'ı (bağımlılıklar burada çözülür)
     │   ├── module-toggle-list.tsx   # Modüller sekmesi istemci bileşeni
@@ -271,7 +271,7 @@ export function defineModule<T extends z.ZodType>(m: ModuleManifest<T>) {
 
 // Panel kartları manifestten AYRI tutulur: manifest React bileşeni import etmez,
 // böylece menü ve sekmeleri üreten kod widget bileşenlerini paket boyutuna eklemez.
-// defineWidgets / ModuleWidgets ilk panel kartıyla (Faz 3) eklenir:
+// defineWidgets / ModuleWidgets Faz 2'de ilk kartla (Konular) eklendi; şimdilik yalnızca studentToday:
 export type ModuleWidgets = {
   moduleId: string;                  // manifest.id ile aynı
   studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
@@ -548,3 +548,8 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 24 | 2026-09 | `ResponsiveSheet` yalnızca CSS ile: aynı `Dialog`, `max-md:` sınıflarıyla alt panel; koç telefon menüsü için ayrı `Sheet side="left"` | JS medya sorgusu olmadan sunucu/istemci aynı HTML'i üretir; ek bağımlılık yok | vaul (drawer), `matchMedia` ile iki bileşen |
 | 25 | 2026-09 | Menü bileşenleri sunucu bileşeni, aktiflik `NavLink` istemci bileşeninde; ikon bileşenleri (fonksiyon) sunucu→istemci sınırını geçmediği için `ModuleToggleList` düz veri alır, bağımlılık çözümü sunucuda | Manifestler React dışı kalır, istemci paketi registry'yi taşımaz | Registry'yi istemciye taşımak, ikon adını string geçmek |
 | 26 | 2026-09 | `devIndicators: false` | Geliştirme rozeti öğrenci rayındaki çıkış düğmesinin üstüne biniyor, e2e tıklamalarını kesiyordu; hata katmanı etkilenmez | Rozeti sağa almak |
+| 27 | 2026-09 | LGS 2027 şablonu seed değil **migration** (`faz2_lgs_2027_template`): sabit UUID'ler, `on conflict do nothing`, mevcut öğrencilere atama aynı dosyada | Bulutta seed çalışmaz; `supabase db push` ile şablon canlıya gitmeli; tekrar çalışsa çift kayıt olmamalı | `supabase/seeds/*.sql`, dashboard'dan elle giriş |
+| 28 | 2026-09 | Sistem şablonu (`organization_id null`) herkese okunur ve **koç/owner tarafından düzenlenebilir**; kurum şablonu yalnızca kendi kurumuna. `students.curriculum_template_id` FK'lı ama nullable (form zorunlu tutar) | Tek kurum ölçeğinde en basit çözüm; çok kurum olursa kopyalama (`based_on_id`) gelir. Fixture/RPC sadeliği için nullable | Sistem şablonu salt okunur + kuruma kopya; `not null` + sabit default |
+| 29 | 2026-09 | Konu haritası yalnızca **ünite düzeyi** konuları (parent_id boş) gösterir; alt konular şablon editöründe girintili, ilerleme ünite düzeyinde | Tasarımdaki hücre sayısı (Matematik 12) ve sade harita; alt konu ayrıntısı Faz 3+ kayıtlarında kullanılır | Yaprak konuları göstermek, iki seviyeli harita |
+| 30 | 2026-09 | Konu hücresi detayı `ResponsiveSheet` (telefonda alt panel, masaüstünde ortada diyalog); tasarımdaki sağ yan panel yapılmadı. Hücre durumları `.topic-cell` CSS sınıfları (globals.css) ile, ders rengi `subjectVars` | Tek bileşen, ek yerleşim yok; desenler beyaz yarı saydam olduğu için ders rengine otomatik uyar | Masaüstünde ayrı sağ panel; Tailwind arbitrary gradient sınıfları |
+| 31 | 2026-09 | `FormError` `components/shared`'a taşındı (çekirdek yeniden dışa açar) | İstemci bileşenleri `@/features/core` index'ini import edemez (sunucu kodu taşır); diğer modüllerin istemci formları ortak bileşene ihtiyaç duyar | Her modülde kopya |
