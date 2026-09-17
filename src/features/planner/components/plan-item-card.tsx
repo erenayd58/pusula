@@ -7,7 +7,7 @@ import { subjectVars } from "@/components/shared/subject-scope";
 import { dayOfWeekShortLabels } from "@/content/labels";
 import { cn } from "@/lib/utils";
 import { KIND_SPECS } from "../lib/kinds";
-import { taskMeta } from "../lib/task-title";
+import { taskMeta } from "@/lib/plan/task-title";
 import type { PlanItem } from "../types";
 
 /**

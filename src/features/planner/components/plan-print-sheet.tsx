@@ -1,6 +1,6 @@
 import { dayOfWeekLabels } from "@/content/labels";
 import { formatDateTr, formatDuration, formatWeekRange } from "@/lib/format";
-import { taskMeta } from "../lib/task-title";
+import { taskMeta } from "@/lib/plan/task-title";
 import type { PlanItem } from "../types";
 
 /**

@@ -2,7 +2,7 @@
 
 import { ActionError, createAction } from "@/lib/actions/create-action";
 import type { ServerSupabaseClient } from "@/lib/supabase/server";
-import { taskTitle } from "../lib/task-title";
+import { taskTitle } from "@/lib/plan/task-title";
 import {
   addPlanItemsSchema,
   coachMessageSchema,

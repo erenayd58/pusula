@@ -10,7 +10,7 @@ import {
 } from "./plan-summary";
 import { alertsToPoolItems } from "./alert-pool";
 import { buildTaskPool, filterPool } from "./pool";
-import { taskMeta, taskTitle } from "./task-title";
+import { taskMeta, taskTitle } from "@/lib/plan/task-title";
 
 const DEFAULTS: PlannerDefaults = {
   minutes_per_question: 1.5,

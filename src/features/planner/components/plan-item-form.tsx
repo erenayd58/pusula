@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import type { PlanItemKind } from "@/types";
 import { estimateMinutes, type PlannerDefaults } from "../lib/estimate";
 import { KIND_ORDER, KIND_SPECS } from "../lib/kinds";
-import { taskTitle } from "../lib/task-title";
+import { taskTitle } from "@/lib/plan/task-title";
 import { addPlanItemsSchema, updatePlanItemSchema } from "../schemas";
 import { addPlanItems, updatePlanItem } from "../server/actions";
 import type { PlanItem, PlanSubjectOption, TargetUnit, TaskPoolItem } from "../types";

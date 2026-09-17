@@ -2,7 +2,7 @@ import type { TopicAlert } from "@/features/analytics";
 import type { PlanItemKind, TopicAlertKind } from "@/types";
 import type { TargetUnit, TaskPoolCategoryId, TaskPoolItem } from "../types";
 import { estimateMinutes, type PlannerDefaults } from "./estimate";
-import { taskTitle } from "./task-title";
+import { taskTitle } from "@/lib/plan/task-title";
 
 /**
  * Konu uyarılarını havuz öğesine çevirir (Parça 3). Saf: analytics'ten yalnızca tip alır; sebep
