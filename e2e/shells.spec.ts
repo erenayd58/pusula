@@ -16,7 +16,13 @@ test.describe("uygulama kabukları", () => {
       await expect(nav.getByRole("link", { name: label })).toBeVisible();
     }
     await expect(nav.getByRole("link", { name: "Bugün" })).toHaveAttribute("aria-current", "page");
-    await expect(page.getByRole("button", { name: "Soru kaydı ekle" }).first()).toBeVisible();
+    // (+) hızlı kayıt sheet'ini açar (Faz 3); Esc kapatır.
+    await page.getByRole("button", { name: "Soru kaydı ekle" }).filter({ visible: true }).click();
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { name: "Soru kaydı" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await nav.getByRole("link", { name: "Konular" }).click();
     await expect(page).toHaveURL(/\/student\/topics$/);

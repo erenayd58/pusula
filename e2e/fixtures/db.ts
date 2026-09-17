@@ -8,10 +8,19 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  */
 let admin: SupabaseClient | undefined;
 
+/** Güvenlik ağı: yalnızca yerel Supabase'de (127.0.0.1 / localhost) silme yapılır; aksi halde hata. */
+export function assertLocal(url: string): void {
+  const host = new URL(url).hostname;
+  if (host !== "127.0.0.1" && host !== "localhost") {
+    throw new Error(`e2e temizliği yalnızca yerel Supabase'de çalışır; bulunan: ${host}`);
+  }
+}
+
 export function adminClient(): SupabaseClient {
   if (admin) return admin;
   const raw = execSync("pnpm exec supabase status -o json", { encoding: "utf8" });
   const status = JSON.parse(raw.slice(raw.indexOf("{"))) as { API_URL: string; SECRET_KEY: string };
+  assertLocal(status.API_URL);
   admin = createClient(status.API_URL, status.SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -25,3 +34,27 @@ export async function deleteE2ETopics(name?: string): Promise<number> {
   if (error) throw error;
   return count ?? 0;
 }
+
+/**
+ * Testlerin bıraktığı öğrencileri (auth kullanıcısı → cascade ile profil, öğrenci ve verisi) siler.
+ * Yalnızca e2e ön ekli sentetik e-postalar: `<prefix>.<zaman><rastgele>@…` (uniqueUsername).
+ */
+export async function deleteE2EStudents(): Promise<number> {
+  const client = adminClient();
+  const { data, error } = await client
+    .from("profiles")
+    .select("id, username")
+    .eq("role", "student")
+    .like("username", "%.%")
+    .not("username", "in", "(ayse.k,mehmet.y,zeynep.a)");
+  if (error) throw error;
+  const targets = data.filter((p) => E2E_USERNAME.test(p.username ?? ""));
+  for (const p of targets) {
+    const { error: deleteError } = await client.auth.admin.deleteUser(p.id);
+    if (deleteError) throw deleteError;
+  }
+  return targets.length;
+}
+
+/** uniqueUsername çıktısı: `<harf ön eki>.<base36 zaman damgası + rastgele>`; seed adları eşleşmez. */
+const E2E_USERNAME = /^[a-z0-9]+\.[a-z0-9]{9,}$/;

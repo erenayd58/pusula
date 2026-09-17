@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronRightIcon, PencilLineIcon } from "lucide-react";
 import { LogoutButton, getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 import { formatDateTr } from "@/lib/format";
+import { getEnabledModules } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Ben" };
 
-/** Ben: ad, kullanıcı adı, sezon/sınav tarihi ve çıkış (telefonda çıkışın tek yeri). */
+/** Ben: ad, kullanıcı adı, sınav tarihi, kayıt geçmişi bağlantısı ve çıkış (telefonda çıkışın tek yeri). */
 export default async function ProfilePage() {
   const { userId, profile } = await requireRole("student");
-  const student = await getStudentHeader(userId);
+  const [student, enabled] = await Promise.all([
+    getStudentHeader(userId),
+    getEnabledModules(userId),
+  ]);
   const rows = [
     { label: "Ad soyad", value: profile.full_name },
     { label: "Kullanıcı adı", value: profile.username ?? "—" },
@@ -41,6 +47,17 @@ export default async function ProfilePage() {
           </div>
         ))}
       </dl>
+
+      {enabled.has("question-log") ? (
+        <Link
+          href="/student/logs"
+          className="flex clay-press items-center gap-3 rounded-card clay-md p-4 text-body font-medium text-ink-900"
+        >
+          <PencilLineIcon aria-hidden="true" className="size-5 text-ink-700" />
+          <span className="flex-1">Kayıtlarım</span>
+          <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
+        </Link>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <LogoutButton />

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { accounts, uniqueUsername } from "./fixtures/accounts";
 import { formAlert, login, logout } from "./fixtures/auth";
+import { studentRow } from "./fixtures/students";
 
 test.describe("koç öğrenci oluşturur", () => {
   test("form → liste → öğrenci kullanıcı adıyla giriş yapar → /student/today", async ({ page }) => {
@@ -16,7 +17,7 @@ test.describe("koç öğrenci oluşturur", () => {
     await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
 
     await expect(page).toHaveURL(/\/coach\/students$/);
-    await expect(page.getByTestId("student-row").filter({ hasText: username })).toBeVisible();
+    await expect(studentRow(page, username)).toBeVisible();
     await logout(page);
 
     await login(page, username, password);

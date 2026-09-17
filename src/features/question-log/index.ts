@@ -7,6 +7,7 @@ export { questionLogWidgets } from "./widgets";
 export { QuickLogButton } from "./components/quick-log-button";
 export { QuickLogProvider } from "./components/quick-log-provider";
 export { CoachOverview } from "./components/coach-overview";
+export { LogHistoryList } from "./components/log-history-list";
 export { QuestionLogFilters } from "./components/question-log-filters";
 export { QuestionLogTable } from "./components/question-log-table";
 export {

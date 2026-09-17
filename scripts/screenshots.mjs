@@ -55,8 +55,9 @@ const SHOTS = [
     width: 390,
     path: "/student/today",
     before: async (page) => {
-      await page.getByRole("button", { name: "Soru kaydı ekle" }).first().click();
-      await page.getByText("Hızlı kayıt yakında").waitFor();
+      // Faz 1c'de toast'tı; Faz 3'ten itibaren sheet açılır.
+      await page.getByRole("button", { name: "Soru kaydı ekle" }).filter({ visible: true }).click();
+      await page.getByRole("dialog").waitFor();
     },
   },
   {

@@ -33,16 +33,21 @@ export function NumberStepper({
   compact?: boolean;
   inputRef?: React.Ref<HTMLInputElement>;
 }) {
-  // Yazarken ara değere (boş, "1") izin ver; blur'da sınırla.
+  // Yazarken ara metne (boş, "1") izin ver; değer her tuşta anında güncellenir (anlık özet için),
+  // blur'da metin değere eşitlenir (boş → min, taşan → max).
   const [draft, setDraft] = React.useState<string | null>(null);
   const shown = draft ?? String(value);
 
   function clamp(n: number) {
     return Math.min(max, Math.max(min, Math.round(n)));
   }
-  function commit(text: string) {
-    const parsed = Number.parseInt(text, 10);
+  function type(text: string) {
+    const digits = text.replace(/[^0-9]/g, "");
+    setDraft(digits);
+    const parsed = Number.parseInt(digits, 10);
     onChange(Number.isFinite(parsed) ? clamp(parsed) : min);
+  }
+  function commit() {
     setDraft(null);
   }
   function nudge(delta: number) {
@@ -99,8 +104,8 @@ export function NumberStepper({
       pattern="[0-9]*"
       autoComplete="off"
       value={shown}
-      onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ""))}
-      onBlur={() => commit(shown)}
+      onChange={(e) => type(e.target.value)}
+      onBlur={commit}
       onFocus={(e) => e.currentTarget.select()}
       onKeyDown={(e) => {
         if (e.key === "ArrowUp") {

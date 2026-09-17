@@ -1,6 +1,6 @@
 import { SubjectBadge } from "@/components/shared/subject-badge";
 import { calculateNet } from "@/lib/exam/net";
-import { formatDateTr, formatNet } from "@/lib/format";
+import { formatCount, formatDateTr, formatNet } from "@/lib/format";
 import type { QuestionLogRow } from "../types";
 
 /** Koç Sorular sekmesi (flat): tarih, ders, konu, D/Y/B, toplam, net, süre. Telefonda yatay kaydırma. */
@@ -64,7 +64,7 @@ export function QuestionLogTable({
         <tfoot className="text-ink-900">
           <tr className="border-t border-line-strong font-medium">
             <td className="px-4 py-2.5" colSpan={4}>
-              {`${rows.length} kayıt`}
+              {formatCount(rows.length, "kayıt")}
             </td>
             <td className="px-4 py-2.5 text-right">{total}</td>
             <td className="px-4 py-2.5 text-right">{formatNet(net)}</td>

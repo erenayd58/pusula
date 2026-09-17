@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { accounts, uniqueUsername } from "./fixtures/accounts";
 import { formAlert, login, logout } from "./fixtures/auth";
+import { studentRow } from "./fixtures/students";
 
 test.describe("owner öğrenci yönetir", () => {
   test("şifre sıfırlama → koç atama → silme", async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe("owner öğrenci yönetir", () => {
     await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
     await expect(page).toHaveURL(/\/coach\/students$/);
 
-    const row = page.getByTestId("student-row").filter({ hasText: username });
+    const row = studentRow(page, username);
     await expect(row).toBeVisible();
     await expect(row).toContainText("Murat Kaya");
 
@@ -50,7 +51,7 @@ test.describe("owner öğrenci yönetir", () => {
     await row.getByRole("button", { name: "Sil" }).click();
     await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
     await expect(page.getByText("silindi.")).toBeVisible();
-    await expect(page.getByTestId("student-row").filter({ hasText: username })).toHaveCount(0);
+    await expect(studentRow(page, username)).toHaveCount(0);
     await logout(page);
 
     await login(page, username, newPassword, { expectSuccess: false });
