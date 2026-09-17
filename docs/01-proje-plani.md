@@ -226,9 +226,12 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - Ertelenen: koçun öğrenci adına kayıt girmesi; "dikkat gerektirenler" (Faz 7); kaynak (`section_id`) ve plan (`plan_item_id`) bağları (Faz 4-5)
 - **Kabul:** Öğrenci 3 dokunuşta kayıt giriyor (e2e ✅); hedef halkası anında güncelleniyor (e2e ✅); koç listesinde son kayıt ve bu hafta görünüyor (e2e ✅). **Pilot başlayabilir.**
 
-### Faz 4: Haftalık Plan, Notlar, Duyurular (M)
-- `weekly_plans`, `plan_items`, `plan_templates`, `coach_notes`, `meetings`, `announcements`
-- Koç plan oluşturucu (sürükle-bırak, otomatik taslak kaydı, zayıf konu/kaynak/video paneli), plan kopyalama; öğrenci görev tamamlama → soru kaydı ön doldurma
+### Faz 4: Plan Sistemi (L, dört parça; tasarım: `08-faz4-plan-sistemi.md`; dal: `faz-4-plan`)
+- [x] **Parça 1 — Haftalık program** (`schedule`, 2026-09-17): `organizations.settings` varsayılanları + `getOrgSettings()`; `busy_slots`, `schedule_exceptions` + RLS + pgTAP (`170`, `110`); müsait süre saf hesabı (`availability.ts`, birim testli); öğrenci `/student/schedule` (Ben'den bağlantı) ve koç Program sekmesi (aynı editör, ResponsiveSheet formlar, basit liste); e2e `schedule.spec.ts`; `docs/tasarim/uygulama-4a/`
+- [ ] **Parça 2 — Plan oluşturucu ve öğrenci plan ekranı** (`planner`): `weekly_plans`, `plan_items`, `question_logs.plan_item_id`, RPC'ler, görünümler; dnd-kit; Bugün kartı; plan uyumu; yazdırma
+- [ ] **Parça 3 — Konu uyarıları** (`analytics`): saf kurallar, `v_topic_alert_facts`, koç "Dikkat gerektirenler", zayıf konular, öğrenci nötr kart, kurum ayarı formu
+- [ ] **Parça 4 — Öneri motoru** (`analytics`): önem puanı, "Plana ekle", "Önerilen planı hazırla", reddetme hafızası, görev havuzu
+- Bu fazdan çıkarılan: `plan_templates`, `meetings`; `coach-notes` ve `announcements` ayrı planlanır
 - **Kabul:** Koç bir planı 3 öğrenciye kopyalayabiliyor; öğrencinin tamamladığı görev koç ekranına yansıyor.
 
 ### Faz 5: Kaynaklar ve Videolar (M)

@@ -54,6 +54,7 @@ create type student_status       as enum ('active', 'paused', 'archived');
 create type parent_relation      as enum ('mother', 'father', 'guardian', 'other');
 create type consent_type         as enum ('privacy_notice', 'explicit_consent', 'photo_upload');
 create type topic_status         as enum ('not_started', 'studying', 'completed', 'needs_review', 'mastered');
+create type busy_slot_kind       as enum ('school', 'tutoring_center', 'private_lesson', 'course', 'other');   -- Faz 4a
 create type resource_type        as enum ('lecture_book', 'question_bank', 'worksheet', 'mock_book', 'booklet', 'other');
 create type question_source      as enum ('resource', 'plan', 'school', 'online', 'free');
 create type goal_metric          as enum ('questions');           -- Faz 3 sade (02 karar #32); ileride add value
@@ -150,7 +151,7 @@ student_modules (
 )
 ```
 
-Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm).
+Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm). Faz 4a: `faz4a_org_settings` (ayar varsayılanları), `faz4a_schedule` (`busy_slot_kind`, `busy_slots`, `schedule_exceptions`, grant + politikalar).
 
 **Onay tamlığı (Faz 1c, 02 karar #23):** bir öğrencinin onayı, `consents` içinde `privacy_notice` ve `explicit_consent` türlerinin her biri için geri çekilmemiş (`revoked_at is null`) en az bir satır varsa tamdır; satırın veli dijital onayı (`given_by`) ya da koçun işlediği kâğıt onayı (`recorded_by`, `given_by` boş) olması fark etmez. Veli paneli kapısı ve koç ekranındaki rozet bu tanımı kullanır. `student_modules` için satır yoksa manifestteki `defaultEnabled` geçerlidir; seed satır içermez.
 
@@ -262,6 +263,38 @@ goals (
 ```
 
 Uygulama `total_count = correct + wrong + blank` yazar (üçü zorunlu); `log_date` istemciden alınmaz, Server Action İstanbul bugününü atar; düzenlemede tarih değişebilir ama gelecek olamaz (zod + check). Hedef ilerlemesi saklanmaz; `v_student_daily_summary`'den uygulamada hesaplanır (`features/goals/server/queries.ts: getGoalProgress`). Seri (ardışık kayıt günü) da aynı görünümden `lib/dates/streak` ile hesaplanır: bugün veya dün biten ardışık gün sayısı.
+
+### 4.4a Haftalık Program ve Kurum Ayarları (Faz 4a) ✅
+
+Tasarım: `08-faz4-plan-sistemi.md` §1.2–1.3. `organizations.settings` varsayılanları migration `faz4a_org_settings` ile yazılır (`private.default_org_settings()`, kolon varsayılanı; anahtarlar `schedule`, `planner`, `alerts`, `suggestions`); uygulama `features/core/lib/org-settings.ts` zod şemasıyla okur (`getOrgSettings()`). Eşikler koda gömülmez.
+
+```sql
+busy_slots (
+  id uuid pk,
+  student_id uuid not null references students(profile_id) on delete cascade,
+  day_of_week smallint not null check (day_of_week between 1 and 7),   -- 1 = pazartesi
+  starts_at time not null, ends_at time not null,                       -- check (ends_at > starts_at)
+  kind busy_slot_kind not null default 'other',
+  note text,                                                            -- ≤ 120
+  created_by uuid references profiles(id) on delete set null,           -- öğrenci kendi satırını yazabilir
+  created_at, updated_at
+)
+-- index (student_id, day_of_week), (created_by)
+
+schedule_exceptions (
+  id uuid pk,
+  student_id uuid not null references students(profile_id) on delete cascade,
+  on_date date not null,
+  starts_at time, ends_at time,             -- ikisi boş = tüm gün; check: birlikte boş ya da dolu ve ends > starts
+  title text not null,                      -- 1–80
+  note text,
+  created_by uuid references profiles(id) on delete set null,
+  created_at, updated_at
+)
+-- index (student_id, on_date), (created_by)
+```
+
+Müsait süre veritabanında değil uygulamada hesaplanır (`features/schedule/lib/availability.ts`, saf ve birim testli): kurum uyanık aralığı eksi meşguliyetler (çakışanlar birleştirilir, aralığa kırpılır); tüm gün istisna → 0.
 
 ### 4.4 Plan, Notlar, Duyurular (Faz 4)
 
@@ -714,6 +747,7 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | student_topic_progress | S I U | S I U | S | S I U (D yok; konu silinince cascade) |
 | question_logs | S I U D | S I U D | S | Tümü |
 | goals | S | S I U D (`is_coach_of`; `created_by` kendisi) | S | S I U D |
+| busy_slots, schedule_exceptions (Faz 4a) | S I U D (kendi; insert `created_by` kendisi) | S I U D | S | Tümü |
 | weekly_plans | S (sadece published), U (sadece reflection) | S I U D | S (published) | Tümü |
 | plan_items | S, U (sadece completed_at, student_note) | S I U D | S | Tümü |
 | plan_templates | – | S I U D (kurum) | – | Tümü |
@@ -743,7 +777,7 @@ Her tablo için en az şu testler yazılır:
 
 Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `authenticated`'ın tam olarak beklenen yetkilere (matris; kolon düzeyi dahil) ve `service_role`'ün tam yetkiye sahip olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır; matriste tanımsız tablo testi düşürür).
 
-Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 

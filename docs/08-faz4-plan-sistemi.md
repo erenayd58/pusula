@@ -69,7 +69,7 @@ busy_slots (
   ends_at time not null,                     -- check (ends_at > starts_at); gece yarısını aşan aralık yok
   kind busy_slot_kind not null default 'other',
   note text,                                 -- 'Matematik dershanesi'
-  created_by uuid not null references profiles(id),
+  created_by uuid references profiles(id) on delete set null,   -- öğrenci kendi satırını yazabilir; profil silinince satır kalır
   created_at, updated_at
 )
 -- index (student_id, day_of_week)
@@ -81,13 +81,13 @@ schedule_exceptions (
   starts_at time, ends_at time,              -- ikisi de null = tüm gün; check: ikisi birlikte null ya da dolu ve ends > starts
   title text not null,                       -- 'Yazılı: Fen', 'Okul gezisi'
   note text,
-  created_by uuid not null references profiles(id),
+  created_by uuid references profiles(id) on delete set null,
   created_at, updated_at
 )
 -- index (student_id, on_date)
 ```
 
-RLS (standart öğrenci verisi kalıbı, 03 §5.2): öğrenci S I U D (kendi), koç S I U D, veli S, owner tümü. `created_by = (select auth.uid())` insert with check'te. Tablo yetkisi: `authenticated` S I U D.
+RLS (standart öğrenci verisi kalıbı, 03 §5.2): öğrenci S I U D (kendi), koç S I U D, veli S, owner tümü. `created_by = (select auth.uid())` insert with check'te. Tablo yetkisi: `authenticated` S I U D. `created_by` `not null` değildir: öğrenci kendi satırını yazdığı için `auth.users` cascade silmesinde profil FK'sı engel olurdu (`110_cascade` testi). ✅ Parça 1 uygulandı (2026-09-17).
 
 ### 1.4 Parça 2: Haftalık plan
 
