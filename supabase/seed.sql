@@ -78,9 +78,10 @@ insert into public.student_parents (student_id, parent_id, relation, can_view_de
   ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000021', 'mother', true),
   ('b0000000-0000-4000-8000-000000000012', 'b0000000-0000-4000-8000-000000000022', 'father', false);
 
--- KVKK onayı (Ayşe için veli onayı) ---------------------------------------------------
+-- KVKK onayı: Ayşe için veli onayı tam (iki tür); Mehmet ve Zeynep onaysız (kâğıt onayı denemesi) --
 
 insert into public.consents (student_id, given_by, recorded_by, type, document_version) values
-  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000021', null, 'privacy_notice', 'aydinlatma-v1');
+  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000021', null, 'privacy_notice',   'aydinlatma-v1'),
+  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000021', null, 'explicit_consent', 'aydinlatma-v1');
 
--- student_modules: modül kimlikleri Faz 1c'de tanımlanır; burada satır yok.
+-- student_modules: satır yok → her modül manifestteki defaultEnabled ile açık (Faz 1c).
