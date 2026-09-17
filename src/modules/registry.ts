@@ -1,6 +1,7 @@
 import { announcementsModule } from "@/features/announcements";
 import { coachNotesModule } from "@/features/coach-notes";
 import { coreModule } from "@/features/core";
+import { goalsModule } from "@/features/goals";
 import { mistakesModule } from "@/features/mistakes";
 import { mockExamsModule } from "@/features/mock-exams";
 import { plannerModule } from "@/features/planner";
@@ -20,6 +21,7 @@ export const modules: readonly ModuleManifest[] = [
   coreModule,
   topicsModule,
   questionLogModule,
+  goalsModule,
   plannerModule,
   mockExamsModule,
   mistakesModule,

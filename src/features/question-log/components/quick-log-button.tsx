@@ -1,19 +1,20 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useQuickLog } from "./quick-log-provider";
 
 /**
- * Hızlı kayıt düğmesi (04 Bölüm 8.2): telefonda alt menüden 18 px taşan yuvarlak düğme,
- * masaüstünde rayın tepesinde koyu kare düğme. Hızlı kayıt paneli Faz 3'te; şimdilik bilgi verir.
+ * Hızlı kayıt düğmesi (04 Bölüm 8.2): telefon/tablette alt menüden 18 px taşan koyu (+),
+ * masaüstünde rayın en üstünde "Kayıt". Sheet'i `QuickLogProvider` açar.
  */
 export function QuickLogButton({ variant }: { variant: "fab" | "rail" }) {
+  const { open } = useQuickLog();
   return (
     <button
       type="button"
       aria-label="Soru kaydı ekle"
-      onClick={() => toast("Hızlı kayıt yakında. Şimdilik koçun senin için kayıt tutuyor.")}
+      onClick={() => open()}
       className={cn(
         "flex clay-press items-center justify-center bg-ink-900 text-bg-paper shadow-clay-lg hover:bg-ink-700",
         variant === "fab"

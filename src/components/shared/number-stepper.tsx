@@ -57,7 +57,65 @@ export function NumberStepper({
     "clay:clay-press clay:rounded-md clay:border-0 clay:clay-sm",
     !compact && "clay:size-12",
   );
+  const inputClass = cn(
+    "min-w-0 rounded-xs border border-line-strong bg-bg-paper text-center font-semibold text-ink-900",
+    compact
+      ? "h-8 w-14 text-small pointer-coarse:h-11"
+      : "h-11 w-full text-heading-lg md:w-16 pointer-coarse:h-12",
+    "clay:rounded-md clay:border-0 clay:clay-well",
+    !compact && "clay:h-12 clay:text-display md:clay:w-20",
+  );
 
+  const minus = (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-label={`${label} azalt`}
+      onClick={() => nudge(-step)}
+      disabled={value <= min}
+      className={cn(buttonClass, !compact && "md:order-first")}
+    >
+      <MinusIcon aria-hidden="true" className="size-4" />
+    </button>
+  );
+  const plus = (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-label={`${label} artır`}
+      onClick={() => nudge(step)}
+      disabled={value >= max}
+      className={cn(buttonClass, !compact && "md:order-last")}
+    >
+      <PlusIcon aria-hidden="true" className="size-4" />
+    </button>
+  );
+  const input = (
+    <input
+      ref={inputRef}
+      id={id}
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      autoComplete="off"
+      value={shown}
+      onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ""))}
+      onBlur={() => commit(shown)}
+      onFocus={(e) => e.currentTarget.select()}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          nudge(step);
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          nudge(-step);
+        }
+      }}
+      className={inputClass}
+    />
+  );
+
+  // Telefonda (S2) sayı üstte, −/+ altta; ≥ md (S6) tek satırda − sayı +. compact: hep tek satır.
   return (
     <div
       className={cn("flex flex-col gap-1.5", compact ? "items-stretch" : "items-center", className)}
@@ -66,57 +124,21 @@ export function NumberStepper({
       <label htmlFor={id} className="text-small font-medium text-ink-700">
         {label}
       </label>
-      <div className={cn("flex items-center", compact ? "gap-1" : "gap-2")}>
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label={`${label} azalt`}
-          onClick={() => nudge(-step)}
-          disabled={value <= min}
-          className={buttonClass}
-        >
-          <MinusIcon aria-hidden="true" className="size-4" />
-        </button>
-        <input
-          ref={inputRef}
-          id={id}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          value={shown}
-          onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ""))}
-          onBlur={() => commit(shown)}
-          onFocus={(e) => e.currentTarget.select()}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowUp") {
-              e.preventDefault();
-              nudge(step);
-            } else if (e.key === "ArrowDown") {
-              e.preventDefault();
-              nudge(-step);
-            }
-          }}
-          className={cn(
-            "min-w-0 rounded-xs border border-line-strong bg-bg-paper text-center font-semibold text-ink-900",
-            compact
-              ? "h-8 w-14 text-small pointer-coarse:h-11"
-              : "h-11 w-16 text-heading-lg pointer-coarse:h-12",
-            "clay:rounded-md clay:border-0 clay:clay-well",
-            !compact && "clay:h-12 clay:w-20 clay:text-display",
-          )}
-        />
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label={`${label} artır`}
-          onClick={() => nudge(step)}
-          disabled={value >= max}
-          className={buttonClass}
-        >
-          <PlusIcon aria-hidden="true" className="size-4" />
-        </button>
-      </div>
+      {compact ? (
+        <div className="flex items-center gap-1">
+          {minus}
+          {input}
+          {plus}
+        </div>
+      ) : (
+        <div className="flex w-full flex-col items-center gap-2 md:flex-row md:justify-center">
+          {input}
+          <div className="flex gap-2 md:contents">
+            {minus}
+            {plus}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
