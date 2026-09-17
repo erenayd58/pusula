@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 import type { z } from "zod";
 import type { Role } from "@/types";
 
@@ -53,4 +54,21 @@ export type ModuleManifest<TSettings extends z.ZodType = z.ZodType> = {
 
 export function defineModule<T extends z.ZodType>(m: ModuleManifest<T>): ModuleManifest<T> {
   return m;
+}
+
+/** Panel kartı bileşenine geçen bağlam: kartın çizildiği öğrenci. */
+export type ModuleWidgetProps = { studentId: string };
+
+/**
+ * Panel kartları manifestten AYRI (02 karar #13): bileşen import eder, `src/modules/widgets.ts`
+ * toplar. Faz 2'de yalnızca `studentToday`; koç/veli kartları ilk ihtiyaçla eklenir.
+ */
+export type ModuleWidgets = {
+  /** manifest.id ile aynı. */
+  moduleId: string;
+  studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
+};
+
+export function defineWidgets(w: ModuleWidgets): ModuleWidgets {
+  return w;
 }

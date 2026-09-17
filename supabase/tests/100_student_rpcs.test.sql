@@ -1,8 +1,9 @@
 -- create_student_account (sadece service_role, aktör yetkisi veritabanında),
 -- can_manage_student / can_delete_student (authenticated yetki sorguları).
 begin;
-select plan(18);
+select plan(22);
 select tests.seed_fixture();
+select tests.seed_templates();
 
 -- Profilsiz Auth kullanıcıları (Server Action'ın admin API ile oluşturduğu adım).
 select tests.create_auth_user('new_student_1', 'yeni.bir@ogrenci.pusula.local');
@@ -13,14 +14,14 @@ select tests.create_auth_user('new_student_3', 'yeni.uc@ogrenci.pusula.local');
 select tests.authenticate_as('owner_a');
 select throws_ok(
   $$select public.create_student_account(tests.id('owner_a'), tests.id('new_student_1'), tests.id('coach_x'),
-      'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13')$$,
+      'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'authenticated (owner bile) create_student_account çağıramaz'
 );
 select tests.authenticate_as_anon();
 select throws_ok(
   $$select public.create_student_account(tests.id('owner_a'), tests.id('new_student_1'), tests.id('coach_x'),
-      'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13')$$,
+      'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'anon create_student_account çağıramaz'
 );
@@ -29,7 +30,7 @@ select throws_ok(
 select tests.authenticate_as_service_role();
 select is(
   public.create_student_account(tests.id('coach_x'), tests.id('new_student_1'), tests.id('coach_x'),
-    'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13'),
+    'Yeni Bir', 'yeni.bir', '2026-2027', date '2027-06-13', tests.id('tpl_system')),
   tests.id('new_student_1'),
   'koç X kendi öğrencisini oluşturur'
 );
@@ -44,43 +45,43 @@ select results_eq(
 -- 3. koç başka koça atayamaz; owner kurum içi koça atar, başka kurum/rol reddedilir ------
 select throws_ok(
   $$select public.create_student_account(tests.id('coach_x'), tests.id('new_student_2'), tests.id('coach_y'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'koç X öğrenciyi koç Y''ye atayamaz'
 );
 select throws_ok(
   $$select public.create_student_account(tests.id('owner_a'), tests.id('new_student_2'), tests.id('coach_z'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'owner A başka kurumun koçuna (Z) atayamaz'
 );
 select throws_ok(
   $$select public.create_student_account(tests.id('owner_a'), tests.id('new_student_2'), tests.id('parent_p1'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'owner veliyi koç olarak atayamaz'
 );
 select throws_ok(
   $$select public.create_student_account(tests.id('parent_p1'), tests.id('new_student_2'), tests.id('coach_x'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'aktör veli ise reddedilir'
 );
 select throws_ok(
   $$select public.create_student_account(tests.id('student_a'), tests.id('new_student_2'), tests.id('coach_x'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'aktör öğrenci ise reddedilir'
 );
 select throws_ok(
   $$select public.create_student_account(gen_random_uuid(), tests.id('new_student_2'), tests.id('coach_x'),
-      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13')$$,
+      'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '42501', null,
   'profili olmayan aktör reddedilir'
 );
 select is(
   public.create_student_account(tests.id('owner_a'), tests.id('new_student_2'), tests.id('coach_y'),
-    'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13'),
+    'Yeni İki', 'yeni.iki', '2026-2027', date '2027-06-13', tests.id('tpl_system')),
   tests.id('new_student_2'),
   'owner A kurumundaki koç Y''ye atar'
 );
@@ -93,15 +94,40 @@ select is(
 -- 4. Kısıtlar: aynı kullanıcı adı, Auth kullanıcısı yok ------------------------------
 select throws_ok(
   $$select public.create_student_account(tests.id('coach_x'), tests.id('new_student_3'), tests.id('coach_x'),
-      'Yeni Üç', 'yeni.bir', '2026-2027', date '2027-06-13')$$,
+      'Yeni Üç', 'yeni.bir', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   '23505', null,
   'aynı kullanıcı adıyla ikinci öğrenci oluşturulamaz (unique)'
 );
 select throws_ok(
   $$select public.create_student_account(tests.id('coach_x'), gen_random_uuid(), tests.id('coach_x'),
-      'Yok Kişi', 'yok.kisi', '2026-2027', date '2027-06-13')$$,
+      'Yok Kişi', 'yok.kisi', '2026-2027', date '2027-06-13', tests.id('tpl_system'))$$,
   'P0002', null,
   'auth.users satırı yoksa hata (önce Auth kullanıcısı oluşturulmalı)'
+);
+
+-- 4b. Şablon: sistem ya da aktörün kurumu; başka kurumun şablonu ve tek imza -------------
+select throws_ok(
+  $$select public.create_student_account(tests.id('coach_x'), tests.id('new_student_3'), tests.id('coach_x'),
+      'Yeni Üç', 'yeni.uc', '2026-2027', date '2027-06-13', tests.id('tpl_org_b'))$$,
+  '42501', null,
+  'koç X başka kurumun şablonunu atayamaz'
+);
+select throws_ok(
+  $$select public.create_student_account(tests.id('coach_x'), tests.id('new_student_3'), tests.id('coach_x'),
+      'Yeni Üç', 'yeni.uc', '2026-2027', date '2027-06-13', gen_random_uuid())$$,
+  '42501', null,
+  'olmayan şablon reddedilir'
+);
+select is(
+  public.create_student_account(tests.id('coach_x'), tests.id('new_student_3'), tests.id('coach_x'),
+    'Yeni Üç', 'yeni.uc', '2026-2027', date '2027-06-13', tests.id('tpl_org_a')),
+  tests.id('new_student_3'),
+  'koç X kendi kurumunun şablonunu atar'
+);
+select is(
+  (select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'create_student_account'),
+  1::bigint,
+  'create_student_account tek imzalı (eski overload kaldırıldı)'
 );
 
 -- 5. can_manage_student / can_delete_student ---------------------------------------

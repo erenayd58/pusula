@@ -55,3 +55,18 @@ En basiti Supabase dashboard + SQL Editor, iki adım:
 - `/login` ile owner girişi → `/coach` açılıyor mu?
 - Bir test öğrencisi oluştur, kullanıcı adıyla giriş yap, sonra sil.
 - Veli daveti üret, kendi e-postanla kayıt ol → `/consent` → `/parent`.
+
+## 6. Migration içeren bir dal main'e birleşince
+
+Bulutta seed çalışmaz; şema ve şablon verisi (ör. LGS 2027) yalnızca migration'larla gider. Birleştirmeden sonra yerelde:
+
+```bash
+git switch main
+git pull
+pnpm exec supabase db push        # bağlı projeye uygulanmamış migration'ları sırayla uygular
+```
+
+- `supabase db push --dry-run` önce hangi dosyaların gideceğini listeler.
+- Proje bağlı değilse bir kez `pnpm exec supabase link --project-ref <ref>`.
+- Migration'lar tekrar çalışmaya karşı güvenli yazılır (`on conflict do nothing`); yine de aynı dosya iki kez uygulanmaz, CLI `supabase_migrations.schema_migrations` tablosundan takip eder.
+- Uzak projede `supabase test db --linked` çalıştırılmaz (pgTAP yalnızca yerel ve CI).

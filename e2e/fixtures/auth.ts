@@ -20,8 +20,15 @@ export function formAlert(page: Page) {
   return page.locator("p[role='alert']");
 }
 
-/** Kabuklarda çıkış düğmesi birden fazla yerde olabilir (ray + telefon üst barı); görünen olana basılır. */
+/**
+ * Çıkış düğmesi kabuğa göre farklı yerde: koç yan menüsü / veli üst barı; öğrencide masaüstü
+ * rayı, telefonda yalnızca "Ben" sayfası. Öğrencide her iki görünümde de bulunan Ben sayfasına gidilir.
+ */
 export async function logout(page: Page) {
+  if (/\/student(\/|$)/.test(new URL(page.url()).pathname)) {
+    await page.goto("/student/profile");
+    await expect(page.getByRole("heading", { level: 1, name: "Ben" })).toBeVisible();
+  }
   await page.getByRole("button", { name: "Çıkış yap" }).locator("visible=true").first().click();
   await expect(page).toHaveURL(/\/login$/);
 }

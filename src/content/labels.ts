@@ -39,3 +39,12 @@ export const consentSourceLabels = {
   parent: "Veli dijital onayı",
   paper: "Kâğıt onayı",
 } as const;
+
+/** Konu haritası durumları (04 Bölüm 9). */
+export const topicStatusLabels = {
+  not_started: "Başlanmadı",
+  studying: "Çalışılıyor",
+  completed: "Tamamlandı",
+  needs_review: "Tekrar gerekli",
+  mastered: "Oturdu",
+} as const;

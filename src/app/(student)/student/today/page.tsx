@@ -6,13 +6,22 @@ import { getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 import { daysUntil, greetingFor } from "@/lib/dates";
 import { formatCount, formatDateTr } from "@/lib/format";
+import { getEnabledModules } from "@/modules/get-enabled-modules";
+import { getStudentTodayWidgets } from "@/modules/widgets";
 
 export const metadata: Metadata = { title: "Bugün" };
 
-/** S1/S5 Bugün iskeleti: selamlama, tarih, LGS geri sayımı. Hedef, plan ve tekrar kartları Faz 3. */
+/**
+ * S1/S5 Bugün iskeleti: selamlama, tarih, LGS geri sayımı; ardından açık modüllerin panel
+ * kartları (registry `widgets`). Hedef, plan ve tekrar kartları Faz 3.
+ */
 export default async function TodayPage() {
   const { userId, profile } = await requireRole("student");
-  const student = await getStudentHeader(userId);
+  const [student, enabled] = await Promise.all([
+    getStudentHeader(userId),
+    getEnabledModules(userId),
+  ]);
+  const widgets = getStudentTodayWidgets(enabled);
   const now = new Date();
   const firstName = profile.full_name.split(" ")[0] ?? profile.full_name;
   const days = student?.examDate ? daysUntil(student.examDate, now) : null;
@@ -43,6 +52,14 @@ export default async function TodayPage() {
           </div>
         ) : null}
       </header>
+
+      {widgets.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {widgets.map(({ moduleId, component: Widget }) => (
+            <Widget key={moduleId} studentId={userId} />
+          ))}
+        </div>
+      ) : null}
 
       <EmptyState
         icon={HourglassIcon}

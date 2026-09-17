@@ -162,6 +162,40 @@ begin
 end;
 $$;
 
+-- Şablon fixture'ı (Faz 2) ----------------------------------------------------
+-- tpl_system (org null), tpl_org_a, tpl_org_b; her birinde bir ders (subj_<tpl>) ve iki
+-- konu (topic_<tpl>_1, topic_<tpl>_2). Öğrenci A/B/C → tpl_org_a, Z → tpl_org_b.
+
+create or replace function tests.seed_templates()
+returns void
+language plpgsql
+as $$
+declare
+  v_tpl text;
+  v_org uuid;
+begin
+  foreach v_tpl in array array['system', 'org_a', 'org_b'] loop
+    v_org := case v_tpl when 'system' then null else tests.id(v_tpl) end;
+    insert into public.curriculum_templates (id, organization_id, name, exam_type, grade, season, scoring)
+    values (tests.id('tpl_' || v_tpl), v_org, 'Şablon ' || v_tpl, 'LGS', 8, '2026-2027', '{"wrong_penalty": 3}'::jsonb)
+    on conflict (id) do nothing;
+    insert into public.subjects (id, template_id, code, name, short_name, color, icon, sort_order)
+    values (tests.id('subj_' || v_tpl), tests.id('tpl_' || v_tpl), 'MAT', 'Matematik', 'Mat', 'subject-math', 'Sigma', 1)
+    on conflict (id) do nothing;
+    insert into public.topics (id, subject_id, name, sort_order)
+    values
+      (tests.id('topic_' || v_tpl || '_1'), tests.id('subj_' || v_tpl), 'Konu 1', 1),
+      (tests.id('topic_' || v_tpl || '_2'), tests.id('subj_' || v_tpl), 'Konu 2', 2)
+    on conflict (id) do nothing;
+  end loop;
+
+  update public.students set curriculum_template_id = tests.id('tpl_org_a')
+  where profile_id in (tests.id('student_a'), tests.id('student_b'), tests.id('student_c'));
+  update public.students set curriculum_template_id = tests.id('tpl_org_b')
+  where profile_id = tests.id('student_z');
+end;
+$$;
+
 -- Etkilenen/dönen satır sayısı --------------------------------------------------
 -- p_sql: bir select ya da `... returning 1` ile biten yazma ifadesi. Mevcut rolle
 -- çalışır; RLS'nin sessizce filtrelediği yazma işlemlerini (0 satır) ölçmek için.

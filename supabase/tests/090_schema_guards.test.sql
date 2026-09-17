@@ -10,7 +10,7 @@
 --   * service_role her tabloda tam yetkili (admin istemcisi).
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants ve faz2_topics_schema ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -49,7 +49,23 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('student_modules', 'select', true,  null),
   ('student_modules', 'insert', true,  null),
   ('student_modules', 'update', true,  null),
-  ('student_modules', 'delete', true,  null);
+  ('student_modules', 'delete', true,  null),
+  ('curriculum_templates',   'select', true,  null),
+  ('curriculum_templates',   'insert', true,  null),
+  ('curriculum_templates',   'update', true,  null),
+  ('curriculum_templates',   'delete', true,  null),
+  ('subjects',               'select', true,  null),
+  ('subjects',               'insert', true,  null),
+  ('subjects',               'update', true,  null),
+  ('subjects',               'delete', true,  null),
+  ('topics',                 'select', true,  null),
+  ('topics',                 'insert', true,  null),
+  ('topics',                 'update', true,  null),
+  ('topics',                 'delete', true,  null),
+  ('student_topic_progress', 'select', true,  null),
+  ('student_topic_progress', 'insert', true,  null),
+  ('student_topic_progress', 'update', true,  null),
+  ('student_topic_progress', 'delete', false, null);
 
 select plan((
     (select count(*) from pg_class c
