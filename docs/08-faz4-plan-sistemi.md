@@ -211,7 +211,7 @@ suggestion_dismissals (
 )
 ```
 
-RLS: koç S I U D (`is_coach_of`, `dismissed_by` kendisi), owner tümü, öğrenci/veli yok. Upsert ile yenilenir; süresi geçen satır temizlenmez, filtrede `dismissed_until >= bugün`.
+RLS: koç S I U D (`is_coach_of`, `dismissed_by` kendisi), owner tümü, öğrenci/veli yok. Upsert ile yenilenir; süresi geçen satır temizlenmez, filtrede `dismissed_until >= bugün`. ✅ Parça 4 uygulandı (2026-09-18): `dismissed_by` ve `subject_id`/`topic_id` FK'ları `on delete cascade` (koç profili silinince hafızası gider, `110_cascade` engellenmez).
 
 ### 1.7 pgTAP
 
@@ -370,7 +370,7 @@ export function distributeTasks(input: {
 // puana göre sırayla; her öneri için kapasitesi (müsait × ratio − planlanan) en yüksek ve ders sınırını aşmayan gün; sığmayan → null ("bu hafta içinde")
 ```
 
-**Kabul:** Seed'de öneriler K1'de gruplu görünür; "Plana ekle" bu haftanın taslağına ön dolu görev ekler (e2e); "Şimdi değil" 14 gün gizler (birim + pgTAP); "Önerilen planı hazırla" taslak üretir, gün başına %70 ve ders başına 2 sınırı birim testte; bu hafta planlı konu önerilmez (birim).
+**Kabul:** Seed'de öneriler K1'de gruplu görünür; "Plana ekle" bu haftanın taslağına ön dolu görev ekler (e2e); "Şimdi değil" 14 gün gizler (birim + pgTAP); "Önerilen planı hazırla" taslak üretir, gün başına %70 ve ders başına 2 sınırı birim testte; bu hafta planlı konu önerilmez (birim). ✅ Uygulandı (2026-09-18; e2e `suggestions.spec.ts`: yeni öğrencide "Başlanmamış" önerileri, Plana ekle → `day-any` sütunu, Şimdi değil, Önerilen planı hazırla). Notlar: `buildSuggestions` girdisi `plannedTopicIds` (`öğrenci:konu`) + `plannedSubjectIds` (`öğrenci:ders`; ders düzeyi öneri dersin planlı konusuyla elenir) ve `dismissed: Map<anahtar, dismissed_until>` (anahtar `dismissalKey(öğrenci, tür, ders, konu)`; `today` ile karşılaştırılır — 08'deki `Set` yerine, "14 gün gizler" birim testte doğrulanabilsin); `Suggestion` ders adı/kısa ad/renk taşır (liste analytics'ten ders bilgisi almadan çizer); `distributeTasks` `days` yapısal tip (`DistributeDay = { dayOfWeek, availableMinutes }`, `DayAvailability` uyar), geçmiş günler çağıran tarafından dizide verilmez (bu haftada bugünden itibaren, geçmiş haftada hiç); `estimatedMinutes` öneri görevinde kurum ayarından (`questions_target × minutes_per_question`), öğrenci temposu havuzdan forma geçince öneriliyor; `getSuggestions(studentIds?, week?)` — `week` verilmezse bu hafta (K1, K2, "Plana ekle"), plan oluşturucu görüntülenen haftayı geçirir; `taskTitle` `src/lib/plan/task-title.ts`'e taşındı (analytics `alertToTask` başlığı üretir, `AttentionList` "Plana ekle" düğmesi de aynı fonksiyonla görev kurar); `prepareSuggestedPlan` planner eylemidir (getSuggestions + getWeekAvailability + mevcut öğeler → distributeTasks → tek insert), yayınlanmış planda `ActionError`; "Plana ekle" `ResponsiveSheet` ile isteğe bağlı gün çipi (varsayılan "Bu hafta içinde"). Havuz `suggestions` boş metni: "Bu hafta için yeni öneri yok; uyarılar plana girdikçe burası boşalır." Puan listede gösterilmez, sıra puanı taşır.
 
 ## 3. Ortak yapılar
 

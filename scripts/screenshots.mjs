@@ -337,6 +337,43 @@ const SHOTS = [
     width: 390,
     path: "/student/today",
   },
+  // Faz 4d: öneri motoru
+  {
+    dir: "uygulama-4d",
+    file: "koc-oneriler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-4d",
+    file: "koc-plana-ekle-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+    before: async (page) => {
+      await page
+        .getByRole("region", { name: "Öneriler" })
+        .getByRole("button", { name: /^Plana ekle: / })
+        .first()
+        .click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-4d",
+    file: "koc-genel-bakis-oneriler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-4d",
+    file: "koc-havuz-oneriler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */
