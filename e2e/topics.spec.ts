@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { accounts } from "./fixtures/accounts";
 import { login, logout } from "./fixtures/auth";
+import { deleteE2ETopics } from "./fixtures/db";
 import {
   E2E_STUDENT_PASSWORD,
   createStudentAsOwner,
@@ -15,6 +16,13 @@ import {
 test.describe("konu haritası", () => {
   // Üç rol arasında geçiş + Turbopack ilk derlemesi: varsayılan 60 sn yetmiyor.
   test.setTimeout(150_000);
+
+  /** Şablona eklenen konu; test yarıda kalsa da afterEach veritabanından siler. */
+  let addedTopic: string | undefined;
+  test.afterEach(async () => {
+    if (addedTopic) await deleteE2ETopics(addedTopic);
+    addedTopic = undefined;
+  });
 
   test("öğrenci konuyu tamamlandı yapar, yüzde değişir, koç aynı durumu görür", async ({
     page,
@@ -77,6 +85,7 @@ test.describe("konu haritası", () => {
 
   test("koç şablona konu ekler, öğrenci haritasında görünür; sonra siler", async ({ page }) => {
     const topicName = `E2E Konu ${Date.now().toString(36)}`;
+    addedTopic = topicName;
     await login(page, accounts.coach.identifier);
     await page.goto("/coach/templates");
     const ingSection = page.getByRole("region", { name: "İngilizce" });

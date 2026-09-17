@@ -26,9 +26,9 @@ export default async function Layout({ children }: LayoutProps<"/student">) {
         bottom={<LogoutButton variant="ghost" iconOnly />}
       />
       <div className="flex flex-1 flex-col lg:pl-[var(--nav-rail)]">
-        <header className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center justify-between gap-4 px-4 pt-4 md:px-8 lg:hidden">
+        {/* Telefon/tablet üst barı: yalnızca ad; çıkış "Ben" sayfasında (masaüstünde rayda). */}
+        <header className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center px-4 pt-4 md:px-8 lg:hidden">
           <p className="text-small font-semibold text-ink-900">{siteConfig.name}</p>
-          <LogoutButton variant="ghost" />
         </header>
         <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-32 md:px-8 lg:py-10">
           {children}

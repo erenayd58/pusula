@@ -3,10 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // typedRoutes kapalı: modül manifestlerindeki href'ler düz string (02-mimari karar #14).
-  // Geliştirme göstergesi ve hata bildirimi varsayılan olarak sol altta, öğrenci rayındaki
-  // çıkış düğmesinin üstüne biniyor ve e2e tıklamalarını kesiyordu (React dev "performance
-  // tracks" uyarısı bildirim açıyor). Sağ altta kalıcı bir düğme yok (karar #26).
-  devIndicators: { position: "bottom-right" },
+  // Geliştirme rozeti kapalı (karar #26): her köşede bir kabuğun dokunma hedefi var (sol alt:
+  // öğrenci rayı çıkışı, sağ alt: alt menü "Ben", sağ üst: veli çıkışı, sol üst: koç menüsü) ve
+  // rozet e2e tıklamalarını kesiyordu. Derleme/çalışma hataları yine tam ekran katmanla gösterilir.
+  devIndicators: false,
 };
 
 export default nextConfig;

@@ -16,7 +16,7 @@ type Pos = { si: number; ti: number };
 
 /**
  * Konu haritası (04 Bölüm 9). Telefonda ders ders clay kartlar, hücreler sarmalanır;
- * masaüstünde (lg) tek ızgara: solda ders etiketi, sağda tek satır hücre. Koç (flat) yüzeyinde
+ * masaüstünde (lg) tek ızgara: solda sabit ders etiketi, sağda hücreler (sığmazsa satır içinde sarmalanır, kart dışına taşmaz). Koç (flat) yüzeyinde
  * aynı bileşen clay'siz ve daha küçük hücreyle çizilir. Ok tuşlarıyla hücreler arasında gezilir
  * (roving tabindex); Enter/Space detayı açar. Kayıt sonrası yerel durum güncellenir.
  */
@@ -113,7 +113,7 @@ export function TopicMap({
               className={cn(
                 "flex flex-col gap-3",
                 "clay:clay-card clay:p-4 clay:lg:rounded-none clay:lg:bg-transparent clay:lg:p-0 clay:lg:shadow-none",
-                "lg:grid lg:grid-cols-[200px_1fr] lg:items-center lg:gap-6 lg:border-b lg:border-line lg:py-3 lg:last:border-b-0",
+                "lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:items-center lg:gap-6 lg:border-b lg:border-line lg:py-3 lg:last:border-b-0",
                 "flat:border-b flat:border-line flat:py-3 flat:last:border-b-0",
               )}
             >
@@ -143,7 +143,7 @@ export function TopicMap({
                 </div>
               </header>
               <div
-                className="flex flex-wrap gap-2 lg:flex-nowrap flat:gap-1.5"
+                className="flex min-w-0 flex-wrap gap-2 flat:gap-1.5"
                 role="group"
                 aria-labelledby={headingId}
               >

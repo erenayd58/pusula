@@ -6,7 +6,7 @@ import { login } from "./fixtures/auth";
 test.describe("uygulama kabukları", () => {
   test("öğrenci: clay yüzey, alt/yan menü Bugün · Konular · Denemeler · Ben, hızlı kayıt düğmesi", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await login(page, accounts.student.identifier);
     await expect(page).toHaveURL(/\/student\/today$/);
     await expect(page.locator("[data-surface='clay']")).toHaveCount(1);
@@ -26,6 +26,17 @@ test.describe("uygulama kabukları", () => {
     await expect(page).toHaveURL(/\/student\/exams$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Denemeler");
     await expect(page.getByText("bu bölüm yakında")).toBeVisible();
+
+    // Ben: ad, kullanıcı adı ve çıkış. Telefonda üst barda çıkış yok; masaüstünde ray + Ben.
+    await nav.getByRole("link", { name: "Ben" }).click();
+    await expect(page).toHaveURL(/\/student\/profile$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ben");
+    await expect(page.getByText("Ayşe Kılıç")).toBeVisible();
+    await expect(page.getByText("ayse.k")).toBeVisible();
+    const logoutButtons = page.getByRole("button", { name: "Çıkış yap" }).locator("visible=true");
+    await expect(logoutButtons).toHaveCount(testInfo.project.name === "mobile-chromium" ? 1 : 2);
+    await logoutButtons.last().click();
+    await expect(page).toHaveURL(/\/login$/);
   });
 
   test("koç: flat yüzey, yan menü registry'den, öğrenci detayında sekmeler", async ({ page }) => {
