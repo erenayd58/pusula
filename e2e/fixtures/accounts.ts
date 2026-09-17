@@ -4,7 +4,7 @@
 export const DEMO_PASSWORD = "pusula-demo";
 
 export const accounts = {
-  owner: { identifier: "sahip@pusula.local", home: "/coach" },
+  owner: { identifier: "sahip@pusula.local", home: "/coach", name: "Selin Demir" },
   coach: { identifier: "koc@pusula.local", home: "/coach" },
   student: { identifier: "ayse.k", home: "/student" },
   parent: { identifier: "veli.ayse@pusula.local", home: "/parent" },

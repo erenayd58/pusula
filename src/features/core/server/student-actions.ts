@@ -4,7 +4,7 @@ import { ActionError, createAction } from "@/lib/actions/create-action";
 import { usernameToEmail } from "@/lib/auth/username";
 import { serverEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createStudentSchema } from "../schemas";
+import { createStudentSchema, updateExamDateSchema } from "../schemas";
 import { createStudentAccount } from "./create-student-account";
 
 const STUDENTS_PATH = "/coach/students";
@@ -32,5 +32,26 @@ export const createStudent = createAction({
       email: usernameToEmail(input.username, serverEnv.studentEmailDomain),
       input,
     });
+  },
+});
+
+/** Sınav tarihi (geri sayım). `students.exam_date` kolon düzeyi UPDATE grant'ıyla; RLS koçu sınırlar. */
+export const updateStudentExamDate = createAction({
+  name: "updateStudentExamDate",
+  schema: updateExamDateSchema,
+  roles: ["coach", "owner"],
+  revalidate: ["/coach/students", "/student/today"],
+  handler: async (input, ctx) => {
+    const { data, error } = await ctx.supabase
+      .from("students")
+      .update({ exam_date: input.examDate })
+      .eq("profile_id", input.studentId)
+      .select("profile_id");
+    if (error) {
+      if (error.code === "42501") throw new ActionError("Bu işlem için yetkin yok.");
+      throw error;
+    }
+    if (data.length === 0) throw new ActionError("Öğrenci bulunamadı.");
+    return { examDate: input.examDate };
   },
 });

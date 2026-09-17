@@ -48,3 +48,18 @@ export const topicStatusLabels = {
   needs_review: "Tekrar gerekli",
   mastered: "Oturdu",
 } as const;
+
+/** Soru kaydı kaynağı (Faz 3'te yalnızca `free` kullanılır). */
+export const questionSourceLabels = {
+  resource: "Kaynak",
+  plan: "Plan",
+  school: "Okul",
+  online: "Çevrim içi",
+  free: "Serbest",
+} as const;
+
+/** Hedef dönemi. */
+export const goalPeriodLabels = {
+  daily: "Günlük",
+  weekly: "Haftalık",
+} as const;

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -15,6 +15,15 @@ export const metadata: Metadata = {
     template: "%s · Pusula",
   },
   description: "LGS çalışma takip ve koçluk platformu",
+};
+
+// Sanal klavye açılınca yerleşim alanı küçülsün: alt panelde yapışık "Kaydet" klavyenin
+// üstünde kalır (Android Chrome; iOS yalnızca görsel alanı küçültür).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 // Kök layout data-surface koymaz; her rolün layout'u SurfaceRoot ile sarar.

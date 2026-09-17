@@ -7,6 +7,10 @@ export type TopicMapCell = {
   status: TopicStatus;
   confidence: number | null;
   completedAt: string | null;
+  /** Bu konuya girilen toplam soru (v_topic_question_stats); yoksa 0. */
+  questions: number;
+  /** Başarı yüzdesi (0-100); soru yoksa null. */
+  accuracy: number | null;
 };
 
 export type TopicMapSubject = {
@@ -49,4 +53,10 @@ export type TemplateEditor = {
   subjects: TemplateSubject[];
 };
 
-export type TemplateOption = { id: string; name: string; isSystem: boolean };
+/** `examDate`: şablonun sınav tarihi (YYYY-AA-GG); yeni öğrenci formunun varsayılanı. */
+export type TemplateOption = {
+  id: string;
+  name: string;
+  isSystem: boolean;
+  examDate: string | null;
+};

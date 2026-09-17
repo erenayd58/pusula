@@ -55,8 +55,9 @@ const SHOTS = [
     width: 390,
     path: "/student/today",
     before: async (page) => {
-      await page.getByRole("button", { name: "Soru kaydı ekle" }).first().click();
-      await page.getByText("Hızlı kayıt yakında").waitFor();
+      // Faz 1c'de toast'tı; Faz 3'ten itibaren sheet açılır.
+      await page.getByRole("button", { name: "Soru kaydı ekle" }).filter({ visible: true }).click();
+      await page.getByRole("dialog").waitFor();
     },
   },
   {
@@ -144,7 +145,72 @@ const SHOTS = [
     width: 1440,
     path: "/coach/templates",
   },
+
+  // Faz 3: Bugün, hızlı kayıt, geçmiş, koç listesi ve genel bakış
+  {
+    dir: "uygulama-3",
+    file: "ogrenci-bugun-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-3",
+    file: "ogrenci-bugun-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-3",
+    file: "ogrenci-hizli-kayit-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+    before: openQuickLog,
+  },
+  {
+    dir: "uygulama-3",
+    file: "ogrenci-hizli-kayit-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/today",
+    before: openQuickLog,
+  },
+  {
+    dir: "uygulama-3",
+    file: "ogrenci-gecmis-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/logs",
+  },
+  {
+    dir: "uygulama-3",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-3",
+    file: "koc-genel-bakis-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}`,
+  },
 ];
+
+/** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */
+async function openQuickLog(page) {
+  await page.getByRole("button", { name: "Soru kaydı ekle" }).filter({ visible: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor();
+  await dialog.getByRole("radio", { name: "Mat" }).click();
+  await dialog.getByLabel("Doğru", { exact: true }).fill("32");
+  await dialog.getByLabel("Yanlış", { exact: true }).fill("6");
+  await dialog.getByLabel("Boş", { exact: true }).fill("2");
+  await dialog.getByLabel("Boş", { exact: true }).blur();
+}
 
 const outArg = process.argv.indexOf("--out");
 const outRoot = resolve(outArg > -1 ? process.argv[outArg + 1] : "docs/tasarim");

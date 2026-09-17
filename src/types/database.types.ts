@@ -90,12 +90,20 @@ export type Database = {
             referencedRelation: "students"
             referencedColumns: ["profile_id"]
           },
+          {
+            foreignKeyName: "consents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
         ]
       }
       curriculum_templates: {
         Row: {
           based_on_id: string | null
           created_at: string
+          exam_date: string | null
           exam_type: string
           grade: number
           id: string
@@ -109,6 +117,7 @@ export type Database = {
         Insert: {
           based_on_id?: string | null
           created_at?: string
+          exam_date?: string | null
           exam_type: string
           grade: number
           id?: string
@@ -122,6 +131,7 @@ export type Database = {
         Update: {
           based_on_id?: string | null
           created_at?: string
+          exam_date?: string | null
           exam_type?: string
           grade?: number
           id?: string
@@ -145,6 +155,83 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          created_by: string
+          ends_on: string | null
+          id: string
+          is_active: boolean
+          metric: Database["public"]["Enums"]["goal_metric"]
+          period: Database["public"]["Enums"]["goal_period"]
+          starts_on: string
+          student_id: string
+          subject_id: string | null
+          target_value: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          ends_on?: string | null
+          id?: string
+          is_active?: boolean
+          metric?: Database["public"]["Enums"]["goal_metric"]
+          period: Database["public"]["Enums"]["goal_period"]
+          starts_on?: string
+          student_id: string
+          subject_id?: string | null
+          target_value: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          ends_on?: string | null
+          id?: string
+          is_active?: boolean
+          metric?: Database["public"]["Enums"]["goal_metric"]
+          period?: Database["public"]["Enums"]["goal_period"]
+          starts_on?: string
+          student_id?: string
+          subject_id?: string | null
+          target_value?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "goals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "goals_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
@@ -207,6 +294,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "invitations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "invitations_used_by_fkey"
@@ -291,6 +385,86 @@ export type Database = {
           },
         ]
       }
+      question_logs: {
+        Row: {
+          blank_count: number | null
+          correct_count: number | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          log_date: string
+          note: string | null
+          source: Database["public"]["Enums"]["question_source"]
+          student_id: string
+          subject_id: string
+          topic_id: string | null
+          total_count: number
+          updated_at: string
+          wrong_count: number | null
+        }
+        Insert: {
+          blank_count?: number | null
+          correct_count?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          log_date?: string
+          note?: string | null
+          source?: Database["public"]["Enums"]["question_source"]
+          student_id: string
+          subject_id: string
+          topic_id?: string | null
+          total_count: number
+          updated_at?: string
+          wrong_count?: number | null
+        }
+        Update: {
+          blank_count?: number | null
+          correct_count?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          log_date?: string
+          note?: string | null
+          source?: Database["public"]["Enums"]["question_source"]
+          student_id?: string
+          subject_id?: string
+          topic_id?: string | null
+          total_count?: number
+          updated_at?: string
+          wrong_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "question_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_modules: {
         Row: {
           enabled: boolean
@@ -320,6 +494,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_modules_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -359,6 +540,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_parents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -403,6 +591,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_topic_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "student_topic_progress_topic_id_fkey"
@@ -596,7 +791,135 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_coach_student_overview: {
+        Row: {
+          coach_id: string | null
+          full_name: string | null
+          last_log_date: string | null
+          organization_id: string | null
+          season: string | null
+          status: Database["public"]["Enums"]["student_status"] | null
+          student_id: string | null
+          username: string | null
+          week_goal_percent: number | null
+          week_questions: number | null
+          weekly_target: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_profile_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_student_daily_summary: {
+        Row: {
+          blank: number | null
+          correct: number | null
+          day: string | null
+          questions: number | null
+          student_id: string | null
+          study_minutes: number | null
+          wrong: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      v_student_subject_weekly: {
+        Row: {
+          correct: number | null
+          questions: number | null
+          student_id: string | null
+          subject_id: string | null
+          week_start: string | null
+          wrong: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "question_logs_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_topic_question_stats: {
+        Row: {
+          correct: number | null
+          questions: number | null
+          student_id: string | null
+          topic_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "question_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "question_logs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invitation: {
@@ -634,7 +957,10 @@ export type Database = {
     }
     Enums: {
       consent_type: "privacy_notice" | "explicit_consent" | "photo_upload"
+      goal_metric: "questions"
+      goal_period: "daily" | "weekly"
       parent_relation: "mother" | "father" | "guardian" | "other"
+      question_source: "resource" | "plan" | "school" | "online" | "free"
       student_status: "active" | "paused" | "archived"
       topic_status:
         | "not_started"
@@ -774,7 +1100,10 @@ export const Constants = {
   public: {
     Enums: {
       consent_type: ["privacy_notice", "explicit_consent", "photo_upload"],
+      goal_metric: ["questions"],
+      goal_period: ["daily", "weekly"],
       parent_relation: ["mother", "father", "guardian", "other"],
+      question_source: ["resource", "plan", "school", "online", "free"],
       student_status: ["active", "paused", "archived"],
       topic_status: [
         "not_started",

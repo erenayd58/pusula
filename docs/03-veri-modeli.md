@@ -56,8 +56,8 @@ create type consent_type         as enum ('privacy_notice', 'explicit_consent', 
 create type topic_status         as enum ('not_started', 'studying', 'completed', 'needs_review', 'mastered');
 create type resource_type        as enum ('lecture_book', 'question_bank', 'worksheet', 'mock_book', 'booklet', 'other');
 create type question_source      as enum ('resource', 'plan', 'school', 'online', 'free');
-create type goal_metric          as enum ('questions', 'correct', 'study_minutes', 'videos', 'topics_completed', 'sections_completed', 'mock_net', 'reading_pages');
-create type goal_period          as enum ('daily', 'weekly', 'monthly', 'custom');
+create type goal_metric          as enum ('questions');           -- Faz 3 sade (02 karar #32); ileride add value
+create type goal_period          as enum ('daily', 'weekly');     -- Faz 3 sade; 'monthly', 'custom' gerekince eklenir
 create type plan_status          as enum ('draft', 'published');
 create type plan_item_kind       as enum ('topic_study', 'questions', 'section', 'video', 'mock_exam', 'review', 'reading', 'custom');
 create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');
@@ -150,7 +150,7 @@ student_modules (
 )
 ```
 
-Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama).
+Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm).
 
 **Onay tamlığı (Faz 1c, 02 karar #23):** bir öğrencinin onayı, `consents` içinde `privacy_notice` ve `explicit_consent` türlerinin her biri için geri çekilmemiş (`revoked_at is null`) en az bir satır varsa tamdır; satırın veli dijital onayı (`given_by`) ya da koçun işlediği kâğıt onayı (`recorded_by`, `given_by` boş) olması fark etmez. Veli paneli kapısı ve koç ekranındaki rozet bu tanımı kullanır. `student_modules` için satır yoksa manifestteki `defaultEnabled` geçerlidir; seed satır içermez.
 
@@ -169,6 +169,7 @@ curriculum_templates (
   scoring jsonb not null,                 -- {"wrong_penalty": 3, "sections": [...]}
   based_on_id uuid references curriculum_templates(id),
   is_published boolean not null default false,
+  exam_date date,                         -- Faz 3: yeni öğrenci formunun sınav tarihi varsayılanı (karar #35)
   created_at, updated_at
 )
 
@@ -228,8 +229,8 @@ question_logs (
   log_date date not null default (now() at time zone 'Europe/Istanbul')::date,
   subject_id uuid not null references subjects(id),
   topic_id uuid references topics(id),
-  section_id uuid references resource_sections(id),   -- Faz 5'te FK eklenir
-  plan_item_id uuid references plan_items(id) on delete set null,  -- Faz 4'te FK eklenir
+  -- section_id uuid references resource_sections(id)                  -- Faz 5'te eklenir (kolon yok)
+  -- plan_item_id uuid references plan_items(id) on delete set null    -- Faz 4'te eklenir (kolon yok)
   source question_source not null default 'free',
   total_count int not null check (total_count > 0 and total_count <= 500),
   correct_count int check (correct_count >= 0),
@@ -238,27 +239,29 @@ question_logs (
   duration_minutes int check (duration_minutes between 1 and 600),
   note text,
   created_at, updated_at,
-  check (coalesce(correct_count,0) + coalesce(wrong_count,0) + coalesce(blank_count,0) <= total_count)
+  check (coalesce(correct_count,0) + coalesce(wrong_count,0) + coalesce(blank_count,0) <= total_count),
+  check (log_date <= (now() at time zone 'Europe/Istanbul')::date)   -- gelecek tarih yok
 )
--- index (student_id, log_date desc), (student_id, subject_id, log_date), (section_id)
+-- index (student_id, log_date desc), (student_id, subject_id, log_date), (subject_id), (topic_id)
 
 goals (
   id uuid pk,
   student_id uuid not null references students(profile_id) on delete cascade,
   created_by uuid not null references profiles(id),
   title text,
-  metric goal_metric not null,
-  subject_id uuid references subjects(id),  -- null = tüm dersler
+  metric goal_metric not null default 'questions',
+  subject_id uuid references subjects(id),  -- null = tüm dersler (Faz 3'te hep null)
   period goal_period not null,
   target_value numeric not null check (target_value > 0),
-  starts_on date not null,
+  starts_on date not null default (now() at time zone 'Europe/Istanbul')::date,
   ends_on date,                             -- null = süresiz tekrarlayan
   is_active boolean not null default true,
   created_at, updated_at
 )
+-- unique (student_id, period) where is_active  → dönem başına tek aktif hedef (karar #32)
 ```
 
-Hedef ilerlemesi saklanmaz, hesaplanır: `private.goal_progress(goal_id, on_date)` fonksiyonu ilgili dönemin başlangıç ve bitişini bulup metriğe göre toplar.
+Uygulama `total_count = correct + wrong + blank` yazar (üçü zorunlu); `log_date` istemciden alınmaz, Server Action İstanbul bugününü atar; düzenlemede tarih değişebilir ama gelecek olamaz (zod + check). Hedef ilerlemesi saklanmaz; `v_student_daily_summary`'den uygulamada hesaplanır (`features/goals/server/queries.ts: getGoalProgress`). Seri (ardışık kayıt günü) da aynı görünümden `lib/dates/streak` ile hesaplanır: bugün veya dün biten ardışık gün sayısı.
 
 ### 4.4 Plan, Notlar, Duyurular (Faz 4)
 
@@ -710,7 +713,7 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | curriculum_templates, subjects, topics | S (sistem + kurum) | S I U D (sistem + kurum; karar #28) | S (sistem + kurum) | S I U D (sistem + kurum) |
 | student_topic_progress | S I U | S I U | S | S I U (D yok; konu silinince cascade) |
 | question_logs | S I U D | S I U D | S | Tümü |
-| goals | S (öğrenci hedefi açıksa I U D) | S I U D | S | Tümü |
+| goals | S | S I U D (`is_coach_of`; `created_by` kendisi) | S | S I U D |
 | weekly_plans | S (sadece published), U (sadece reflection) | S I U D | S (published) | Tümü |
 | plan_items | S, U (sadece completed_at, student_note) | S I U D | S | Tümü |
 | plan_templates | – | S I U D (kurum) | – | Tümü |
@@ -740,22 +743,25 @@ Her tablo için en az şu testler yazılır:
 
 Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `authenticated`'ın tam olarak beklenen yetkilere (matris; kolon düzeyi dahil) ve `service_role`'ün tam yetkiye sahip olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır; matriste tanımsız tablo testi düşürür).
 
-Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 
 Tüm görünümler `with (security_invoker = true)` ile oluşturulur, böylece alttaki tabloların RLS'si uygulanır.
 
+"Bugün" ve "bu hafta" görünümlerde `(now() at time zone 'Europe/Istanbul')::date` ve `date_trunc('week', …)` (ISO, pazartesi) ile hesaplanır; `current_date` kullanılmaz. Görünümler `authenticated`'a yalnızca `select` ile verilir; modüller arası veri ihtiyacı (konu istatistiği, koç listesi) bunlarla karşılanır. ✅ = Faz 3'te var.
+
 | Görünüm | Kolonlar (özet) | Kullanım |
 |---|---|---|
-| `v_student_daily_summary` | student_id, day, questions, correct, wrong, blank, study_minutes, videos_completed, reading_pages | Bugün ekranı, grafikler |
-| `v_student_subject_weekly` | student_id, week_start, subject_id, questions, accuracy | Haftalık ders dağılımı |
+| `v_student_daily_summary` ✅ | student_id, day, questions, correct, wrong, blank, study_minutes (videos_completed, reading_pages ilgili fazlarda) | Bugün ekranı, hedef ilerlemesi, seri, koç son 14 gün |
+| `v_student_subject_weekly` ✅ | student_id, week_start, subject_id, questions, correct, wrong | Haftalık ders dağılımı |
+| `v_topic_question_stats` ✅ | student_id, topic_id, questions, correct | Konu detayı (soru sayısı, başarı) |
 | `v_topic_mastery` | student_id, topic_id, subject_id, status, confidence, questions, accuracy, mock_wrong_total, mistakes_open, mastery_score | **Konu haritası** |
 | `v_student_resource_progress` | student_id, resource_id, sections_total, sections_done, questions_done, percent | Kaynak ilerlemesi |
 | `v_student_playlist_progress` | student_id, playlist_id, videos_total, videos_done, percent | Video ilerlemesi |
 | `v_mock_exam_trend` | student_id, result_id, taken_on, total_net, subject nets (jsonb) | Net grafiği |
 | `v_review_queue` | student_id, item_type ('topic'/'mistake'), item_id, due_on, overdue_days | Tekrar listesi |
-| `v_coach_student_overview` | student_id, coach_id, full_name, last_activity_at, week_questions, week_goal_percent, last_net, net_delta, plan_completion_last_week, overdue_reviews, alerts (text[]) | **Koç ana ekranı** (tek sorgu) |
+| `v_coach_student_overview` ✅ | student_id, coach_id, organization_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent (last_net, net_delta, plan_completion_last_week, overdue_reviews, alerts ilgili fazlarda eklenir) | **Koç ana ekranı** (tek sorgu) |
 
 `mastery_score` (0-100) başlangıç formülü, kurum ayarlarından ağırlıklandırılabilir:
 
@@ -769,8 +775,7 @@ mastery_score = 0.4 * durum_puanı          (not_started 0, studying 30, complet
 
 | Fonksiyon | Tür | Ne yapar |
 |---|---|---|
-| `private.goal_progress(goal_id, on_date)` | stable | Hedefin dönem içindeki mevcut değeri ve yüzdesi |
-| `public.student_streak(student_id)` | stable | Ardışık aktif gün sayısı (herhangi bir kayıt = aktif) |
+| ~~`private.goal_progress`~~, ~~`public.student_streak`~~ | — | Faz 3'te veritabanı fonksiyonu yerine uygulamada (`getGoalProgress`, `lib/dates/streak`) hesaplanır (karar #36) |
 | `public.save_mock_exam_result(payload jsonb)` | security invoker | Sonuç + ders + konu yanlışlarını tek transaction'da yazar |
 | `public.complete_plan_item(item_id, note, create_log jsonb)` | security definer + yetki kontrolü | Görevi tamamlar, isteğe bağlı soru kaydı oluşturur |
 | `public.copy_weekly_plan(source_plan_id, target_student_ids uuid[], week_start)` | security definer + koç kontrolü | Planı çoğaltır |
@@ -810,5 +815,5 @@ Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevril
 
 ## 9. Seed Verisi
 
-- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); LGS 2027 şablonu, 2 kaynak, 1 oynatma listesi, 3 haftalık rastgele soru kaydı, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
+- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
 - `supabase/seeds/lgs-2027-template.sql`: Üretimde bir kez çalıştırılan sistem şablonu (`05-lgs-2027-sablonu.md` içeriği).

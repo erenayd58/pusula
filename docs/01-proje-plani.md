@@ -217,12 +217,14 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - Ertelenen: `next_review_at` / tekrar aralıkları (Faz 6, tekrar modülü); şablon kopyalama (`based_on_id`) ve şablon seçici; hücre detayında soru sayısı/başarı/kaynaklar (Faz 3, 5)
 - **Kabul:** Koç şablona konu ekleyince tüm öğrencilerde görünüyor (e2e ✅); öğrenci konu durumunu değiştirebiliyor (e2e ✅).
 
-### Faz 3: Soru Takibi, Hedefler ve "Bugün" Ekranı (L) → **MVP**
-- `question_logs`, `goals`, özet görünümleri
-- Hızlı kayıt alt paneli (bottom sheet), kayıt geçmişi, düzenleme/silme
-- Hedef atama ve ilerleme hesaplama
-- Öğrenci "Bugün" ekranı; koç öğrenci listesi ve öğrenci genel bakış sayfası
-- **Kabul:** Öğrenci 3 dokunuşta kayıt giriyor; hedef çubuğu anında güncelleniyor; koç listesinde son aktivite görünüyor. **Pilot başlar.**
+### Faz 3: Soru Takibi, Hedefler ve "Bugün" Ekranı (L) → **MVP** — ✅ 2026-09-17 (dal: `faz-3-gunluk`)
+- [x] `question_logs` (section_id/plan_item_id ilgili fazlarda), `goals` (metric `questions`, period `daily|weekly`, dönem başına tek aktif hedef; karar #32), `curriculum_templates.exam_date`; `log_date` varsayılanı ve gelecek tarih kısıtı İstanbul gününe göre; görünümler `v_student_daily_summary`, `v_student_subject_weekly`, `v_topic_question_stats`, `v_coach_student_overview` (security_invoker); pgTAP `150`, `160` + `090` görünüm koruması
+- [x] Hızlı kayıt: `QuickLogProvider` + `ResponsiveSheet` (ders çipleri, konu isteğe bağlı, D/Y/B `NumberStepper`, süre, "Toplam 40 · Net 30,00" şablon kuralıyla), Enter/Esc, çift gönderim kilidi, son ders/konu cihazda (karar #34); tarih sunucuda atanır; toast "Kaydedildi. Bugün 34 soru kaldı."
+- [x] Öğrenci: Bugün (seri, LGS, hedef halkası, bugünkü kayıtlar, haftalık ders çubukları, konu kartı; masaüstünde main/side iki sütun, karar #33), `/student/logs` geçmiş (düzenle, onaylı sil), konu detayında soru sayısı ve başarı
+- [x] Koç: öğrenci listesi görünümden (son kayıt, bu hafta, haftalık hedef %; telefonda kart), Genel bakış (bugün/hafta/son 14 gün çubukları, hedef formu, sınav tarihi), Sorular sekmesi (tarih + ders filtresi); yeni öğrenci sınav tarihi şablondan (karar #35)
+- [x] Testler: birim (net, seri, toast metni), pgTAP (40 yeni), e2e `question-log.spec.ts` (masaüstü + mobil); teardown yalnızca yerel Supabase'de, e2e öğrencilerini de temizler; `pnpm screenshots --only 3` → `docs/tasarim/uygulama-3/`
+- Ertelenen: koçun öğrenci adına kayıt girmesi; "dikkat gerektirenler" (Faz 7); kaynak (`section_id`) ve plan (`plan_item_id`) bağları (Faz 4-5)
+- **Kabul:** Öğrenci 3 dokunuşta kayıt giriyor (e2e ✅); hedef halkası anında güncelleniyor (e2e ✅); koç listesinde son kayıt ve bu hafta görünüyor (e2e ✅). **Pilot başlayabilir.**
 
 ### Faz 4: Haftalık Plan, Notlar, Duyurular (M)
 - `weekly_plans`, `plan_items`, `plan_templates`, `coach_notes`, `meetings`, `announcements`
