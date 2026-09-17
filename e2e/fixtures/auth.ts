@@ -22,13 +22,13 @@ export function formAlert(page: Page) {
 
 /**
  * Çıkış düğmesi kabuğa göre farklı yerde: koç yan menüsü / veli üst barı; öğrencide masaüstü
- * rayı, telefonda yalnızca "Ben" sayfası. Görünen düğme yoksa öğrenci profiline gidilir.
+ * rayı, telefonda yalnızca "Ben" sayfası. Öğrencide her iki görünümde de bulunan Ben sayfasına gidilir.
  */
 export async function logout(page: Page) {
-  const button = page.getByRole("button", { name: "Çıkış yap" }).locator("visible=true").first();
-  if ((await button.count()) === 0 && /\/student\//.test(page.url())) {
+  if (/\/student(\/|$)/.test(new URL(page.url()).pathname)) {
     await page.goto("/student/profile");
+    await expect(page.getByRole("heading", { level: 1, name: "Ben" })).toBeVisible();
   }
-  await button.click();
+  await page.getByRole("button", { name: "Çıkış yap" }).locator("visible=true").first().click();
   await expect(page).toHaveURL(/\/login$/);
 }
