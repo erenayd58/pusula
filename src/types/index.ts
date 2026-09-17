@@ -14,3 +14,6 @@ export type TopicStatus = Enums<"topic_status">;
 export type CurriculumTemplate = Tables<"curriculum_templates">;
 export type Subject = Tables<"subjects">;
 export type Topic = Tables<"topics">;
+export type BusySlotKind = Enums<"busy_slot_kind">;
+export type BusySlot = Tables<"busy_slots">;
+export type ScheduleException = Tables<"schedule_exceptions">;

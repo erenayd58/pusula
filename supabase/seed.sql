@@ -154,3 +154,27 @@ from (values
 insert into public.goals (student_id, created_by, period, target_value, starts_on) values
   ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002', 'daily',  60,  (now() at time zone 'Europe/Istanbul')::date - 20),
   ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002', 'weekly', 300, (now() at time zone 'Europe/Istanbul')::date - 20);
+
+-- Haftalık program (Faz 4a): Ayşe hafta içi okul, salı/perşembe dershane, cumartesi kurs;
+-- gelecek haftanın çarşambası tüm gün yazılı (istisna). Öğrencinin kendi girdiği kabul edilir.
+insert into public.busy_slots (student_id, day_of_week, starts_at, ends_at, kind, note, created_by)
+select 'b0000000-0000-4000-8000-000000000011', r.day, r.starts_at::time, r.ends_at::time, r.kind::public.busy_slot_kind, r.note,
+       'b0000000-0000-4000-8000-000000000011'
+from (values
+  (1, '08:30', '15:00', 'school', null),
+  (2, '08:30', '15:00', 'school', null),
+  (3, '08:30', '15:00', 'school', null),
+  (4, '08:30', '15:00', 'school', null),
+  (5, '08:30', '15:00', 'school', null),
+  (2, '17:00', '19:30', 'tutoring_center', 'Matematik'),
+  (4, '17:00', '19:30', 'tutoring_center', 'Fen'),
+  (6, '10:00', '12:00', 'course', 'İngilizce kursu')
+) as r (day, starts_at, ends_at, kind, note);
+
+insert into public.schedule_exceptions (student_id, on_date, title, created_by)
+values (
+  'b0000000-0000-4000-8000-000000000011',
+  (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date + 9,
+  'Yazılı: Türkçe',
+  'b0000000-0000-4000-8000-000000000011'
+);

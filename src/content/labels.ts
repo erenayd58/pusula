@@ -63,3 +63,33 @@ export const goalPeriodLabels = {
   daily: "Günlük",
   weekly: "Haftalık",
 } as const;
+
+/** Sabit meşguliyet türü (Faz 4a, haftalık program). */
+export const busySlotKindLabels = {
+  school: "Okul",
+  tutoring_center: "Dershane",
+  private_lesson: "Özel ders",
+  course: "Kurs",
+  other: "Diğer",
+} as const;
+
+/** ISO haftanın günü (1 = pazartesi). */
+export const dayOfWeekLabels: Record<number, string> = {
+  1: "Pazartesi",
+  2: "Salı",
+  3: "Çarşamba",
+  4: "Perşembe",
+  5: "Cuma",
+  6: "Cumartesi",
+  7: "Pazar",
+};
+
+export const dayOfWeekShortLabels: Record<number, string> = {
+  1: "Pzt",
+  2: "Sal",
+  3: "Çar",
+  4: "Per",
+  5: "Cum",
+  6: "Cmt",
+  7: "Paz",
+};

@@ -1,6 +1,8 @@
 import "server-only";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { parseOrgSettings, type OrgSettings } from "../lib/org-settings";
 
 /**
  * Çekirdek modül okuma sorguları. Kullanıcının oturumuyla çalışır; RLS koçun yalnızca kendi
@@ -217,3 +219,20 @@ export async function getConsentStatus(studentId: string): Promise<ConsentStatus
       : null,
   };
 }
+
+// Kurum ayarları -----------------------------------------------------------------------
+
+/**
+ * Oturum sahibinin kurumunun ayarları (08 §1.2). RLS herkese yalnızca kendi kurumunu gösterir;
+ * eksik/bozuk anahtarlar şemadaki varsayılanla tamamlanır. İstek başına bir kez (React cache).
+ */
+export const getOrgSettings = cache(async (): Promise<OrgSettings> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("settings")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return parseOrgSettings(data?.settings);
+});

@@ -46,3 +46,5 @@ export {
   INVITATION_CODE_MESSAGE,
   INVITATION_INVALID,
 } from "./schemas";
+export { getOrgSettings } from "./server/queries";
+export { orgSettingsSchema, parseOrgSettings, type OrgSettings } from "./lib/org-settings";

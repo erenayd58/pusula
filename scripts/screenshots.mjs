@@ -198,6 +198,39 @@ const SHOTS = [
     width: 1440,
     path: `/coach/students/${SEED.ayse}`,
   },
+  // Faz 4a: haftalık program
+  {
+    dir: "uygulama-4a",
+    file: "ogrenci-program-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/schedule",
+  },
+  {
+    dir: "uygulama-4a",
+    file: "ogrenci-program-1440.png",
+    as: "student",
+    width: 1440,
+    path: "/student/schedule",
+  },
+  {
+    dir: "uygulama-4a",
+    file: "ogrenci-mesguliyet-formu-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/schedule",
+    before: async (page) => {
+      await page.getByRole("button", { name: "Meşguliyet ekle" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-4a",
+    file: "koc-program-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/schedule`,
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */

@@ -37,7 +37,7 @@ export type Database = {
       busy_slots: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           day_of_week: number
           ends_at: string
           id: string
@@ -49,7 +49,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           day_of_week: number
           ends_at: string
           id?: string
@@ -61,7 +61,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           day_of_week?: number
           ends_at?: string
           id?: string
@@ -529,7 +529,7 @@ export type Database = {
       schedule_exceptions: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           ends_at: string | null
           id: string
           note: string | null
@@ -541,7 +541,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           ends_at?: string | null
           id?: string
           note?: string | null
@@ -553,7 +553,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           ends_at?: string | null
           id?: string
           note?: string | null

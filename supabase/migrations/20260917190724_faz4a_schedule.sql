@@ -16,7 +16,8 @@ create table public.busy_slots (
   ends_at time not null,
   kind public.busy_slot_kind not null default 'other',
   note text check (char_length(note) <= 120),
-  created_by uuid not null references public.profiles (id),
+  -- Yazar profili silinince (öğrenci kendi satırını yazmış olabilir) satır kalır, yazar boşalır.
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Gece yarısını aşan aralık yok.
@@ -40,7 +41,8 @@ create table public.schedule_exceptions (
   ends_at time,
   title text not null check (char_length(title) between 1 and 80),
   note text check (char_length(note) <= 120),
-  created_by uuid not null references public.profiles (id),
+  -- Yazar profili silinince (öğrenci kendi satırını yazmış olabilir) satır kalır, yazar boşalır.
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- İkisi birlikte boş (tüm gün) ya da ikisi dolu ve bitiş başlangıçtan sonra.
