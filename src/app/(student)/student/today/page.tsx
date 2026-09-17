@@ -55,8 +55,8 @@ export default async function TodayPage() {
 
       {widgets.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {widgets.map(({ moduleId, component: Widget }) => (
-            <Widget key={moduleId} studentId={userId} />
+          {widgets.map(({ key, component: Widget }) => (
+            <Widget key={key} studentId={userId} />
           ))}
         </div>
       ) : null}

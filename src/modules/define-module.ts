@@ -60,13 +60,25 @@ export function defineModule<T extends z.ZodType>(m: ModuleManifest<T>): ModuleM
 export type ModuleWidgetProps = { studentId: string };
 
 /**
+ * Bugün ekranı kartı: masaüstünde iki sütun (04 §8.2): `main` = "bugün ne yapacağım"
+ * (hedef, kayıtlar, plan), `side` = "neyi kaçırıyorum" (haftalık özet, konular, tekrar).
+ * Telefonda tek sütun, `order` sırasıyla.
+ */
+export type StudentTodayWidget = {
+  component: ComponentType<ModuleWidgetProps>;
+  order: number;
+  column?: "main" | "side";
+};
+
+/**
  * Panel kartları manifestten AYRI (02 karar #13): bileşen import eder, `src/modules/widgets.ts`
- * toplar. Faz 2'de yalnızca `studentToday`; koç/veli kartları ilk ihtiyaçla eklenir.
+ * toplar. Şimdilik yalnızca `studentToday` (bir modül birden fazla kart verebilir); koç/veli
+ * kartları ilk ihtiyaçla eklenir.
  */
 export type ModuleWidgets = {
   /** manifest.id ile aynı. */
   moduleId: string;
-  studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
+  studentToday?: StudentTodayWidget[];
 };
 
 export function defineWidgets(w: ModuleWidgets): ModuleWidgets {
