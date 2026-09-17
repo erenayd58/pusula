@@ -50,7 +50,8 @@ pusula/
 │   ├── 05-lgs-2027-sablonu.md
 │   └── 06-claude-code-rehberi.md
 ├── scripts/
-│   └── write-local-env.mjs          # pnpm env:local: supabase status → .env.local
+│   ├── write-local-env.mjs          # pnpm env:local: supabase status → .env.local
+│   └── screenshots.mjs              # pnpm screenshots: belge amaçlı ekran görüntüleri (docs/tasarim/uygulama-<faz>/)
 ├── supabase/
 │   ├── config.toml
 │   ├── templates/confirmation.html  # e-posta doğrulama şablonu (üretimde dashboard'a girilir)
@@ -92,6 +93,7 @@ pusula/
     │   │       ├── layout.tsx       # Mobil kabuk: üst bar + alt menü; requireRole('student')
     │   │       ├── page.tsx         # → /student/today yönlendirme
     │   │       ├── today/page.tsx
+    │   │       ├── [section]/page.tsx   # Yer tutucu: registry'deki href → modül açıksa "yakında", değilse 404 (Faz 1c)
     │   │       ├── topics/page.tsx
     │   │       ├── topics/[subjectId]/page.tsx
     │   │       ├── log/page.tsx
@@ -113,6 +115,7 @@ pusula/
     │   │       ├── students/[studentId]/
     │   │       │   ├── layout.tsx   # Öğrenci başlığı + sekmeler (modüllerden üretilir)
     │   │       │   ├── page.tsx     # Genel bakış
+    │   │       │   ├── [tab]/page.tsx     # Yer tutucu sekmeler (registry segment → requireModule)
     │   │       │   ├── topics/page.tsx
     │   │       │   ├── questions/page.tsx
     │   │       │   ├── plan/page.tsx
@@ -121,6 +124,7 @@ pusula/
     │   │       │   ├── notes/page.tsx
     │   │       │   ├── modules/page.tsx   # Modül aç/kapat
     │   │       │   └── settings/page.tsx
+    │   │       ├── [section]/page.tsx  # Koç menüsündeki yer tutucu sayfalar (Faz 1c)
     │   │       ├── templates/…      # Müfredat şablonları
     │   │       ├── resources/…      # Kaynak kataloğu
     │   │       ├── videos/…         # Video kataloğu
@@ -132,9 +136,12 @@ pusula/
     │       └── parent/
     │           ├── layout.tsx
     │           ├── page.tsx         # Çocuk seçimi (tek çocuksa doğrudan yönlendirir)
-    │           └── [studentId]/…
+    │           └── [studentId]/
+    │               ├── layout.tsx   # Çocuk başlığı + alt menü (Özet · Denemeler · Notlar, registry'den)
+    │               ├── page.tsx     # Özet
+    │               └── [tab]/page.tsx   # Yer tutucu sekmeler
     ├── features/                    # MODÜLLER (bkz. Bölüm 3)
-    │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay (module.ts Faz 1c)
+    │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay, kabuk başlıkları
     │   ├── topics/
     │   ├── question-log/
     │   ├── goals/
@@ -157,13 +164,16 @@ pusula/
     ├── modules/
     │   ├── define-module.ts         # defineModule() / defineWidgets() yardımcıları ve tipleri
     │   ├── registry.ts              # Tüm modül manifestlerinin listesi (sadece metadata; menü ve sekmeler buradan)
-    │   ├── widgets.ts               # Panel kartlarının listesi (sadece panel sayfaları import eder)
-    │   └── get-enabled-modules.ts   # Öğrenci için açık modülleri getirir (cache'li)
+    │   ├── widgets.ts               # Panel kartlarının listesi (sadece panel sayfaları import eder; Faz 3)
+    │   ├── get-enabled-modules.ts   # Öğrenci için açık modülleri getirir (cache'li) + requireModule
+    │   ├── set-student-module.ts    # Koçun modül aç/kapat Server Action'ı (bağımlılıklar burada çözülür)
+    │   ├── module-toggle-list.tsx   # Modüller sekmesi istemci bileşeni
+    │   └── lib/registry-helpers.ts  # Saf yardımcılar (filtre, mergeEnabled, resolveToggle) + testleri
     ├── components/
     │   ├── ui/                      # shadcn/ui bileşenleri (sadece burada)
-    │   ├── layout/                  # SurfaceRoot (data-surface + useSurface), StudentBottomNav, StudentRail, CoachSidebar, PageHeader
+    │   ├── layout/                  # SurfaceRoot (data-surface + useSurface), NavLink, BottomNav, StudentRail, CoachSidebar (+ CoachMobileMenu), TabNav
     │   ├── charts/                  # Ortak grafik sarmalayıcıları
-    │   └── shared/                  # EmptyState, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
+    │   └── shared/                  # EmptyState, ComingSoon, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
     ├── lib/
     │   ├── supabase/
     │   │   ├── client.ts            # Tarayıcı istemcisi
@@ -200,6 +210,8 @@ pusula/
 
 Rota segmentleri İngilizcedir (kod tutarlılığı için); arayüzdeki tüm metinler Türkçedir. İleride Türkçe URL istenirse `next.config` içinde `rewrites` ile eklenebilir.
 
+**Yer tutucu modül sayfaları (karar #22):** Henüz uygulanmamış modüllerin sayfaları tek dinamik segmentle çözülür (`student/[section]`, `coach/[section]`, `coach/students/[studentId]/[tab]`, `parent/[studentId]/[tab]`): segment registry'de bir menü öğesine karşılık gelmiyorsa 404, modül o öğrenci için kapalıysa `requireModule` 404, aksi halde "bu bölüm yakında" boş durumu. Gerçek modül geldiğinde kendi statik klasörü (`topics/page.tsx`) eklenir; Next.js statik segmenti dinamik olana tercih eder, yer tutucuya dokunmak gerekmez.
+
 ## 3. Modül Sistemi
 
 Projenin "generic ve modüler" olmasını sağlayan çekirdek budur.
@@ -232,45 +244,43 @@ src/features/question-log/
 ### 3.2 Manifest
 
 ```ts
-// src/modules/define-module.ts
-import type { ComponentType } from "react";
-import type { LucideIcon } from "lucide-react";
-import type { z } from "zod";
+// src/modules/define-module.ts (özet; tam sürüm dosyada)
+export type NavItem = { href: string; label?: string; icon?: LucideIcon; order: number; mobile?: boolean };
+export type SegmentItem = { segment: string; label: string; icon?: LucideIcon; order: number }; // "" = kök
 
-export type Role = "owner" | "coach" | "student" | "parent";
-
-export type ModuleWidgetProps = { studentId: string };
-
-export type ModuleManifest<TSettings extends z.ZodTypeAny = z.ZodTypeAny> = {
+export type ModuleManifest<TSettings extends z.ZodType = z.ZodType> = {
   id: string;                        // "question-log" — veritabanındaki module_id ile aynı
   name: string;                      // "Soru Takibi"
   description: string;
   icon: LucideIcon;
-  core?: boolean;                    // true ise kapatılamaz
+  core?: boolean;                    // true ise kapatılamaz ve her zaman açık
   defaultEnabled: boolean;
   dependsOn?: string[];              // ["topics"]
-  nav?: Partial<Record<Role, { href: string; label?: string; order: number; mobile?: boolean }>>;
-  coachStudentTab?: { segment: string; label: string; order: number };
+  nav?: {
+    student?: NavItem[];             // öğrenci menüsü (mobile: alt menüde de görünür)
+    coach?: NavItem[];               // koç menüsü (öğrenciye bağlı değil, filtre yok)
+    parent?: SegmentItem[];          // veli menüsü seçili çocuğa bağlı: /parent/<studentId>/<segment>
+  };
+  coachStudentTabs?: SegmentItem[];  // /coach/students/<studentId>/<segment>
   settingsSchema?: TSettings;        // Öğrenci bazlı ayarlar (ör. varsayılan günlük hedef)
 };
 
-export function defineModule<T extends z.ZodTypeAny>(m: ModuleManifest<T>) {
+export function defineModule<T extends z.ZodType>(m: ModuleManifest<T>) {
   return m;
 }
 
 // Panel kartları manifestten AYRI tutulur: manifest React bileşeni import etmez,
 // böylece menü ve sekmeleri üreten kod widget bileşenlerini paket boyutuna eklemez.
+// defineWidgets / ModuleWidgets ilk panel kartıyla (Faz 3) eklenir:
 export type ModuleWidgets = {
   moduleId: string;                  // manifest.id ile aynı
   studentToday?: { component: ComponentType<ModuleWidgetProps>; order: number };
   coachOverview?: { component: ComponentType<ModuleWidgetProps>; order: number };
   parentSummary?: { component: ComponentType<ModuleWidgetProps>; order: number };
 };
-
-export function defineWidgets(w: ModuleWidgets) {
-  return w;
-}
 ```
+
+Nav alanları dizidir çünkü bir modül aynı rol için birden fazla öğe verebilir (çekirdek: Bugün + Ben, Öğrenciler + Ayarlar, Genel bakış + Modüller). Öğe etiketi ve ikonu boşsa modülün adı ve ikonu kullanılır. Menü bileşenleri (`BottomNav`, `StudentRail`, `CoachSidebar`, `TabNav`) sunucu bileşenidir ve çözümlenmiş öğeleri prop alır; yalnızca aktiflik hesabı istemcidedir (`NavLink`). Registry sunucu tarafında kalır, istemci bileşenleri onu import etmez.
 
 ```ts
 // src/features/question-log/module.ts  (sadece metadata)
@@ -285,10 +295,7 @@ export const questionLogModule = defineModule({
   icon: PencilLine,
   defaultEnabled: true,
   dependsOn: ["topics"],
-  nav: {
-    student: { href: "/student/log", order: 30, mobile: true },
-  },
-  coachStudentTab: { segment: "questions", label: "Sorular", order: 30 },
+  coachStudentTabs: [{ segment: "questions", label: "Sorular", order: 30 }],
   settingsSchema: z.object({
     showBlankField: z.boolean().default(true),
   }),
@@ -310,18 +317,18 @@ export const questionLogWidgets = defineWidgets({
 
 ### 3.3 Modüllerin kullanıldığı yerler
 
-- **Menüler:** `BottomNav` ve `Sidebar`, `registry` içindeki `nav` alanlarını role ve açık modüllere göre filtreleyerek oluşturur. Menü öğesi elle yazılmaz.
+- **Menüler:** Rol layout'ları `registry` yardımcılarıyla (`getStudentNav`, `getCoachNav`, `getParentNav`) öğeleri açık modüllere göre filtreler ve `BottomNav` / `StudentRail` / `CoachSidebar`'a verir. Menü öğesi elle yazılmaz. Koç menüsü öğrenciye bağlı olmadığı için filtrelenmez.
 - **Paneller:** "Bugün", koç genel bakış ve veli özet sayfaları, `src/modules/widgets.ts` listesindeki ilgili alanı açık modüllere göre filtreleyip `order`'a göre sıralayarak render eder.
-- **Koç öğrenci sekmeleri:** `coachStudentTab` alanlarından üretilir.
-- **Rota koruması:** Her modül sayfası en üstte `await requireModule(studentId, "question-log")` çağırır; modül kapalıysa `notFound()`.
-- **Bağımlılık:** Koç bir modülü açarken `dependsOn` içindekiler kapalıysa uyarı verilir ve birlikte açılır.
+- **Koç öğrenci sekmeleri:** `coachStudentTabs` alanlarından üretilir (`getCoachStudentTabs`).
+- **Rota koruması:** Her modül sayfası en üstte `await requireModule(studentId, "question-log")` çağırır; modül kapalıysa `notFound()`. Not: sayfa bir `loading.tsx` sınırı içinde akıtıldığı için HTTP durumu 200 kalır, kullanıcı 404 ekranını görür; e2e testleri başlığı doğrular.
+- **Bağımlılık:** Koç bir modülü açarken kapalı `dependsOn` modülleri de açılır; kapatırken bu modüle bağımlı açık modüller de kapanır. Çözüm `resolveToggle` (saf, birim testli) ile **sunucuda** `setStudentModule` eylemi içinde yapılır; arayüz satırda bağımlılığı yazar ve sonucu bildirim olarak gösterir ("Konular kapatıldı; birlikte Soru Takibi, Plan da kapatıldı.").
 - **Veritabanı:** `student_modules(student_id, module_id, enabled, settings)`. Kayıt yoksa manifestteki `defaultEnabled` geçerlidir.
 
 ### 3.4 Modül sınırları (kesin kurallar)
 
 1. Bir modül, başka bir modülün iç dosyalarını import **edemez**. Sadece `@/features/<modul>` (yani `index.ts`) üzerinden erişir.
-2. `components`, `lib`, `types`, `content`, `config` ve `modules/` altındaki yardımcılar (`define-module.ts`, `get-enabled-modules.ts`) her yerden import edilebilir; ama bunlar hiçbir `features/*` dosyasını import **edemez**.
-3. **Tek istisna `registry` katmanıdır:** `src/modules/registry.ts` ve `src/modules/widgets.ts` yalnızca `@/features/<modul>` index dosyalarını import edebilir; başka hiçbir shared dosya `features`'a bakmaz.
+2. `components`, `lib`, `types`, `content`, `config` ve `modules/` altındaki yardımcılar (`define-module.ts`, `lib/registry-helpers.ts`) her yerden import edilebilir; ama bunlar hiçbir `features/*` dosyasını import **edemez**.
+3. **Tek istisna `registry` katmanıdır:** `src/modules/registry.ts` ve `src/modules/widgets.ts` yalnızca `@/features/<modul>` index dosyalarını import edebilir; başka hiçbir shared dosya `features`'a bakmaz. `get-enabled-modules.ts`, `set-student-module.ts` ve `module-toggle-list.tsx` registry'yi kullandığı için bu katmanın parçasıdır ve yalnızca `src/app/**` tarafından import edilir. Modül aç/kapat eylemi bu yüzden bir `features/*/server/actions.ts` içinde değil `src/modules/` altındadır (aksi halde registry ↔ feature döngüsü oluşur).
 4. `features/*/module.ts` yalnızca metadata içerir: `react`, `@/components/**` veya modülün kendi bileşenlerini import **edemez**. Bileşen gerektiren panel kartları `features/*/widgets.ts` içindedir.
 5. `src/app/**` sayfaları `@/features/<modul>` index'lerini ve `@/modules/*` katmanını import edebilir.
 6. Modüller arası veri ihtiyacı (ör. analiz modülünün soru kayıtlarını okuması) veritabanı **görünümleri** (views) üzerinden karşılanır, TypeScript import'u üzerinden değil.
@@ -481,6 +488,7 @@ Yerel `config.toml`'daki şu ayarların üretim/staging projesinde elle yapılma
   "test": "vitest run",
   "test:watch": "vitest",
   "test:e2e": "playwright test",
+  "screenshots": "node scripts/screenshots.mjs",
   "db:start": "supabase start",
   "db:stop": "supabase stop",
   "db:reset": "supabase db reset",
@@ -527,7 +535,7 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 11 | 2026-09 | Modül sınırları `eslint-plugin-boundaries` ile denetlenir | Klasör tabanlı katman kuralları; göreli import kaçaklarını da yakalar | Sadece `no-restricted-imports` |
 | 12 | 2026-09 | shadcn/ui v4 (radix-nova) paketi tek seferde kabul: `radix-ui`, `class-variance-authority`, `cn` (clsx + tailwind-merge yerine shadcn'in motoru), `tw-animate-css`, `shadcn` (çalışma zamanında yalnızca `shadcn/tailwind.css` varyantları); semantik token'ları bizim token'lara takma ad. `cn` her zaman `@/lib/utils`'ten import edilir (özel `text-*`, `shadow-*`, `rounded-*` ölçekleri orada tanıtılır; ESLint kuralı) | shadcn bileşenleri bunları bekler; hex yazmadan paletle uyum | Her bileşeni elle yeniden yazmak; clsx + tailwind-merge |
 | 13 | 2026-09 | Modül manifesti (`module.ts`, metadata) ile panel kartları (`widgets.ts`, bileşen) ayrı; `registry.ts` / `widgets.ts` ayrı toplanır | Menü ve sekme üreten kod widget bileşenlerini paket boyutuna eklemesin; `registry` katmanı features'a bakan tek shared yer | Tek manifest içinde bileşen referansı |
-| 14 | 2026-09 | `typedRoutes` kapalı | Manifest `href` alanları düz string; Faz 1c'de `Route` tipine geçiş değerlendirilir | `typedRoutes: true` |
+| 14 | 2026-09 | `typedRoutes` kapalı | Manifest `href` alanları düz string; Faz 1c'de değerlendirildi, dinamik yer tutucu segmentler yüzünden kapalı kaldı | `typedRoutes: true` |
 | 15 | 2026-09 | Koç (flat) yüzeyinde `--bg-paper` (#FFFFFF) token'ı; `--focus-color` odak token'ı | Beyaz zemin ve odak rengi tek yerden değişsin (koyu tema); ders dışı öğe ders rengine bağlanmasın | Tailwind `bg-white`, `--subject-math` ile odak |
 | 16 | 2026-09 | Yetki ikinci katmanı GRANT'larla: `anon`'a `public`'te sıfır yetki (mevcut + default privileges), `private` fonksiyonları fonksiyon başına `authenticated`'a, yerleşik PUBLIC execute global default privilege ile kapalı, `profiles`/`students`'ta kolon düzeyi UPDATE grant'ı (03 §5.1, §5.3 seçenek (c)); `090_schema_guards` testi katalogdan denetler | RLS atlansa bile anon veri göremesin; rol/kurum/koç kolonları API'den değişmesin; yeni tablo ve fonksiyonlar kapalı doğsun | Sadece RLS; kolon kısıtı için tetikleyici veya RPC |
 | 17 | 2026-09 | `students` INSERT/DELETE ve `profiles` INSERT için RLS politikası yok; bu işlemler secret key ile, veritabanı yetki kontrolünden sonra Server Action'da (Faz 1b) | Auth kullanıcısı + profil + öğrenci satırı tek yerde, tek transaction; owner bile API'den doğrudan öğrenci silemez | Owner'a I/D politikası |
@@ -535,3 +543,8 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 19 | 2026-09 | Öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`, üretimde kontrol ettiğimiz alan adının alt alanı (`ogrenci.<alan-adi>`), `STUDENT_EMAIL_DOMAIN` ile | Yerel GoTrue (CLI 2.117) admin API + şifreli giriş deneyi `.local`, `.invalid`, noktasız alan dahil hepsini kabul etti; `sb_secret_` ve eski `service_role` anahtarı aynı davrandı. Barındırılan projede e-posta doğrulama/engelleme ayarları değişebildiği için üretimde çözümlenebilir gerçek bir alt alan kullanılır ve deney staging'de tekrarlanır | `.invalid` TLD; telefon/SMS girişi |
 | 20 | 2026-09 | Veli kaydı: açık kayıt (`enable_signup` açık) + davete bağlı profil; e-posta doğrulama yerelde açık (Mailpit e2e), bulutta kapalı (veli davet koduyla gelir, SMTP gerekmez) ve uygulama iki durumda da çalışır. Sunucu işlemi signUp'tan önce kodu doğrular; profil ve `student_parents` bağlantısı yalnızca e-posta doğrulandıktan sonra `accept_invitation` RPC'siyle oluşur (tek kullanımlık, `for update`). Davetsiz biri en fazla profilsiz bir Auth kaydı bırakabilir; RLS ile hiçbir veri göremez | GoTrue'nun standart doğrulama e-postası ve Mailpit ile e2e; az özel kod. Açık karar: `before_user_created` hook ile geçersiz kodlu signUp'ı Auth seviyesinde reddetmek (admin API yolunu etkileyip etkilemediği doğrulanmalı) | Kayıt kapalı + `admin.createUser` + `inviteUserByEmail`/`generateLink` (özel şifre belirleme akışı, daha fazla kod) |
 | 21 | 2026-09 | Sunucuda oturum doğrulama `getClaims()`; rol her istekte `profiles`'tan; `proxy.ts` yönlendirmesi için `custom_access_token_hook` JWT'ye `app_metadata.user_role` ekler (yalnızca UX, güvenlik kararı değil) | Supabase SSR rehberi `getClaims()` öneriyor; asimetrik anahtarda (yerel CLI dahil ES256) ağ çağrısı yok. Proxy DB'ye gitmeden yönlendirir; hook kapalıysa layout'lar yine `requireRole` ile korur | `getUser()` her istekte (ağ çağrısı); proxy'de profil sorgusu; rolü yalnızca layout'ta kontrol |
+| 22 | 2026-09 | Uygulanmamış modül sayfaları tek dinamik segmentle (`[section]`, `[tab]`) yer tutucu; registry'de yoksa veya modül kapalıysa 404 | Faz 1c'de ~25 klasör × 3 dosya yerine 4 sayfa; gerçek modül kendi statik klasörüyle önceliği alır | Her modüle ayrı klasör |
+| 23 | 2026-09 | Onay tamlığı kaynaktan bağımsız: öğrencide `privacy_notice` + `explicit_consent` (geri çekilmemiş) varsa tam; veli dijital onayı veya koçun işlediği kâğıt onayı fark etmez. Veli kapısı (`/consent`) ve koç rozeti aynı sorguyu (`getConsentStatus`) kullanır | Kâğıt onayı pilot öncesi zorunlu; bir velinin onayı yeterli, ikinci veli veya kâğıt sonrası dijital tekrar istenmez | Veli başına dijital onay (Faz 1b davranışı) |
+| 24 | 2026-09 | `ResponsiveSheet` yalnızca CSS ile: aynı `Dialog`, `max-md:` sınıflarıyla alt panel; koç telefon menüsü için ayrı `Sheet side="left"` | JS medya sorgusu olmadan sunucu/istemci aynı HTML'i üretir; ek bağımlılık yok | vaul (drawer), `matchMedia` ile iki bileşen |
+| 25 | 2026-09 | Menü bileşenleri sunucu bileşeni, aktiflik `NavLink` istemci bileşeninde; ikon bileşenleri (fonksiyon) sunucu→istemci sınırını geçmediği için `ModuleToggleList` düz veri alır, bağımlılık çözümü sunucuda | Manifestler React dışı kalır, istemci paketi registry'yi taşımaz | Registry'yi istemciye taşımak, ikon adını string geçmek |
+| 26 | 2026-09 | `devIndicators: false` | Geliştirme rozeti öğrenci rayındaki çıkış düğmesinin üstüne biniyor, e2e tıklamalarını kesiyordu; hata katmanı etkilenmez | Rozeti sağa almak |

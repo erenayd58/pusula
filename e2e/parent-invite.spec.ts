@@ -4,7 +4,7 @@ import { formAlert, login, logout } from "./fixtures/auth";
 import { findConfirmationLink } from "./fixtures/mailpit";
 
 test.describe("veli daveti", () => {
-  test("koç kod üretir → veli kayıt olur → e-posta doğrular → daveti kabul eder → onay → /parent", async ({
+  test("koç kod üretir → veli kayıt olur → e-posta doğrular → daveti kabul eder → onay → çocuğun özeti", async ({
     page,
     baseURL,
   }) => {
@@ -12,10 +12,17 @@ test.describe("veli daveti", () => {
     const parentEmail = `${slug}@test.pusula.local`;
     const parentPassword = "veli-sifre-12345";
 
-    // Koç: seed öğrencisi için davet kodu
+    // Koç: yeni bir öğrenci açar (seed öğrencisinin onay durumu değişmesin) ve davet kodu üretir
+    const studentUsername = uniqueUsername("vlk");
     await login(page, accounts.coach.identifier);
-    await page.goto("/coach/students");
-    const row = page.getByRole("row").filter({ hasText: accounts.student.identifier });
+    await page.goto("/coach/students/new");
+    await page.getByLabel("Ad soyad").fill("Davet Öğrencisi");
+    await page.getByLabel("Kullanıcı adı").fill(studentUsername);
+    await page.getByLabel("Geçici şifre").fill("gecici-sifre-123");
+    await page.getByLabel("Sınav tarihi").fill("2027-06-13");
+    await page.getByRole("button", { name: "Öğrenciyi oluştur" }).click();
+    await expect(page).toHaveURL(/\/coach\/students$/);
+    const row = page.getByRole("row").filter({ hasText: studentUsername });
     await row.getByRole("button", { name: "Veli daveti" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("button", { name: "Davet kodu üret" }).click();
@@ -54,13 +61,14 @@ test.describe("veli daveti", () => {
     await expect(page.getByText("TASLAK — hukuki inceleme gerekli")).toBeVisible();
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Onaylıyorum" }).click();
-    await expect(page).toHaveURL(/\/parent$/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Veli");
+    // Tek çocuk: doğrudan çocuğun özetine yönlenir
+    await expect(page).toHaveURL(/\/parent\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Davet'in bu haftası");
 
     // Aynı kod ikinci kez kullanılamaz
     await logout(page);
     await login(page, parentEmail, parentPassword);
-    await expect(page).toHaveURL(/\/parent$/);
+    await expect(page).toHaveURL(/\/parent\/[0-9a-f-]{36}$/);
     await page.goto(`/invite/${code}`);
     await expect(page).toHaveURL(/\/invite\/accept\?code=/);
     // Hidrasyon bitmeden tıklanırsa form yerel submit ile sayfayı yeniler (yük altında flaky).
@@ -82,6 +90,6 @@ test.describe("veli daveti", () => {
   test("öğrenci daveti kabul edemez", async ({ page }) => {
     await login(page, accounts.student.identifier);
     await page.goto("/invite/accept");
-    await expect(page).toHaveURL(/\/student$/);
+    await expect(page).toHaveURL(/\/student\/today$/);
   });
 });

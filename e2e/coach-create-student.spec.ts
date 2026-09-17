@@ -3,7 +3,7 @@ import { accounts, uniqueUsername } from "./fixtures/accounts";
 import { formAlert, login, logout } from "./fixtures/auth";
 
 test.describe("koç öğrenci oluşturur", () => {
-  test("form → liste → öğrenci kullanıcı adıyla giriş yapar → /student", async ({ page }) => {
+  test("form → liste → öğrenci kullanıcı adıyla giriş yapar → /student/today", async ({ page }) => {
     const username = uniqueUsername();
     const password = "gecici-sifre-123";
 
@@ -20,8 +20,8 @@ test.describe("koç öğrenci oluşturur", () => {
     await logout(page);
 
     await login(page, username, password);
-    await expect(page).toHaveURL(/\/student$/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Öğrenci");
+    await expect(page).toHaveURL(/\/student\/today$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E");
   });
 
   test("Türkçe karakterli kullanıcı adı otomatik değiştirilmez, kural mesajı gösterilir", async ({

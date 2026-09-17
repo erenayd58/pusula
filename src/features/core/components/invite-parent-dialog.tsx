@@ -5,14 +5,14 @@ import { CopyIcon, MailPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ResponsiveSheet,
+  ResponsiveSheetContent,
+  ResponsiveSheetDescription,
+  ResponsiveSheetFooter,
+  ResponsiveSheetHeader,
+  ResponsiveSheetTitle,
+  ResponsiveSheetTrigger,
+} from "@/components/ui/responsive-sheet";
 import { formatDateTr } from "@/lib/format";
 import { createParentInvitation } from "../server/invitation-actions";
 import { FormError } from "./form-error";
@@ -52,27 +52,27 @@ export function InviteParentDialog({
   }
 
   return (
-    <Dialog
+    <ResponsiveSheet
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) setInvitation(undefined);
       }}
     >
-      <DialogTrigger asChild>
+      <ResponsiveSheetTrigger asChild>
         <Button variant="secondary">
           <MailPlusIcon aria-hidden="true" />
           Veli daveti
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Veli daveti</DialogTitle>
-          <DialogDescription>
+      </ResponsiveSheetTrigger>
+      <ResponsiveSheetContent>
+        <ResponsiveSheetHeader>
+          <ResponsiveSheetTitle>Veli daveti</ResponsiveSheetTitle>
+          <ResponsiveSheetDescription>
             {student.fullName} için davet kodu üret; veli kodu ya da bağlantıyı kullanarak kendi
             e-postasıyla kayıt olur. Kod 7 gün geçerli, tek kullanımlıktır.
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveSheetDescription>
+        </ResponsiveSheetHeader>
 
         {invitation ? (
           <dl className="flex flex-col gap-3 text-small">
@@ -117,15 +117,15 @@ export function InviteParentDialog({
 
         <FormError message={error} />
 
-        <DialogFooter>
+        <ResponsiveSheetFooter>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             Kapat
           </Button>
           <Button type="button" onClick={generate} disabled={pending}>
             {pending ? "Üretiliyor…" : invitation ? "Yeni kod üret" : "Davet kodu üret"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveSheetFooter>
+      </ResponsiveSheetContent>
+    </ResponsiveSheet>
   );
 }

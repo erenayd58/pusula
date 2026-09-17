@@ -1,26 +1,26 @@
+import { redirect } from "next/navigation";
 import { SurfaceRoot } from "@/components/layout/surface-root";
 import { siteConfig } from "@/config/site";
-import { roleLabels } from "@/content/labels";
 import { LogoutButton, listChildrenNeedingConsent } from "@/features/core";
-import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 
-/** Veli kabuğu yer tutucu: menü ve registry Faz 1c'de. requireRole sunucu tarafında kesin kontrol. */
+/**
+ * Veli kabuğu (clay-calm, 04 Bölüm 8.3): tek sütun, üstte marka + çıkış. Alt menü çocuğa bağlı
+ * olduğu için `[studentId]/layout.tsx` içindedir. requireRole sunucu tarafında kesin kontrol.
+ */
 export default async function Layout({ children }: LayoutProps<"/parent">) {
-  const { profile, userId } = await requireRole("parent");
-  // KVKK: açık rızası eksik çocuk varsa veli paneli açılmaz (01-proje-plani Bölüm 9).
-  const pending = await listChildrenNeedingConsent(userId);
+  await requireRole("parent");
+  // KVKK: onayı tam olmayan çocuk varsa veli paneli açılmaz (01 Bölüm 9; kâğıt onayı da sayılır).
+  const pending = await listChildrenNeedingConsent();
   if (pending.length > 0) redirect("/consent");
+
   return (
     <SurfaceRoot surface="clay-calm">
-      <header className="mx-auto flex w-full max-w-[var(--content-max)] items-center justify-between gap-4 px-4 pt-4 md:px-8">
-        <p className="text-small text-ink-500">
-          <span className="font-semibold text-ink-900">{siteConfig.name}</span> ·{" "}
-          {roleLabels[profile.role]}
-        </p>
+      <header className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center justify-between gap-4 px-4 pt-4 md:px-8">
+        <p className="text-small font-semibold text-ink-900">{siteConfig.name}</p>
         <LogoutButton variant="ghost" />
       </header>
-      <main className="mx-auto flex w-full max-w-[var(--content-max)] flex-1 flex-col gap-6 px-4 py-8 md:px-8">
+      <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-32 md:px-8">
         {children}
       </main>
     </SurfaceRoot>

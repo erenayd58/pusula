@@ -4,10 +4,11 @@ import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudentTable, listCoaches, listStudents } from "@/features/core";
 import { requireRole } from "@/lib/auth";
+import { formatDateTr } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Öğrenciler" };
 
-/** Basit liste + eylemler; kabuk ve gerçek liste Faz 1c'de. */
+/** K1 Öğrenciler: başlık + liste. Arama, filtre ve dikkat gerektirenler Faz 3. */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
   const [students, coaches] = await Promise.all([
@@ -19,12 +20,10 @@ export default async function StudentsPage() {
     <>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <p className="text-small text-ink-500">
-            <Link href="/coach" className="hover:text-ink-900">
-              Koç paneli
-            </Link>
-          </p>
           <h1 className="text-title font-semibold tracking-tight">Öğrenciler</h1>
+          <p className="text-small text-ink-500">
+            {formatDateTr(new Date(), { weekday: true, year: true })}
+          </p>
         </div>
         <Button asChild>
           <Link href="/coach/students/new">

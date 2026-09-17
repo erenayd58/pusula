@@ -1,7 +1,8 @@
 /**
- * Çekirdek modül (`core`) dışa açık API'si. Manifest (`module.ts`) Faz 1c'de eklenir.
+ * Çekirdek modül (`core`) dışa açık API'si.
  * İstemci bileşenleri bu dosyayı import etmez (sunucu dosyaları da dışa açılır).
  */
+export { coreModule } from "./module";
 export { LoginForm } from "./components/login-form";
 export { LogoutButton } from "./components/logout-button";
 export { FormError } from "./components/form-error";
@@ -24,13 +25,22 @@ export {
   acceptInvitation,
   type RegisterParentState,
 } from "./server/invitation-actions";
-export { giveConsent } from "./server/consent-actions";
+export { giveConsent, recordPaperConsent } from "./server/consent-actions";
+export { ConsentBadge } from "./components/consent-badge";
+export { PaperConsentDialog } from "./components/paper-consent-dialog";
 export { listChildren, listChildrenNeedingConsent, type ChildRow } from "./server/queries";
+export {
+  getStudentHeader,
+  getConsentStatus,
+  type StudentHeader,
+  type ConsentStatus,
+} from "./server/queries";
 export {
   parentRelationValues,
   registerParentSchema,
   acceptInvitationSchema,
   giveConsentSchema,
+  recordPaperConsentSchema,
   invitationCodeSchema,
   INVITATION_CODE_MESSAGE,
   INVITATION_INVALID,

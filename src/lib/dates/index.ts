@@ -1,5 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import { addDays, format, startOfDay, startOfWeek } from "date-fns";
+import { addDays, differenceInCalendarDays, format, startOfDay, startOfWeek } from "date-fns";
 
 /**
  * Tüm "bugün", hafta ve tarih hesapları bu dosyadan geçer (02-mimari Bölüm 5).
@@ -45,4 +45,21 @@ export function currentSeason(now: Date = new Date()): string {
   const year = d.getFullYear();
   const startYear = d.getMonth() + 1 >= 7 ? year : year - 1;
   return `${startYear}-${startYear + 1}`;
+}
+
+/**
+ * `YYYY-MM-DD` (veritabanı `date`) tarihine İstanbul bugününden kalan tam gün sayısı.
+ * Bugün → 0, geçmiş → negatif. Sınav geri sayımı için.
+ */
+export function daysUntil(dateKey: string, now: Date = new Date()): number {
+  const target = new TZDate(dateKey, TIME_ZONE);
+  return differenceInCalendarDays(target, todayInIstanbul(now));
+}
+
+/** Saate göre selamlama (İstanbul): 05–12 Günaydın, 12–18 İyi günler, sonrası İyi akşamlar. */
+export function greetingFor(now: Date = new Date()): string {
+  const hour = toIstanbul(now).getHours();
+  if (hour >= 5 && hour < 12) return "Günaydın";
+  if (hour >= 12 && hour < 18) return "İyi günler";
+  return "İyi akşamlar";
 }

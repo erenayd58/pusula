@@ -1,22 +1,25 @@
+import { CoachSidebar } from "@/components/layout/coach-sidebar";
 import { SurfaceRoot } from "@/components/layout/surface-root";
-import { siteConfig } from "@/config/site";
 import { roleLabels } from "@/content/labels";
 import { LogoutButton } from "@/features/core";
 import { requireRole } from "@/lib/auth";
+import { getCoachNav } from "@/modules/registry";
 
-/** Koç kabuğu yer tutucu: menü ve registry Faz 1c'de. requireRole sunucu tarafında kesin kontrol. */
+/**
+ * Koç kabuğu (flat, 04 Bölüm 8.4): masaüstünde 232 px yan menü, telefonda üst bar + soldan
+ * panel. Menü registry'den; koç menüsü öğrenciye bağlı olmadığı için modül filtresi yok.
+ * requireRole sunucu tarafında kesin kontrol.
+ */
 export default async function Layout({ children }: LayoutProps<"/coach">) {
   const { profile } = await requireRole("coach", "owner");
   return (
     <SurfaceRoot surface="flat">
-      <header className="mx-auto flex w-full max-w-[var(--content-max)] items-center justify-between gap-4 px-4 pt-4 md:px-8">
-        <p className="text-small text-ink-500">
-          <span className="font-semibold text-ink-900">{siteConfig.name}</span> ·{" "}
-          {roleLabels[profile.role]}
-        </p>
-        <LogoutButton variant="ghost" />
-      </header>
-      <main className="mx-auto flex w-full max-w-[var(--content-max)] flex-1 flex-col gap-6 px-4 py-8 md:px-8">
+      <CoachSidebar
+        items={getCoachNav()}
+        user={{ fullName: profile.full_name, subtitle: roleLabels[profile.role] }}
+        footer={<LogoutButton variant="ghost" iconOnly />}
+      />
+      <main className="mx-auto flex w-full max-w-[var(--content-max)] flex-1 flex-col gap-6 px-4 py-6 md:px-8 lg:py-8 lg:pr-8 lg:pl-[calc(var(--coach-sidebar)+2rem)]">
         {children}
       </main>
     </SurfaceRoot>

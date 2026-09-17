@@ -20,7 +20,8 @@ export function formAlert(page: Page) {
   return page.locator("p[role='alert']");
 }
 
+/** Kabuklarda çıkış düğmesi birden fazla yerde olabilir (ray + telefon üst barı); görünen olana basılır. */
 export async function logout(page: Page) {
-  await page.getByRole("button", { name: "Çıkış yap" }).first().click();
+  await page.getByRole("button", { name: "Çıkış yap" }).locator("visible=true").first().click();
   await expect(page).toHaveURL(/\/login$/);
 }

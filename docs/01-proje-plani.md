@@ -193,11 +193,17 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] Veli: davetle kayıt (açık kayıt + davete bağlı profil, karar #20) → e-posta doğrulama (Mailpit) → `accept_invitation` → KVKK onayı (taslak metin, sürüm `config/constants`)
 - [x] Testler: birim (username, davet kodu, createAction, telafi), pgTAP (5 yeni dosya), Playwright (giriş, öğrenci oluşturma, owner yönetimi, veli daveti); CI e2e yerel Supabase + seed ile
 - Ertelenen: `before_user_created` hook değerlendirmesi (karar #20)
-- **Pilot öncesi: kâğıt onayı.** Koçun kâğıt üzerinde alınan veli onayını sisteme işleyebilmesi (`consents.recorded_by`) pilot başlamadan (Faz 3 sonu) eklenir; RLS politikası hazır.
+- ~~Pilot öncesi: kâğıt onayı~~ → Faz 1c'de yapıldı.
 
-**1c. Modül sistemi ve uygulama kabukları**
-- Modül kayıt sistemi (`defineModule`, registry), role göre uygulama kabuğu (öğrenci alt menü, koç yan menü)
-
+**1c. Modül sistemi ve uygulama kabukları — ✅ 2026-09-17 (dal: `faz-1c-kabuklar`)**
+- [x] Modül altyapısı: `defineModule`, `src/modules/registry.ts`, saf yardımcılar (`registry-helpers`: menü/sekme filtresi, `mergeEnabled`, `resolveToggle`), `getEnabledModules` (React cache) ve `requireModule` (kapalı modül → 404); 10 manifest (çekirdek + 9 yer tutucu), gerçek modül yok
+- [x] Öğrenci kabuğu (clay): telefon/tablet alt menü + taşan (+) kayıt düğmesi (şimdilik "yakında"), masaüstü 104 px ray; `/student/today` selamlama + LGS geri sayımı; yer tutucu modül sayfaları `student/[section]`
+- [x] Koç kabuğu (flat): 232 px yan menü, telefonda soldan panel; `/coach` → Öğrenciler; öğrenci detayı başlığı (sınıf, okul, geri sayım, onay rozeti) + registry sekmeleri; Modüller sekmesinde aç/kapat (bağımlılıklar sunucuda birlikte çözülür)
+- [x] Veli kabuğu (clay-calm): çocuk seçimi (tek çocuk → doğrudan), `parent/[studentId]` alt menü Özet · Denemeler · Notlar
+- [x] Kâğıt onayı: koç `recordPaperConsent` (tarih + belge sürümü, `recorded_by`), başlıkta "Veli onayı var / bekleniyor" rozeti; onay tamlığı kaynaktan bağımsız (02 karar #23), veli kapısı da buna göre
+- [x] Ortak: `ResponsiveSheet` (CSS ile < 768 alt panel / ≥ 768 diyalog), `Sheet`, `Switch`, `EmptyState`, `NavLink`; her segmentte `loading.tsx` + `error.tsx`
+- [x] Testler: birim (registry yardımcıları, `daysUntil`/`greetingFor`), e2e (üç kabuk, modül kapatma → menü + 404, kâğıt onayı; testler kendi öğrencisini açıp siler); pgTAP değişmedi (yeni RLS/RPC yok)
+- [x] `pnpm screenshots` → `docs/tasarim/uygulama-1c/` (belge amaçlı, e2e dışı)
 - **Kabul:** Üç rol ayrı ayrı giriş yapıp kendi boş panelini görüyor (e2e ✅); bir öğrenci başka öğrencinin satırını okuyamıyor (RLS testi ✅).
 
 ### Faz 2: Müfredat Şablonları ve Konu Takibi (M)

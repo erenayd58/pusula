@@ -4,8 +4,8 @@ import type { StudentListRow } from "../server/queries";
 import { StudentRowActions } from "./student-row-actions";
 
 /**
- * Yer tutucu öğrenci listesi (flat). Satır eylemleri (şifre sıfırlama, davet kodu, koç atama,
- * silme) ayrı istemci bileşenlerinde; kabuk ve gerçek tablo Faz 1c'de.
+ * Öğrenci listesi (flat). Ad öğrenci detayına gider; satır eylemleri (şifre sıfırlama, davet
+ * kodu, koç atama, silme) ayrı istemci bileşenlerinde. Haftalık metrikler Faz 3'te eklenir.
  */
 export function StudentTable({
   students,
@@ -48,7 +48,14 @@ export function StudentTable({
         <tbody>
           {students.map((s) => (
             <tr key={s.profileId} className="border-b border-line last:border-b-0">
-              <td className="px-4 py-3 font-medium text-ink-900">{s.fullName}</td>
+              <td className="px-4 py-3">
+                <Link
+                  href={`/coach/students/${s.profileId}`}
+                  className="font-medium text-ink-900 underline-offset-4 hover:underline"
+                >
+                  {s.fullName}
+                </Link>
+              </td>
               <td className="px-4 py-3 font-mono text-ink-700">{s.username}</td>
               <td className="px-4 py-3 text-ink-700">{s.season}</td>
               <td className="px-4 py-3 text-ink-700">{studentStatusLabels[s.status]}</td>
