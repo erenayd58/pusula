@@ -52,4 +52,4 @@ ortamı içindir, hiçbir uzak ortamda kullanılmaz.
 | Öğrenci | `ayse.k`, `mehmet.y`, `zeynep.a` (kullanıcı adı; arka planda `<ad>@ogrenci.pusula.local`) |
 | Veli | `veli.ayse@pusula.local`, `veli.mehmet@pusula.local` (ilk girişte KVKK onayı istenir) |
 
-Uçtan uca testler (`pnpm test:e2e`) yerel Supabase'in çalışmasını ve `.env.local`'i bekler; koç seed hesabıyla öğrenci oluşturur, veli daveti akışını Mailpit üzerinden doğrular.
+Uçtan uca testler (`pnpm test:e2e`) yerel Supabase'in çalışmasını ve `.env.local`'i bekler; koç seed hesabıyla öğrenci oluşturur, veli daveti akışını Mailpit üzerinden doğrular. Testler üretim derlemesine karşı koşar: Playwright `pnpm e2e:server` (`next build && next start -p 3100`) açar ya da 3100'de çalışan sunucuyu kullanır; yalnızca `/dev/design` testleri dev sunucusuna (3000) gider. Sık koşuyorsan ayrı bir terminalde `pnpm e2e:server` açık tut (derleme bir kez).

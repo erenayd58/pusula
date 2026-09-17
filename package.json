@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "e2e:server": "next build && next start -p 3100",
     "screenshots": "node scripts/screenshots.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",

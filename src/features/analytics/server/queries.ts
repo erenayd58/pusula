@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { getOrgSettings } from "@/features/core";
 import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -17,7 +18,7 @@ const FACT_SELECT =
   "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic" as const;
 
 /** Analiz modülü kapatılan öğrenciler (student_modules); K1 tek sorguda onları dışarıda bırakır. */
-async function listAnalyticsDisabled(): Promise<Set<string>> {
+const listAnalyticsDisabled = cache(async (): Promise<Set<string>> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("student_modules")
@@ -26,10 +27,15 @@ async function listAnalyticsDisabled(): Promise<Set<string>> {
     .eq("enabled", false);
   if (error) throw error;
   return new Set(data.map((r) => r.student_id));
-}
+});
 
-export async function getTopicAlertFacts(studentIds?: string[]): Promise<TopicAlertFacts[]> {
-  if (studentIds && studentIds.length === 0) return [];
+/**
+ * Aynı istekte aynı öğrenci kümesi için tek sorgu (React `cache`): K1 sayfası uyarıları hem
+ * doğrudan hem `getSuggestions` üzerinden ister. Anahtar dizi kimliği değil içeriği olsun diye
+ * öğrenci listesi metne çevrilir.
+ */
+const fetchTopicAlertFacts = cache(async (key: string): Promise<TopicAlertFacts[]> => {
+  const studentIds = key === "*" ? undefined : key.split(",");
   const supabase = await createClient();
   let query = supabase
     .from("v_topic_alert_facts")
@@ -81,6 +87,11 @@ export async function getTopicAlertFacts(studentIds?: string[]): Promise<TopicAl
         ]
       : [],
   );
+});
+
+export async function getTopicAlertFacts(studentIds?: string[]): Promise<TopicAlertFacts[]> {
+  if (studentIds && studentIds.length === 0) return [];
+  return fetchTopicAlertFacts(studentIds ? [...studentIds].sort().join(",") : "*");
 }
 
 /** Olgular + kurum eşikleri → uyarılar (öncelik sırasında). Tek öğrenci ya da liste. */

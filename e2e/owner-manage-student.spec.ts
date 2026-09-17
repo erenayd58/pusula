@@ -48,7 +48,7 @@ test.describe("owner öğrenci yönetir", () => {
     // Sil
     await login(page, accounts.owner.identifier);
     await page.goto("/coach/students");
-    await row.getByRole("button", { name: "Sil" }).click();
+    await row.getByRole("button", { name: "Sil", exact: true }).click();
     await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
     await expect(page.getByText("silindi.")).toBeVisible();
     await expect(studentRow(page, username)).toHaveCount(0);
@@ -62,7 +62,8 @@ test.describe("owner öğrenci yönetir", () => {
     await login(page, accounts.coach.identifier);
     await page.goto("/coach/students");
     await expect(page.getByRole("button", { name: "Şifre sıfırla" }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sil" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Koç ata" })).toHaveCount(0);
+    // exact: Playwright ad eşleşmesi aksan düşürerek alt dize arar ("Olasılığı" → "olasiligi" ⊃ "sil").
+    await expect(page.getByRole("button", { name: "Sil", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Koç ata", exact: true })).toHaveCount(0);
   });
 });
