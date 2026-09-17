@@ -11,7 +11,7 @@
 --   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals ve faz4a_schedule ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule ve faz4b_weekly_plans ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -82,7 +82,15 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('schedule_exceptions',    'select', true,  null),
   ('schedule_exceptions',    'insert', true,  null),
   ('schedule_exceptions',    'update', true,  null),
-  ('schedule_exceptions',    'delete', true,  null);
+  ('schedule_exceptions',    'delete', true,  null),
+  ('weekly_plans',           'select', true,  null),
+  ('weekly_plans',           'insert', true,  null),
+  ('weekly_plans',           'update', true,  null),
+  ('weekly_plans',           'delete', true,  null),
+  ('plan_items',             'select', true,  null),
+  ('plan_items',             'insert', true,  null),
+  ('plan_items',             'update', true,  null),
+  ('plan_items',             'delete', true,  null);
 
 select plan((
     (select count(*) from pg_class c
