@@ -293,7 +293,10 @@ const SHOTS = [
     path: "/student/plan",
     before: async (page) => {
       await page.getByRole("tab", { name: /^Salı,/ }).click();
-      await page.getByRole("checkbox", { name: /^Tamamla: / }).first().click();
+      await page
+        .getByRole("checkbox", { name: /^Tamamla: / })
+        .first()
+        .click();
       await page.getByRole("dialog").waitFor();
     },
   },

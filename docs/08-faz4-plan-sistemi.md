@@ -96,7 +96,7 @@ weekly_plans (
   id uuid pk,
   student_id uuid not null references students(profile_id) on delete cascade,
   week_start date not null check (extract(isodow from week_start) = 1),
-  created_by uuid not null references profiles(id),
+  created_by uuid references profiles(id) on delete set null,
   status plan_status not null default 'draft',
   coach_message text,
   student_reflection text,                   -- "Haftam nasıl geçti?"
@@ -145,7 +145,7 @@ create index question_logs_plan_item_id_idx on question_logs (plan_item_id);
 | `weekly_plans` | S (yalnızca `published`); reflection yazma RPC ile | S I U D (`is_coach_of`; insert `created_by` kendisi) | S (`published`) | Tümü |
 | `plan_items` | S (`can_read_plan`); tamamlama/not/erteleme RPC ile | S I U D (`can_write_plan`) | S (`can_read_plan`) | Tümü |
 
-Tablo yetkisi her ikisinde `authenticated` S I U D (politikalar daraltır; öğrencinin doğrudan UPDATE'i politikayla 0 satır etkiler, kolon kısıtı 03 §5.3 seçenek (a) ile RPC'de).
+Tablo yetkisi her ikisinde `authenticated` S I U D (politikalar daraltır; öğrencinin doğrudan UPDATE'i politikayla 0 satır etkiler, kolon kısıtı 03 §5.3 seçenek (a) ile RPC'de). Ek yardımcı: `private.can_act_on_plan(p_plan_id)` = öğrenci kendi yayınlanmış planı ya da koç (RPC yetki kontrolü). ✅ Parça 2 uygulandı (2026-09-17); sütun düzeni: 8 sütun esnek genişlikte yatay kayar, havuz her genişlikte daraltılabilir (02 karar #40).
 
 **RPC'ler (Parça 2, migration `faz4b_plan_rpcs`):**
 
