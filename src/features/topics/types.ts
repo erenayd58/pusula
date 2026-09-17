@@ -7,6 +7,10 @@ export type TopicMapCell = {
   status: TopicStatus;
   confidence: number | null;
   completedAt: string | null;
+  /** Bu konuya girilen toplam soru (v_topic_question_stats); yoksa 0. */
+  questions: number;
+  /** Başarı yüzdesi (0-100); soru yoksa null. */
+  accuracy: number | null;
 };
 
 export type TopicMapSubject = {

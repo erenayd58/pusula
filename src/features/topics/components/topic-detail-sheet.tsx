@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/responsive-sheet";
 import { topicStatusLabels } from "@/content/labels";
 import { FormError } from "@/components/shared/form-error";
-import { formatDateTr } from "@/lib/format";
+import { formatCount, formatDateTr, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { TopicStatus } from "@/types";
 import { topicStatusValues } from "../schemas";
@@ -37,8 +37,8 @@ export type TopicDetailSelection = { subject: TopicMapSubject; cell: TopicMapCel
 
 /**
  * Hücre detayı: telefonda alt panel, masaüstünde diyalog (ResponsiveSheet; 02 karar #30).
- * Durum ve 1-5 güven puanı seçilir, kaydedilir. Soru sayısı/başarı/kaynak alanları
- * Faz 3 ve 5'te eklenir.
+ * Üstte çözülen soru ve başarı (Faz 3, görünümden); durum ve 1-5 güven puanı seçilir,
+ * kaydedilir. Bağlı kaynaklar Faz 5'te eklenir.
  */
 export function TopicDetailSheet({
   selection,
@@ -135,6 +135,23 @@ function DetailForm({
               : "Öğrencinin bu konudaki durumu ve güven puanı."}
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
+
+      <dl className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col rounded-sm border border-line bg-bg-paper px-4 py-3 clay:rounded-md clay:border-0 clay:clay-well">
+          <dt className="order-last text-micro-lg text-ink-500">çözülen soru</dt>
+          <dd className="text-heading-lg font-semibold text-ink-900">
+            {cell.questions > 0 ? formatCount(cell.questions) : "—"}
+          </dd>
+        </div>
+        <div className="flex flex-col rounded-sm border border-line bg-bg-paper px-4 py-3 clay:rounded-md clay:border-0 clay:clay-well">
+          <dt className="order-last text-micro-lg text-ink-500">
+            {cell.accuracy === null ? "henüz kayıt yok" : "başarı"}
+          </dt>
+          <dd className="text-heading-lg font-semibold text-ink-900">
+            {cell.accuracy === null ? "—" : formatPercent(cell.accuracy)}
+          </dd>
+        </div>
+      </dl>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-small font-medium text-ink-700">Durum</legend>

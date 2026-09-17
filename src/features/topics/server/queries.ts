@@ -1,5 +1,6 @@
 import "server-only";
 
+import { accuracyPercent } from "@/lib/exam/net";
 import { createClient } from "@/lib/supabase/server";
 import { countDone } from "../lib/completion";
 import type {
@@ -47,7 +48,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
   if (error) throw error;
   if (!student?.curriculum_template_id || !student.template) return null;
 
-  const [subjects, progress] = await Promise.all([
+  const [subjects, progress, stats] = await Promise.all([
     listSubjectsWithTopics(student.curriculum_template_id),
     supabase
       .from("student_topic_progress")
@@ -57,8 +58,18 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
         if (error) throw error;
         return data;
       }),
+    // Soru sayısı/başarı: question-log modülünün verisi, görünümle okunur (modüller arası kural).
+    supabase
+      .from("v_topic_question_stats")
+      .select("topic_id, questions, correct")
+      .eq("student_id", studentId)
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      }),
   ]);
   const byTopic = new Map(progress.map((p) => [p.topic_id, p]));
+  const statsByTopic = new Map(stats.map((r) => [r.topic_id, r]));
 
   const mapped: TopicMapSubject[] = subjects.map((s) => ({
     subjectId: s.id,
@@ -70,12 +81,16 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
       .filter((t) => t.parent_id === null)
       .map((t) => {
         const p = byTopic.get(t.id);
+        const st = statsByTopic.get(t.id);
+        const questions = st?.questions ?? 0;
         return {
           topicId: t.id,
           name: t.name,
           status: p?.status ?? "not_started",
           confidence: p?.confidence ?? null,
           completedAt: p?.completed_at ?? null,
+          questions,
+          accuracy: accuracyPercent(st?.correct ?? 0, questions),
         };
       }),
   }));
