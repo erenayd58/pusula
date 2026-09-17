@@ -60,90 +60,78 @@ export function NumberStepper({
     "hover:bg-bg-surface disabled:cursor-not-allowed disabled:text-ink-300",
     compact ? "size-8 pointer-coarse:size-11" : "size-11 pointer-coarse:size-12",
     "clay:clay-press clay:rounded-md clay:border-0 clay:clay-sm",
-    !compact && "clay:size-12",
   );
+  // Genişlik en az 3 hane (ör. 120) kesilmeden: 64 px kutu, 24 px yazı; üç adımlayıcı
+  // masaüstü diyaloğuna (max-w-xl) yan yana sığar.
   const inputClass = cn(
-    "min-w-0 rounded-xs border border-line-strong bg-bg-paper text-center font-semibold text-ink-900",
+    "min-w-0 shrink-0 rounded-xs border border-line-strong bg-bg-paper px-1 text-center font-semibold text-ink-900 tabular-nums",
     compact
       ? "h-8 w-14 text-small pointer-coarse:h-11"
-      : "h-11 w-full text-heading-lg md:w-16 pointer-coarse:h-12",
+      : "h-11 w-16 text-heading-lg pointer-coarse:h-12",
     "clay:rounded-md clay:border-0 clay:clay-well",
-    !compact && "clay:h-12 clay:text-display md:clay:w-20",
+    !compact && "clay:h-12 clay:text-title",
   );
 
-  const minus = (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label={`${label} azalt`}
-      onClick={() => nudge(-step)}
-      disabled={value <= min}
-      className={cn(buttonClass, !compact && "md:order-first")}
-    >
-      <MinusIcon aria-hidden="true" className="size-4" />
-    </button>
-  );
-  const plus = (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label={`${label} artır`}
-      onClick={() => nudge(step)}
-      disabled={value >= max}
-      className={cn(buttonClass, !compact && "md:order-last")}
-    >
-      <PlusIcon aria-hidden="true" className="size-4" />
-    </button>
-  );
-  const input = (
-    <input
-      ref={inputRef}
-      id={id}
-      type="text"
-      inputMode="numeric"
-      pattern="[0-9]*"
-      autoComplete="off"
-      value={shown}
-      onChange={(e) => type(e.target.value)}
-      onBlur={commit}
-      onFocus={(e) => e.currentTarget.select()}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowUp") {
-          e.preventDefault();
-          nudge(step);
-        } else if (e.key === "ArrowDown") {
-          e.preventDefault();
-          nudge(-step);
-        }
-      }}
-      className={inputClass}
-    />
-  );
-
-  // Telefonda (S2) sayı üstte, −/+ altta; ≥ md (S6) tek satırda − sayı +. compact: hep tek satır.
+  // Her zaman tek satır: − sayı +. Varsayılan: telefonda etiket solda, kontroller sağda
+  // (üç adımlayıcı alt alta sığar); ≥ md etiket üstte, ortalı (S6). compact: etiket üstte, küçük.
   return (
     <div
-      className={cn("flex flex-col gap-1.5", compact ? "items-stretch" : "items-center", className)}
+      className={cn(
+        "flex gap-1.5",
+        compact
+          ? "flex-col items-stretch"
+          : "items-center justify-between gap-3 md:flex-col md:items-center md:justify-start md:gap-1.5",
+        className,
+      )}
       {...props}
     >
       <label htmlFor={id} className="text-small font-medium text-ink-700">
         {label}
       </label>
-      {compact ? (
-        <div className="flex items-center gap-1">
-          {minus}
-          {input}
-          {plus}
-        </div>
-      ) : (
-        <div className="flex w-full flex-col items-center gap-2 md:flex-row md:justify-center">
-          {input}
-          <div className="flex gap-2 md:contents">
-            {minus}
-            {plus}
-          </div>
-        </div>
-      )}
+      <div className={cn("flex items-center", compact ? "gap-1" : "gap-2")}>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`${label} azalt`}
+          onClick={() => nudge(-step)}
+          disabled={value <= min}
+          className={buttonClass}
+        >
+          <MinusIcon aria-hidden="true" className="size-4" />
+        </button>
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          autoComplete="off"
+          value={shown}
+          onChange={(e) => type(e.target.value)}
+          onBlur={commit}
+          onFocus={(e) => e.currentTarget.select()}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              nudge(step);
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+              nudge(-step);
+            }
+          }}
+          className={inputClass}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`${label} artır`}
+          onClick={() => nudge(step)}
+          disabled={value >= max}
+          className={buttonClass}
+        >
+          <PlusIcon aria-hidden="true" className="size-4" />
+        </button>
+      </div>
     </div>
   );
 }

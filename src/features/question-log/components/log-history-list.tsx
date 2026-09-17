@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/responsive-sheet";
 import { toDateKey, todayInIstanbul } from "@/lib/dates";
 import { formatCount, formatDateTr } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { NO_TOPIC_LABEL, formatLogCounts } from "../lib/format-log";
 import { deleteQuestionLog } from "../server/actions";
 import type { QuestionLogRow } from "../types";
 import { useQuickLog } from "./quick-log-provider";
@@ -52,20 +54,22 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       className="clay:min-h-8 clay:px-2.5 clay:text-micro-lg"
                     />
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="line-clamp-2 text-body text-ink-900">
-                        {r.topicName ?? r.subjectName}
+                      <span
+                        className={cn(
+                          "line-clamp-2 text-body",
+                          r.topicName ? "text-ink-900" : "text-ink-500",
+                        )}
+                      >
+                        {r.topicName ?? NO_TOPIC_LABEL}
                       </span>
-                      <span className="text-small text-ink-500">
-                        {`${r.total} soru · ${r.correct} D / ${r.wrong} Y / ${r.blank} B`}
-                        {r.durationMinutes ? ` · ${r.durationMinutes} dk` : ""}
-                      </span>
+                      <span className="text-small text-ink-500">{formatLogCounts(r)}</span>
                     </span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       className="clay:size-11"
-                      aria-label={`Düzenle: ${r.topicName ?? r.subjectName}, ${formatDateTr(r.logDate)}`}
+                      aria-label={`Düzenle: ${r.subjectName}${r.topicName ? ` · ${r.topicName}` : ""}, ${formatDateTr(r.logDate)}`}
                       onClick={() =>
                         open({
                           id: r.id,
@@ -86,7 +90,7 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       variant="ghost"
                       size="icon"
                       className="clay:size-11"
-                      aria-label={`Sil: ${r.topicName ?? r.subjectName}, ${formatDateTr(r.logDate)}`}
+                      aria-label={`Sil: ${r.subjectName}${r.topicName ? ` · ${r.topicName}` : ""}, ${formatDateTr(r.logDate)}`}
                       onClick={() => setToDelete(r)}
                     >
                       <Trash2Icon aria-hidden="true" />
@@ -134,7 +138,7 @@ function DeleteLogSheet({
           <ResponsiveSheetTitle>Kaydı sil</ResponsiveSheetTitle>
           <ResponsiveSheetDescription>
             {row
-              ? `${formatDateTr(row.logDate)} · ${row.topicName ?? row.subjectName} · ${formatCount(row.total, "soru")}. Bu kayıt silinince bugünkü ve haftalık toplamlar da değişir.`
+              ? `${formatDateTr(row.logDate)} · ${row.subjectName}${row.topicName ? ` · ${row.topicName}` : ""} · ${formatCount(row.total, "soru")}. Bu kayıt silinince bugünkü ve haftalık toplamlar da değişir.`
               : ""}
           </ResponsiveSheetDescription>
         </ResponsiveSheetHeader>

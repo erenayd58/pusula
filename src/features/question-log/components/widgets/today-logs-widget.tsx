@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ChevronRightIcon } from "lucide-react";
 import { SubjectBadge } from "@/components/shared/subject-badge";
 import { formatCount, formatDuration } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { ModuleWidgetProps } from "@/modules/define-module";
+import { NO_TOPIC_LABEL, formatLogCounts } from "../../lib/format-log";
 import { getTodayLogs } from "../../server/queries";
 
 /**
@@ -41,12 +43,15 @@ export async function TodayLogsWidget({ studentId }: ModuleWidgetProps) {
               <li key={l.id} className="flex items-center gap-3 py-2.5">
                 <SubjectBadge color={l.subjectColor} shortName={l.subjectShortName} />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-body text-ink-900">
-                    {l.topicName ?? l.subjectName}
+                  <span
+                    className={cn(
+                      "truncate text-body",
+                      l.topicName ? "text-ink-900" : "text-ink-500",
+                    )}
+                  >
+                    {l.topicName ?? NO_TOPIC_LABEL}
                   </span>
-                  <span className="text-small text-ink-500">
-                    {`${l.total} soru · ${l.correct} D / ${l.wrong} Y / ${l.blank} B`}
-                  </span>
+                  <span className="text-small text-ink-500">{formatLogCounts(l)}</span>
                 </span>
               </li>
             ))}

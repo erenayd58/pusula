@@ -87,7 +87,7 @@ test.describe("hızlı soru kaydı", () => {
       await dialog.getByLabel("Doğru", { exact: true }).fill("22");
       await dialog.getByRole("button", { name: "Kaydet" }).click();
       await expect(page.getByText("Kayıt güncellendi.")).toBeVisible();
-      await expect(page.getByText("27 soru · 22 D / 5 Y / 0 B")).toBeVisible();
+      await expect(page.getByText("27 soru · 22 D / 5 Y / 0 B")).toBeVisible(); // NBSP normalize edilir
 
       await page.getByRole("button", { name: /^Sil: Fen Bilimleri/ }).click();
       await page.getByRole("button", { name: "Kaydı sil" }).click();
@@ -114,3 +114,42 @@ async function quickLog(page: Page, input: { subject: string; correct: number; w
   await dialog.getByRole("button", { name: "Kaydet" }).click();
   await expect(dialog).toHaveCount(0);
 }
+
+/**
+ * Kısa telefon ekranı (390×667) ve sanal klavye açıkken (yerleşim alanı ~420 px; viewport
+ * `interactive-widget=resizes-content`): "Kaydet" her zaman görünür alanda, panel taşmaz,
+ * yalnızca gövde kayar. Seed öğrencisiyle yalnızca açıp kapatır; veri yazmaz.
+ */
+test.describe("hızlı kayıt paneli kısa ekranda", () => {
+  test.use({ viewport: { width: 390, height: 667 }, hasTouch: true, isMobile: true });
+
+  test("Kaydet yapışık altbilgide görünür kalır", async ({ page }) => {
+    await login(page, accounts.student.identifier);
+    await page.goto("/student/today");
+    await page.getByRole("button", { name: "Soru kaydı ekle" }).filter({ visible: true }).click();
+    const dialog = page.getByRole("dialog");
+    const save = dialog.getByRole("button", { name: "Kaydet" });
+    await expect(save).toBeInViewport({ ratio: 1 });
+    await expect(dialog.getByRole("button", { name: "Vazgeç" })).toBeHidden();
+
+    // Alana odaklanıp yazınca da (gövde kayar) Kaydet yerinde kalır.
+    const correct = dialog.getByLabel("Doğru", { exact: true });
+    await correct.fill("120");
+    await expect(dialog.getByText("Toplam 120")).toBeVisible();
+    await expect(save).toBeInViewport({ ratio: 1 });
+
+    // Klavye açık: yerleşim alanı küçülür; panel viewport içinde kalır, Kaydet görünür.
+    await page.setViewportSize({ width: 390, height: 420 });
+    await expect(save).toBeInViewport({ ratio: 1 });
+    const box = await dialog.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(420 + 1);
+    const body = dialog.getByTestId("quick-log-body");
+    await expect(body).toBeInViewport();
+    const scrollable = await body.evaluate((el) => el.scrollHeight > el.clientHeight);
+    expect(scrollable).toBe(true);
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+  });
+});

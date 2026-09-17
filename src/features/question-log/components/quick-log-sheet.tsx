@@ -73,7 +73,8 @@ export function QuickLogSheet({
 }) {
   return (
     <ResponsiveSheet open={open} onOpenChange={onOpenChange}>
-      <ResponsiveSheetContent className="sm:max-w-lg">
+      {/* Telefonda panel kendisi kaymaz: gövde kayar, başlık ve Kaydet sabit (yapışık altbilgi). */}
+      <ResponsiveSheetContent className="max-md:flex max-md:flex-col max-md:overflow-hidden sm:max-w-xl">
         <QuickLogForm
           studentId={studentId}
           options={options}
@@ -179,8 +180,12 @@ function QuickLogForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
-      <ResponsiveSheetHeader>
+    <form
+      onSubmit={submit}
+      className="flex min-h-0 flex-col gap-4 max-md:flex-1 md:gap-5"
+      noValidate
+    >
+      <ResponsiveSheetHeader className="shrink-0">
         <ResponsiveSheetTitle>{editing ? "Kaydı düzenle" : "Soru kaydı"}</ResponsiveSheetTitle>
         <ResponsiveSheetDescription>
           {editing
@@ -189,112 +194,133 @@ function QuickLogForm({
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-small font-medium text-ink-700">Ders</legend>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Ders">
-          {options.subjects.map((s) => {
-            const selected = s.subjectId === subjectId;
-            return (
-              <button
-                key={s.subjectId}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => selectSubject(s.subjectId)}
-                style={subjectVars(s.color)}
-                className={cn(
-                  "flex min-h-11 items-center gap-2 rounded-xs border px-3 text-small font-medium",
-                  selected
-                    ? "border-subject bg-subject-soft text-subject-ink"
-                    : "border-line bg-bg-paper text-ink-700 hover:bg-bg-surface",
-                  "clay:clay-press clay:min-h-12 clay:rounded-md clay:border-0 clay:px-4",
-                  selected ? "clay:clay-pressed clay:bg-subject-soft" : "clay:clay-sm",
-                )}
-              >
-                <span aria-hidden="true" className="size-2 rounded-full bg-subject" />
-                {s.shortName}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+      {/* Kayan gövde (yalnızca telefonda kayar; kenar boşluğu panelinkiyle hizalı). */}
+      <div
+        data-testid="quick-log-body"
+        className="flex min-h-0 flex-col gap-4 max-md:-mx-4 max-md:flex-1 max-md:overflow-y-auto max-md:px-4 md:gap-5 clay:max-md:-mx-5 clay:max-md:px-5"
+      >
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-small font-medium text-ink-700">Ders</legend>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Ders">
+            {options.subjects.map((s) => {
+              const selected = s.subjectId === subjectId;
+              return (
+                <button
+                  key={s.subjectId}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => selectSubject(s.subjectId)}
+                  style={subjectVars(s.color)}
+                  className={cn(
+                    "flex min-h-11 items-center gap-2 rounded-xs border px-3 text-small font-medium",
+                    selected
+                      ? "border-subject bg-subject-soft text-subject-ink"
+                      : "border-line bg-bg-paper text-ink-700 hover:bg-bg-surface",
+                    "clay:min-h-12 clay:clay-press clay:rounded-md clay:border-0 clay:px-4",
+                    selected ? "clay:clay-pressed clay:bg-subject-soft" : "clay:clay-sm",
+                  )}
+                >
+                  <span aria-hidden="true" className="size-2 rounded-full bg-subject" />
+                  {s.shortName}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
-      <div>
-        <Label htmlFor="quick-log-topic">Konu (isteğe bağlı)</Label>
-        <NativeSelect
-          id="quick-log-topic"
-          value={topicId ?? ""}
-          onChange={(e) => selectTopic(e.target.value === "" ? null : e.target.value)}
-        >
-          <option value="">Konu seçmeden kaydet</option>
-          {subject.topics.map((t) => (
-            <option key={t.topicId} value={t.topicId}>
-              {t.name}
-            </option>
-          ))}
-        </NativeSelect>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <NumberStepper
-          id="quick-log-correct"
-          label="Doğru"
-          value={correct}
-          onChange={setCorrect}
-          inputRef={correctRef}
-        />
-        <NumberStepper id="quick-log-wrong" label="Yanlış" value={wrong} onChange={setWrong} />
-        <NumberStepper id="quick-log-blank" label="Boş" value={blank} onChange={setBlank} />
-      </div>
-
-      <div className={cn("grid gap-4", editing ? "sm:grid-cols-2" : "")}>
         <div>
-          <Label htmlFor="quick-log-duration">Süre (dk, isteğe bağlı)</Label>
-          <Input
-            id="quick-log-duration"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={600}
-            placeholder="ör. 40"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-          />
+          <Label htmlFor="quick-log-topic">Konu (isteğe bağlı)</Label>
+          <NativeSelect
+            id="quick-log-topic"
+            value={topicId ?? ""}
+            onChange={(e) => selectTopic(e.target.value === "" ? null : e.target.value)}
+          >
+            <option value="">Konu seçmeden kaydet</option>
+            {subject.topics.map((t) => (
+              <option key={t.topicId} value={t.topicId}>
+                {t.name}
+              </option>
+            ))}
+          </NativeSelect>
         </div>
-        {editing ? (
-          <div>
-            <Label htmlFor="quick-log-date">Tarih</Label>
+
+        {/* Telefonda alt alta üç satır (etiket solda, − sayı + sağda); ≥ md üç sütun. */}
+        <div className="grid gap-2 md:grid-cols-3 md:gap-3">
+          <NumberStepper
+            id="quick-log-correct"
+            label="Doğru"
+            value={correct}
+            onChange={setCorrect}
+            inputRef={correctRef}
+          />
+          <NumberStepper id="quick-log-wrong" label="Yanlış" value={wrong} onChange={setWrong} />
+          <NumberStepper id="quick-log-blank" label="Boş" value={blank} onChange={setBlank} />
+        </div>
+
+        {/* Süre kompakt: telefonda adımlayıcılarla aynı satır düzeni (etiket solda, alan sağda). */}
+        <div className={cn("grid gap-2 md:gap-4", editing ? "md:grid-cols-2" : "")}>
+          <div className="flex items-center justify-between gap-3 md:flex-col md:items-stretch md:gap-0">
+            <Label htmlFor="quick-log-duration" className="mb-0 md:mb-1.5 clay:mb-0 md:clay:mb-2">
+              Süre (dk, isteğe bağlı)
+            </Label>
             <Input
-              id="quick-log-date"
-              type="date"
-              max={todayKey}
-              value={logDate}
-              onChange={(e) => setLogDate(e.target.value)}
+              id="quick-log-duration"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={600}
+              placeholder="ör. 40"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-28 shrink-0 md:w-full clay:min-h-11 md:clay:min-h-12"
             />
           </div>
-        ) : null}
+          {editing ? (
+            <div className="flex items-center justify-between gap-3 md:flex-col md:items-stretch md:gap-0">
+              <Label htmlFor="quick-log-date" className="mb-0 md:mb-1.5 clay:mb-0 md:clay:mb-2">
+                Tarih
+              </Label>
+              <Input
+                id="quick-log-date"
+                type="date"
+                max={todayKey}
+                value={logDate}
+                onChange={(e) => setLogDate(e.target.value)}
+                className="w-44 shrink-0 md:w-full clay:min-h-11 md:clay:min-h-12"
+              />
+            </div>
+          ) : null}
+        </div>
+
+        <FormError message={error} />
       </div>
 
-      <p
-        aria-live="polite"
-        className="flex items-center justify-between rounded-sm bg-bg-surface px-4 py-3 text-small clay:rounded-md clay:clay-well"
-      >
-        <span className="text-ink-500">Anlık özet</span>
-        <span className="font-semibold text-ink-900">
-          {`Toplam ${total} · Net ${formatNet(net)}`}
-        </span>
-      </p>
-
-      <FormError message={error} />
-
-      <ResponsiveSheetFooter>
-        <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
-          Vazgeç
-        </Button>
-        <Button type="submit" disabled={pending}>
-          {pending ? "Kaydediliyor…" : "Kaydet"}
-        </Button>
-      </ResponsiveSheetFooter>
+      {/* Yapışık altbilgi: anlık özet + Kaydet her zaman görünür; telefonda Vazgeç yok (X yeterli). */}
+      <div className="flex shrink-0 flex-col gap-3">
+        <p
+          aria-live="polite"
+          className="flex items-center justify-between rounded-sm bg-bg-surface px-4 py-2.5 text-small clay:rounded-md clay:clay-well"
+        >
+          <span className="text-ink-500">Anlık özet</span>
+          <span className="font-semibold text-ink-900">
+            {`Toplam ${total} · Net ${formatNet(net)}`}
+          </span>
+        </p>
+        <ResponsiveSheetFooter>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => onOpenChange(false)}
+            className="max-md:hidden"
+          >
+            Vazgeç
+          </Button>
+          <Button type="submit" disabled={pending}>
+            {pending ? "Kaydediliyor…" : "Kaydet"}
+          </Button>
+        </ResponsiveSheetFooter>
+      </div>
       <p className="hidden text-center text-micro-lg text-ink-500 md:block">
         <kbd>Tab</kbd> alanlar arasında geçer · <kbd>↑</kbd> <kbd>↓</kbd> sayıyı değiştirir ·{" "}
         <kbd>Enter</kbd> kaydeder · <kbd>Esc</kbd> kapatır
