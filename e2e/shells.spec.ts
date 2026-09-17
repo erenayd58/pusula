@@ -20,7 +20,11 @@ test.describe("uygulama kabukları", () => {
 
     await nav.getByRole("link", { name: "Konular" }).click();
     await expect(page).toHaveURL(/\/student\/topics$/);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Konular");
+    // Faz 2: Konular gerçek sayfa (konu haritası); yer tutucu için Denemeler.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Konu haritası");
+    await nav.getByRole("link", { name: "Denemeler" }).click();
+    await expect(page).toHaveURL(/\/student\/exams$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Denemeler");
     await expect(page.getByText("bu bölüm yakında")).toBeVisible();
   });
 
