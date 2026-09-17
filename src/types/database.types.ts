@@ -92,6 +92,63 @@ export type Database = {
           },
         ]
       }
+      curriculum_templates: {
+        Row: {
+          based_on_id: string | null
+          created_at: string
+          exam_type: string
+          grade: number
+          id: string
+          is_published: boolean
+          name: string
+          organization_id: string | null
+          scoring: Json
+          season: string
+          updated_at: string
+        }
+        Insert: {
+          based_on_id?: string | null
+          created_at?: string
+          exam_type: string
+          grade: number
+          id?: string
+          is_published?: boolean
+          name: string
+          organization_id?: string | null
+          scoring: Json
+          season: string
+          updated_at?: string
+        }
+        Update: {
+          based_on_id?: string | null
+          created_at?: string
+          exam_type?: string
+          grade?: number
+          id?: string
+          is_published?: boolean
+          name?: string
+          organization_id?: string | null
+          scoring?: Json
+          season?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_templates_based_on_id_fkey"
+            columns: ["based_on_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           code: string
@@ -305,6 +362,57 @@ export type Database = {
           },
         ]
       }
+      student_topic_progress: {
+        Row: {
+          completed_at: string | null
+          confidence: number | null
+          last_reviewed_at: string | null
+          next_review_at: string | null
+          review_stage: number
+          status: Database["public"]["Enums"]["topic_status"]
+          student_id: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confidence?: number | null
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          review_stage?: number
+          status?: Database["public"]["Enums"]["topic_status"]
+          student_id: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          confidence?: number | null
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          review_stage?: number
+          status?: Database["public"]["Enums"]["topic_status"]
+          student_id?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_topic_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_topic_progress_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           class_section: string | null
@@ -360,6 +468,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "students_curriculum_template_id_fkey"
+            columns: ["curriculum_template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "students_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -371,6 +486,110 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          code: string
+          color: string
+          exam_question_count: number | null
+          exam_section: string | null
+          icon: string
+          id: string
+          name: string
+          short_name: string
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          code: string
+          color: string
+          exam_question_count?: number | null
+          exam_section?: string | null
+          icon: string
+          id?: string
+          name: string
+          short_name: string
+          sort_order: number
+          template_id: string
+        }
+        Update: {
+          code?: string
+          color?: string
+          exam_question_count?: number | null
+          exam_section?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          short_name?: string
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topics: {
+        Row: {
+          created_at: string
+          estimated_minutes: number | null
+          external_code: string | null
+          id: string
+          importance: number
+          name: string
+          parent_id: string | null
+          semester: number | null
+          sort_order: number
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_minutes?: number | null
+          external_code?: string | null
+          id?: string
+          importance?: number
+          name: string
+          parent_id?: string | null
+          semester?: number | null
+          sort_order: number
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_minutes?: number | null
+          external_code?: string | null
+          id?: string
+          importance?: number
+          name?: string
+          parent_id?: string | null
+          semester?: number | null
+          sort_order?: number
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topics_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
@@ -399,6 +618,7 @@ export type Database = {
           p_actor_id: string
           p_auth_user_id: string
           p_coach_id: string
+          p_curriculum_template_id: string
           p_exam_date: string
           p_full_name: string
           p_season: string
@@ -407,11 +627,21 @@ export type Database = {
         Returns: string
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      move_topic: {
+        Args: { p_direction: string; p_topic_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       consent_type: "privacy_notice" | "explicit_consent" | "photo_upload"
       parent_relation: "mother" | "father" | "guardian" | "other"
       student_status: "active" | "paused" | "archived"
+      topic_status:
+        | "not_started"
+        | "studying"
+        | "completed"
+        | "needs_review"
+        | "mastered"
       user_role: "owner" | "coach" | "student" | "parent"
     }
     CompositeTypes: {
@@ -546,6 +776,13 @@ export const Constants = {
       consent_type: ["privacy_notice", "explicit_consent", "photo_upload"],
       parent_relation: ["mother", "father", "guardian", "other"],
       student_status: ["active", "paused", "archived"],
+      topic_status: [
+        "not_started",
+        "studying",
+        "completed",
+        "needs_review",
+        "mastered",
+      ],
       user_role: ["owner", "coach", "student", "parent"],
     },
   },
