@@ -90,3 +90,14 @@ export const giveConsentSchema = z.object({
   studentIds: z.array(z.uuid()).min(1, "Onay verilecek öğrenci bulunamadı."),
   accepted: z.literal(true, "Devam etmek için onay kutusunu işaretleyin."),
 });
+
+/** Koçun kâğıt üzerinde alınan veli onayını işlemesi (consents.recorded_by). */
+export const recordPaperConsentSchema = studentIdSchema.extend({
+  givenAt: z.iso.date("Onay tarihi YYYY-AA-GG biçiminde olmalı."),
+  documentVersion: z
+    .string()
+    .trim()
+    .min(1, "Belge sürümünü yaz.")
+    .max(40, "Belge sürümü en fazla 40 karakter."),
+});
+export type RecordPaperConsentInput = z.infer<typeof recordPaperConsentSchema>;

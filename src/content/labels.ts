@@ -34,3 +34,8 @@ export const consentTypeLabels = {
   explicit_consent: "Açık rıza",
   photo_upload: "Fotoğraf yükleme izni",
 } as const;
+
+export const consentSourceLabels = {
+  parent: "Veli dijital onayı",
+  paper: "Kâğıt onayı",
+} as const;

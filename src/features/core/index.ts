@@ -25,7 +25,9 @@ export {
   acceptInvitation,
   type RegisterParentState,
 } from "./server/invitation-actions";
-export { giveConsent } from "./server/consent-actions";
+export { giveConsent, recordPaperConsent } from "./server/consent-actions";
+export { ConsentBadge } from "./components/consent-badge";
+export { PaperConsentDialog } from "./components/paper-consent-dialog";
 export { listChildren, listChildrenNeedingConsent, type ChildRow } from "./server/queries";
 export {
   getStudentHeader,
@@ -38,6 +40,7 @@ export {
   registerParentSchema,
   acceptInvitationSchema,
   giveConsentSchema,
+  recordPaperConsentSchema,
   invitationCodeSchema,
   INVITATION_CODE_MESSAGE,
   INVITATION_INVALID,
