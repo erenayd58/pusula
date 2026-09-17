@@ -15,6 +15,7 @@ const PASSWORD = "pusula-demo";
 const ACCOUNTS = {
   student: "ayse.k",
   coach: "koc@pusula.local",
+  owner: "sahip@pusula.local",
   parent: "veli.ayse@pusula.local",
 };
 const SEED = {
@@ -299,6 +300,42 @@ const SHOTS = [
         .click();
       await page.getByRole("dialog").waitFor();
     },
+  },
+  // Faz 4c: konu uyarıları
+  {
+    dir: "uygulama-4c",
+    file: "koc-dikkat-gerektirenler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-4c",
+    file: "koc-zayif-konular-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/topics`,
+  },
+  {
+    dir: "uygulama-4c",
+    file: "koc-havuz-uyarilar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+  },
+  {
+    dir: "uygulama-4c",
+    file: "sahip-ayarlar-1440.png",
+    as: "owner",
+    width: 1440,
+    path: "/coach/settings",
+  },
+  {
+    dir: "uygulama-4c",
+    file: "ogrenci-bugun-konu-karti-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
   },
 ];
 

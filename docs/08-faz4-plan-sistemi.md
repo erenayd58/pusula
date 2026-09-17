@@ -193,7 +193,7 @@ v_topic_alert_facts (
 )
 ```
 
-Satır sayısı: öğrenci × ~54 ünite; koç ana ekranı için tek sorgu (tüm öğrenciler) bu ölçekte yeterli. Okuma `features/analytics/server/queries.ts: getTopicAlertFacts(studentIds?)`.
+Satır sayısı: öğrenci × ~54 ünite; koç ana ekranı için tek sorgu (tüm öğrenciler) bu ölçekte yeterli. Okuma `features/analytics/server/queries.ts: getTopicAlertFacts(studentIds?)`. ✅ Parça 3 uygulandı (2026-09-18): ek kolon `student_first_log_date date` (derste hiç kayıt yoksa ihmal süresi öğrencinin ilk kaydından sayılır; öğrencinin hiç kaydı yoksa ihmal uyarısı üretilmez); `topic_alert_kind` enum'u bu migration'da (`faz4c_topic_alert_facts`) tanımlandı; analiz modülü kapatılan öğrenciler sorgu katmanında (`student_modules`) dışarıda bırakılır.
 
 ### 1.6 Parça 4: Reddetme hafızası
 
@@ -325,7 +325,7 @@ export function pickStudentNudge(alerts: TopicAlert[]): TopicAlert | null;  // y
 // Metin örnekleri: "Üslü İfadeler'e bir göz atma zamanı. 12 gündür bakmadın." · "Sırada Olasılık var, istersen bugün başla."
 ```
 
-**Kabul:** Seed öğrencisinde (Ayşe, 14 günlük kayıt) en az bir uyarı üretilir ve koç listesinde görünür; eşik değiştirilince (ayar formu) sonuç değişir; öğrenci Bugün'de en fazla bir nötr kart; birim testleri her kural + öncelik + ders düzeyi için.
+**Kabul:** Seed öğrencisinde (Ayşe, 14 günlük kayıt) en az bir uyarı üretilir ve koç listesinde görünür; eşik değiştirilince (ayar formu) sonuç değişir; öğrenci Bugün'de en fazla bir nötr kart; birim testleri her kural + öncelik + ders düzeyi için. ✅ Uygulandı (2026-09-18; e2e `alerts.spec.ts`). Notlar: `TopicAlert` Parça 4 için `questions`, `accuracy`, `threshold`, `idleDays`, `delayDays` taşır (`review_due`'da `idleDays` son etkinlik, `delayDays` eşiği aşan gün); K1 listesi `not_started` türünü göstermez (dikkat gerektirmez), pasif/arşiv öğrenciler listeye girmez, ilk 6 satır açık gerisi `details`; havuz eşlemesi `features/planner/lib/alert-pool.ts` (analytics'ten yalnızca tip alır, sebep metni `alertReason` sayfadan parametre gelir): bakım türlerinin üçü `review_due` kategorisinde `review` görevi, ders düzeyi uyarı havuza girmez; ayar formu tek şema `orgSettingsFormSchema` (core `schemas.ts`), `revalidatePath` listesine `/coach/settings` eklendi.
 
 ### Parça 4: Öneri motoru (`analytics`)
 
