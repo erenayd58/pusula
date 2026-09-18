@@ -4,19 +4,26 @@ import { alertReason, groupAlerts } from "../lib/alerts";
 import type { TopicAlert } from "../types";
 
 /**
- * K2 Konular sekmesi (flat): "Zayıf konular" (bilgi eksiği, düşük başarı) ve "Bakım
- * gerektirenler" (tekrar zamanı, unutma riski, soğumuş) iki ayrı liste. Uyarı rengi yok;
- * tür etiketi metinle verilir (bilgi yalnızca renkle verilmez).
+ * K2 Konular sekmesi (flat): "Zayıf konular" (bilgi eksiği, düşük başarı), "Okulun gerisinde"
+ * (okul bitirdi, öğrenci bitirmedi; Faz 5a) ve "Bakım gerektirenler" (tekrar zamanı, unutma
+ * riski, soğumuş) üç ayrı liste. Uyarı rengi yok; tür etiketi metinle verilir (bilgi yalnızca
+ * renkle verilmez).
  */
 export function WeakTopics({ alerts }: { alerts: TopicAlert[] }) {
   const g = groupAlerts(alerts);
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4 lg:grid-cols-3">
       <AlertColumn
         heading="Zayıf konular"
         hint="Son dönemde düşük başarı"
         alerts={g.weak}
         emptyText="Son dönemde düşük başarılı konu yok."
+      />
+      <AlertColumn
+        heading="Okulun gerisinde"
+        hint="Okul bitirdi, öğrenci bitirmedi"
+        alerts={g.behind}
+        emptyText="Okul takvimine göre geride konu yok. Takvim doldurulmadıysa bu liste boş kalır (Şablonlar → Takvim)."
       />
       <AlertColumn
         heading="Bakım gerektirenler"

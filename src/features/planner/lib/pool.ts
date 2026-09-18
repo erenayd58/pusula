@@ -1,15 +1,22 @@
 import type { TaskPoolCategory, TaskPoolCategoryId, TaskPoolItem } from "../types";
 
 /**
- * Görev havuzu kategorileri (08 §3.1). Sıra sabittir; her parça kendi kategorisini doldurur:
- * Parça 2 `frequent`, Parça 3 `weak` / `not_started` / `review_due`, Parça 4 `suggestions`.
- * Boş kategoriler de listede kalır (boş metniyle) — koç havuzun yapısını görür.
+ * Görev havuzu kategorileri (08 §3.1, 09 §3.3). Sıra sabittir; her parça kendi kategorisini
+ * doldurur: Parça 2 `frequent`, Parça 3 `weak` / `not_started` / `review_due`, Parça 4
+ * `suggestions`, Faz 5a `behind`. Boş kategoriler de listede kalır (boş metniyle) — koç havuzun
+ * yapısını görür.
  */
 const CATEGORY_META: { id: TaskPoolCategoryId; title: string; emptyText: string }[] = [
   {
     id: "suggestions",
     title: "Öneriler",
     emptyText: "Bu hafta için yeni öneri yok; uyarılar plana girdikçe burası boşalır.",
+  },
+  {
+    id: "behind",
+    title: "Okulun gerisinde",
+    emptyText:
+      "Okulun gerisinde konu yok. Okul takvimi doldurulmadıysa bu kategori boş kalır (Şablonlar → Takvim).",
   },
   {
     id: "weak",

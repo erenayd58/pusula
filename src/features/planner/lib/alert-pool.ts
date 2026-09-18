@@ -11,7 +11,7 @@ import { taskTitle } from "@/lib/plan/task-title";
  * (`task-pool.tsx`) `pool.ts`'i kullanır, bu dosyaya dokunmaz.
  */
 
-type AlertCategoryId = Extract<TaskPoolCategoryId, "weak" | "not_started" | "review_due">;
+type AlertCategoryId = Extract<TaskPoolCategoryId, "behind" | "weak" | "not_started" | "review_due">;
 export type AlertPool = Record<AlertCategoryId, TaskPoolItem[]>;
 
 /** Uyarı türü → görev türü ve havuz kategorisi (08 §2 Parça 4 ile aynı eşleme). */
@@ -20,6 +20,7 @@ const ALERT_TASK: Partial<
 > = {
   knowledge_gap: { kind: "topic_study", category: "weak" },
   low_accuracy: { kind: "questions", category: "weak" },
+  behind_school: { kind: "topic_study", category: "behind" },
   not_started: { kind: "topic_study", category: "not_started" },
   review_due: { kind: "review", category: "review_due" },
   forgetting_risk: { kind: "review", category: "review_due" },
@@ -27,8 +28,8 @@ const ALERT_TASK: Partial<
 };
 
 /**
- * `weak` (bilgi eksiği → konu çalışması, düşük başarı → soru), `not_started` (konu çalışması),
- * `review_due` (bakım türleri → tekrar). Tahmini süre `estimateMinutes`, başlık `taskTitle`,
+ * `weak` (bilgi eksiği → konu çalışması, düşük başarı → soru), `behind` (okulun gerisinde → konu
+ * çalışması; Faz 5a), `not_started` (konu çalışması), `review_due` (bakım türleri → tekrar). Tahmini süre `estimateMinutes`, başlık `taskTitle`,
  * sebep `alertReason`. Ders düzeyi uyarılar (topicId boş) havuza girmez.
  */
 export function alertsToPoolItems(
@@ -39,7 +40,7 @@ export function alertsToPoolItems(
     reason: (alert: TopicAlert) => string;
   },
 ): AlertPool {
-  const out: AlertPool = { weak: [], not_started: [], review_due: [] };
+  const out: AlertPool = { behind: [], weak: [], not_started: [], review_due: [] };
   for (const a of alerts) {
     if (!a.topicId) continue;
     const spec = ALERT_TASK[a.kind];

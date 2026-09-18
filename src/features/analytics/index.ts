@@ -10,6 +10,7 @@ export {
   evaluateSetupAlerts,
   groupAlerts,
   alertReason,
+  alertThresholds,
   type AlertThresholds,
 } from "./lib/alerts";
 export { pickStudentNudge, nudgeText } from "./lib/nudge";

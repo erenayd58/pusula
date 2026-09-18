@@ -31,6 +31,8 @@ export type TopicAlertFacts = {
   studentFirstLogDate: string | null;
   /** Dersin sort_order'a göre ilk başlanmamış konusu. */
   isNextTopic: boolean;
+  /** Okulda tahmini bitiş (`topics.school_finish_on`); takvim doldurulmadıysa null (Faz 5a). */
+  schoolFinishOn: string | null;
 };
 
 export type AlertSubject = {
@@ -85,13 +87,17 @@ export type SetupAlertKind = "no_schedule" | "no_goal" | "no_plan" | "no_logs";
  */
 export type SetupAlert = { studentId: string; kind: SetupAlertKind };
 
-/** Koç ve öğrenci ekranları için gruplar (08 §2 Parça 3). */
+/**
+ * Koç ekranları için gruplar (08 §2 Parça 3, 09 §2 Parça 1). `not_started` dikkat gerektirmez ve
+ * gruplanmaz (Bugün kartı `pickStudentNudge` ile ayrı seçer).
+ */
 export type AlertGroup = {
   /** knowledge_gap, low_accuracy */
   weak: TopicAlert[];
+  /** behind_school: okul bitirdi, öğrenci bitirmedi (Faz 5a) */
+  behind: TopicAlert[];
   /** review_due, forgetting_risk, stale */
   maintenance: TopicAlert[];
-  notStarted: TopicAlert[];
   /** neglected_subject (ders düzeyi) */
   subjects: TopicAlert[];
 };

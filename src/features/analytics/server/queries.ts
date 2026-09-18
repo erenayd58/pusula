@@ -4,7 +4,7 @@ import { cache } from "react";
 import { getOrgSettings } from "@/features/core";
 import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
-import { evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
+import { alertThresholds, evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
 import { buildSuggestions, dismissalKey, plannedKey, type Suggestion } from "../lib/suggestions";
 import type { SetupAlert, SetupFacts, TopicAlert, TopicAlertFacts } from "../types";
 
@@ -15,7 +15,7 @@ import type { SetupAlert, SetupFacts, TopicAlert, TopicAlertFacts } from "../typ
  */
 
 const FACT_SELECT =
-  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic" as const;
+  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on" as const;
 
 /** Görünen öğrencilerin kapalı modülleri (student_modules.enabled = false): öğrenci → modül kümesi. */
 const listDisabledModules = cache(async (): Promise<Map<string, Set<string>>> => {
@@ -91,6 +91,7 @@ const fetchTopicAlertFacts = cache(async (key: string): Promise<TopicAlertFacts[
             subjectLastLogDate: r.subject_last_log_date,
             studentFirstLogDate: r.student_first_log_date,
             isNextTopic: r.is_next_topic ?? false,
+            schoolFinishOn: r.school_finish_on,
           },
         ]
       : [],
@@ -106,7 +107,7 @@ export async function getTopicAlertFacts(studentIds?: string[]): Promise<TopicAl
 export async function getTopicAlerts(studentIds?: string | string[]): Promise<TopicAlert[]> {
   const ids = typeof studentIds === "string" ? [studentIds] : studentIds;
   const [facts, settings] = await Promise.all([getTopicAlertFacts(ids), getOrgSettings()]);
-  return evaluateTopicAlerts(facts, settings.alerts, toDateKey(todayInIstanbul()));
+  return evaluateTopicAlerts(facts, alertThresholds(settings), toDateKey(todayInIstanbul()));
 }
 
 /**

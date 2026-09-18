@@ -174,14 +174,15 @@ describe("task pool", () => {
     });
     expect(pool.map((c) => c.id)).toEqual([
       "suggestions",
+      "behind",
       "weak",
       "not_started",
       "review_due",
       "frequent",
     ]);
-    expect(pool[4]?.items).toHaveLength(1);
-    expect(filterPool(pool, "PARAGRAF")[4]?.items).toHaveLength(1);
-    expect(filterPool(pool, "olasılık")[4]?.items).toHaveLength(0);
+    expect(pool[5]?.items).toHaveLength(1);
+    expect(filterPool(pool, "PARAGRAF")[5]?.items).toHaveLength(1);
+    expect(filterPool(pool, "olasılık")[5]?.items).toHaveLength(0);
   });
 });
 
@@ -225,6 +226,7 @@ describe("alertsToPoolItems", () => {
           accuracy: 55,
         },
         { ...base, kind: "not_started", topicId: "t3", topicName: "Olasılık" },
+        { ...base, kind: "behind_school", topicId: "t6", topicName: "Oran", idleDays: 21 },
         { ...base, kind: "review_due", topicId: "t4", topicName: "Çarpanlar", idleDays: 12 },
         { ...base, kind: "stale", topicId: "t5", topicName: "Veri", idleDays: 50 },
         { ...base, kind: "neglected_subject", topicId: null, topicName: null, idleDays: 12 },
@@ -237,6 +239,9 @@ describe("alertsToPoolItems", () => {
     ]);
     expect(pool.weak[1]).toMatchObject({ targetValue: 20, targetUnit: "questions", topicId: "t2" });
     expect(pool.not_started.map((i) => i.kind)).toEqual(["topic_study"]);
+    expect(pool.behind.map((i) => [i.kind, i.title, i.categoryId])).toEqual([
+      ["topic_study", "Oran · konu çalışması", "behind"],
+    ]);
     expect(pool.review_due.map((i) => [i.kind, i.reason])).toEqual([
       ["review", "sebep:review_due"],
       ["review", "sebep:stale"],

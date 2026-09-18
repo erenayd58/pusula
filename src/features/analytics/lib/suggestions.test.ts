@@ -223,6 +223,14 @@ describe("buildSuggestions", () => {
       build([alert({ kind: "stale" })], { dismissed: new Map([[key, "2026-10-02"]]) }),
     ).toHaveLength(1);
     // Ders düzeyi anahtar konu boş.
+    // Faz 5a: okulun gerisinde önerisi de aynı enum'la reddedilir (14 gün gizlenir).
+    const behindKey = dismissalKey("s1", "behind_school", "mat", "t1");
+    expect(
+      build([alert({ kind: "behind_school", idleDays: 21, delayDays: 7 })], {
+        dismissed: new Map([[behindKey, "2026-10-02"]]),
+      }),
+    ).toHaveLength(0);
+    expect(build([alert({ kind: "behind_school", idleDays: 21, delayDays: 7 })])).toHaveLength(1);
     const subjectKey = dismissalKey("s1", "neglected_subject", "mat", null);
     expect(
       build([alert({ kind: "neglected_subject", topicId: null, topicName: null })], {
