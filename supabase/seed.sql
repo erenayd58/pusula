@@ -212,3 +212,54 @@ values
   ('d0000000-0000-4000-8000-000000000001', 6, 0, 'link',        'Paragraf kampı · bağlantı',     'c1000000-0000-4000-8000-000000000001', null, null, null, 15, null, null, null),
   ('d0000000-0000-4000-8000-000000000001', null, 0, 'custom',   'Kitap oku · 40 sayfa',          null, null, null, null, 30, null, null, null);
 update public.plan_items set url = 'https://www.youtube.com/' where kind = 'link' and plan_id = 'd0000000-0000-4000-8000-000000000001';
+
+-- Hedef ve konu takvimi (Faz 5b): koç Murat Ayşe'ye sınava kadar 9.000 soru (sınav soru sayısına
+-- orantılı) ve konuları bitirme tarihi sınav − 8 hafta; başlangıç 20 gün önce. Bitmemiş ünite
+-- konuları [başlangıç, bitiş] aralığına eşit yayılır (ilk birkaçı bugünden önce → "takvimin
+-- gerisinde" örneği). students.topics_finish_by/target_starts_on seed'de doğrudan yazılır
+-- (uygulamada yalnızca set_student_targets RPC yazar).
+update public.students
+set topics_finish_by = date '2027-06-13' - 56,
+    target_starts_on = (now() at time zone 'Europe/Istanbul')::date - 20
+where profile_id = 'b0000000-0000-4000-8000-000000000011';
+
+insert into public.student_subject_targets (student_id, subject_id, questions) values
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000001', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000002', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000003', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000004', 1000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000005', 1000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000006', 1000);
+
+insert into public.student_topic_targets (student_id, topic_id, target_on, created_by)
+select
+  'b0000000-0000-4000-8000-000000000011',
+  r.id,
+  ((now() at time zone 'Europe/Istanbul')::date - 20)
+    + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 20)) / r.n)::int,
+  'b0000000-0000-4000-8000-000000000002'
+from (
+  select t.id,
+         row_number() over (order by s.sort_order, t.sort_order) as rn,
+         count(*) over () as n
+  from public.topics t
+  join public.subjects s on s.id = t.subject_id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t.parent_id is null
+    and not exists (
+      select 1 from public.student_topic_progress p
+      where p.student_id = 'b0000000-0000-4000-8000-000000000011' and p.topic_id = t.id
+        and p.status in ('completed', 'mastered')
+    )
+) as r;
+
+-- Okul takvimi (Faz 5a, şablon düzeyi): her dersin konuları bu haftadan itibaren haftada bir
+-- (gelecek tarihler; behind_school üretmez, hücre detayında "Okul bu konuya henüz gelmedi").
+update public.topics t
+set school_finish_on = (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date + (7 * r.rn)::int
+from (
+  select t2.id, row_number() over (partition by t2.subject_id order by t2.sort_order) as rn
+  from public.topics t2
+  join public.subjects s on s.id = t2.subject_id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t2.parent_id is null
+) as r
+where t.id = r.id;

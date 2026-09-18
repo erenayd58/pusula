@@ -287,6 +287,60 @@ const SHOTS = [
     width: 1440,
     path: "/coach/settings",
   },
+
+  // Faz 5: strateji katmanı (Parça 2: hedef ve geri planlama; seed'de Ayşe'nin hedefi kurulu)
+  {
+    dir: "uygulama-5",
+    file: "koc-hedef-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/target`,
+  },
+  {
+    dir: "uygulama-5",
+    file: "koc-hedef-onizleme-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/target`,
+    before: async (page) => {
+      // Önizleme diyaloğu; kaydedilmez (seed durumu değişmez).
+      await page.getByRole("button", { name: "Takvimi yeniden oluştur ve kaydet" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-5",
+    file: "koc-genel-bakis-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-5",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-5",
+    file: "ogrenci-bugun-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-5",
+    file: "ogrenci-konu-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/topics",
+    before: async (page) => {
+      // Bitmemiş konu: hedef haftası + okul haftası satırları.
+      await page.getByRole("button", { name: "Cümlenin Ögeleri: Çalışılıyor" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */
