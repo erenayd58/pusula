@@ -4,9 +4,9 @@ import { cache } from "react";
 import { getOrgSettings } from "@/features/core";
 import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
-import { evaluateTopicAlerts } from "../lib/alerts";
+import { evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
 import { buildSuggestions, dismissalKey, plannedKey, type Suggestion } from "../lib/suggestions";
-import type { TopicAlert, TopicAlertFacts } from "../types";
+import type { SetupAlert, SetupFacts, TopicAlert, TopicAlertFacts } from "../types";
 
 /**
  * Uyarı okuma sorguları. `v_topic_alert_facts` security_invoker: koç kendi öğrencilerini, owner
@@ -17,17 +17,25 @@ import type { TopicAlert, TopicAlertFacts } from "../types";
 const FACT_SELECT =
   "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic" as const;
 
-/** Analiz modülü kapatılan öğrenciler (student_modules); K1 tek sorguda onları dışarıda bırakır. */
-const listAnalyticsDisabled = cache(async (): Promise<Set<string>> => {
+/** Görünen öğrencilerin kapalı modülleri (student_modules.enabled = false): öğrenci → modül kümesi. */
+const listDisabledModules = cache(async (): Promise<Map<string, Set<string>>> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("student_modules")
-    .select("student_id")
-    .eq("module_id", "analytics")
+    .select("student_id, module_id")
     .eq("enabled", false);
   if (error) throw error;
-  return new Set(data.map((r) => r.student_id));
+  const out = new Map<string, Set<string>>();
+  for (const r of data)
+    (out.get(r.student_id) ?? out.set(r.student_id, new Set()).get(r.student_id))!.add(r.module_id);
+  return out;
 });
+
+/** Analiz modülü kapatılan öğrenciler; K1 tek sorguda onları dışarıda bırakır. */
+async function listAnalyticsDisabled(): Promise<Set<string>> {
+  const disabled = await listDisabledModules();
+  return new Set([...disabled].filter(([, mods]) => mods.has("analytics")).map(([id]) => id));
+}
 
 /**
  * Aynı istekte aynı öğrenci kümesi için tek sorgu (React `cache`): K1 sayfası uyarıları hem
@@ -160,4 +168,44 @@ export async function getSuggestions(
     maxExamQuestionCount,
     today,
   });
+}
+
+/**
+ * Kurulum olguları (`v_student_setup_facts`, security_invoker) + kapalı modüller; yalnızca koç
+ * ekranları ister. Analiz modülü kapalı öğrenciler dışarıda.
+ */
+export async function getSetupFacts(studentIds?: string | string[]): Promise<SetupFacts[]> {
+  const ids = typeof studentIds === "string" ? [studentIds] : studentIds;
+  if (ids && ids.length === 0) return [];
+  const supabase = await createClient();
+  let query = supabase
+    .from("v_student_setup_facts")
+    .select(
+      "student_id, status, created_at, has_schedule, has_active_goal, has_published_plan_week, question_log_count",
+    )
+    .eq("status", "active");
+  if (ids) query = query.in("student_id", ids);
+  const [{ data, error }, disabled] = await Promise.all([query, listDisabledModules()]);
+  if (error) throw error;
+  return data.flatMap((r) =>
+    r.student_id && r.created_at && !disabled.get(r.student_id)?.has("analytics")
+      ? [
+          {
+            studentId: r.student_id,
+            createdAt: r.created_at,
+            hasSchedule: r.has_schedule ?? false,
+            hasActiveGoal: r.has_active_goal ?? false,
+            hasPublishedPlanWeek: r.has_published_plan_week ?? false,
+            questionLogCount: r.question_log_count ?? 0,
+            disabledModules: [...(disabled.get(r.student_id) ?? [])],
+          },
+        ]
+      : [],
+  );
+}
+
+/** Kurulum uyarıları (koç): olgular + `alerts.setup_account_days` → `evaluateSetupAlerts`. */
+export async function getSetupAlerts(studentIds?: string | string[]): Promise<SetupAlert[]> {
+  const [facts, settings] = await Promise.all([getSetupFacts(studentIds), getOrgSettings()]);
+  return evaluateSetupAlerts(facts, settings.alerts, toDateKey(todayInIstanbul()));
 }

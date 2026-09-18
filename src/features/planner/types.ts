@@ -80,7 +80,7 @@ export type TaskPoolCategory = {
   emptyText: string;
 };
 
-/** v_plan_completion satırı. */
+/** v_plan_completion satırı: hafta geneli + "bugüne kadar" (bugün ve öncesi + tamamlanmış hafta içi). */
 export type PlanCompletion = {
   planId: string;
   weekStart: string;
@@ -89,6 +89,9 @@ export type PlanCompletion = {
   itemsCompleted: number;
   postponedCount: number;
   percent: number | null;
+  toDateTotal: number;
+  toDateCompleted: number;
+  toDatePercent: number | null;
 };
 
 /** Koç "Planlar" listesi satırı. */

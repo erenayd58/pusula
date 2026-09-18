@@ -225,20 +225,22 @@ export const publishPlan = createAction({
   },
 });
 
+/** Haftalık mesaj: boş haftada da yazılır; plan yoksa taslak açılır. */
 export const setCoachMessage = createAction({
   name: "setCoachMessage",
   schema: coachMessageSchema,
   roles: COACH,
   revalidate: PATHS,
   handler: async (input, ctx) => {
+    const plan = await ensurePlan(ctx.supabase, ctx.userId, input.studentId, input.weekStart);
     const { data, error } = await ctx.supabase
       .from("weekly_plans")
       .update({ coach_message: input.message })
-      .eq("id", input.planId)
+      .eq("id", plan.id)
       .select("id");
     if (error) rethrow(error);
     if (data.length === 0) throw new ActionError(NOT_FOUND);
-    return { planId: input.planId };
+    return { planId: plan.id };
   },
 });
 

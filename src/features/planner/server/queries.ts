@@ -207,7 +207,9 @@ export async function getPlanCompletion(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_plan_completion")
-    .select("plan_id, week_start, status, items_total, items_completed, postponed_count, percent")
+    .select(
+      "plan_id, week_start, status, items_total, items_completed, postponed_count, percent, to_date_total, to_date_completed, to_date_percent",
+    )
     .eq("student_id", studentId)
     .eq("week_start", week)
     .maybeSingle();
@@ -221,6 +223,9 @@ export async function getPlanCompletion(
     itemsCompleted: data.items_completed ?? 0,
     postponedCount: data.postponed_count ?? 0,
     percent: data.percent,
+    toDateTotal: data.to_date_total ?? 0,
+    toDateCompleted: data.to_date_completed ?? 0,
+    toDatePercent: data.to_date_percent,
   };
 }
 

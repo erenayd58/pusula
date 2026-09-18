@@ -12,8 +12,11 @@ const SEED_TOPIC = "Sözcükte Anlam";
 
 async function saveReviewDays(page: Page, value: string) {
   await page.goto("/coach/settings");
+  // Hidrasyon bitmeden yazılırsa react-hook-form varsayılanı üstüne bindirir ("7,15,30907,15,30").
+  await page.waitForLoadState("networkidle");
   const field = page.getByLabel("Tekrar günleri");
   await field.fill(value);
+  await expect(field).toHaveValue(value);
   await page.getByRole("button", { name: "Ayarları kaydet" }).click();
   await expect(page.getByText("Ayarlar kaydedildi.")).toBeVisible();
 }

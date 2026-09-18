@@ -52,7 +52,8 @@ Eşikler ve varsayılanlar koda gömülmez; migration mevcut kurumlara varsayıl
     "review_due_days": [7, 15, 30],
     "forgetting_risk": { "min_accuracy": 60, "idle_days": 21 },
     "stale_days": 45,
-    "neglected_subject_days": 10
+    "neglected_subject_days": 10,
+    "setup_account_days": 7
   },
   "suggestions": { "max_per_student": 5, "dismiss_days": 14 }
 }
@@ -161,18 +162,18 @@ Tablo yetkisi her ikisinde `authenticated` S I U D (politikalar daraltır; öğr
 | `move_plan_item(p_item_id uuid, p_day smallint, p_index int)` | **security invoker** (RLS: koç) | Günü değiştirir ve hedef gündeki `sort_order`'ı yeniden numaralar (`move_topic` kalıbı) |
 | `copy_weekly_plan(p_source_plan_id uuid, p_target_student_ids uuid[], p_week_start date, p_only_incomplete boolean default false)` | security definer; her hedef için `is_coach_of` | Hedefte plan yoksa **taslak** açar; varsa öğeler mevcut planın sonuna **eklenir** (karar A3). Öğeler `completed_at/student_note/postponed_*` sıfırlanmış kopyalanır (`p_only_incomplete` ile yalnızca tamamlanmamışlar; "tamamlanmayanları yeni haftaya aktar" ve "geçen haftayı kopyala" bunu kullanır). Döner: `{copied: [{student_id, plan_id, existing_items, added_items}]}` |
 
-Yayınlama RPC gerektirmez: koç `status = 'published', published_at = now()` günceller (RLS). Taslak oluşturma: `weekly_plans` `insert … on conflict do nothing` + select (tek tablo). Toplu görev ekleme (çoklu gün çipleri, "Önerilen planı hazırla"): `plan_items` tek `insert` ifadesi (çok satır, tek tablo → atomik, RPC yok).
+Yayınlama RPC gerektirmez: koç `status = 'published', published_at = now()` günceller (RLS). Taslak oluşturma: `weekly_plans` `insert … on conflict do nothing` + select (tek tablo); koç mesajı da boş haftada yazılır ve plan yoksa aynı yolla taslak açar (kapanış düzeltmesi; `setCoachMessage` hafta anahtarıyla gelir). Toplu görev ekleme (çoklu gün çipleri, "Önerilen planı hazırla"): `plan_items` tek `insert` ifadesi (çok satır, tek tablo → atomik, RPC yok).
 
 **Görünümler (Parça 2, `faz4b_plan_views`, hepsi `security_invoker`):**
 
 | Görünüm | Kolonlar | Kullanım |
 |---|---|---|
-| `v_plan_completion` | student_id, plan_id, week_start, status, items_total, items_completed, postponed_count (`postponed_at` dolu öğe sayısı), percent (int, `items_total = 0` → null) | Plan uyumu; K2 kutusu "28 görevin 22'si"; koç plan başlığı ve K2 kutusunda nötr satır "2 görev ertelendi" (0 ise satır yok) |
+| `v_plan_completion` | student_id, plan_id, week_start, status, items_total, items_completed, postponed_count (`postponed_at` dolu öğe sayısı), percent (int, `items_total = 0` → null), to_date_total / to_date_completed / to_date_percent (kapanış düzeltmesi: "bugüne kadar") | Plan uyumu; K2 kutusu "bugüne kadar 5 görevin 4'ü · hafta geneli %57 (7 görevin 4'ü)"; koç plan başlığı ve K2 kutusunda nötr satır "2 görev ertelendi" (0 ise satır yok) |
 | `v_student_subject_pace` | student_id, subject_id, questions, minutes, minutes_per_question (son `alerts.lookback_days`; `duration_minutes` dolu kayıtlar) | Tahmini süre önerisi |
 | `v_week_plan_topics` | student_id, week_start, subject_id, topic_id | Öneri motoru "bu hafta zaten planlı" |
 | `v_coach_student_overview` (replace) | + `plan_percent_week`, `plan_items_week`, `plan_done_week`, `plan_percent_last_week` (İstanbul haftası, yalnızca `published`) | K1 listesi "Plan uyumu" |
 
-**Plan uyum yüzdesi tanımı:** `items_completed / items_total` (gün atanmamış "bu hafta içinde" görevleri dahil), yalnızca yayınlanmış plan; öğe yoksa `null` ("—"). Erteleme yüzdeyi **etkilemez**; `postponed_count` ayrı, bilgi amaçlı bir sayaçtır. K1 listesi bu haftayı gösterir; 01 §7 "Plan uyumu düşük" uyarısı (Faz 7) geçen haftayı kullanır.
+**Plan uyum yüzdesi tanımı:** iki değer. *Hafta geneli* `items_completed / items_total` (gün atanmamış "bu hafta içinde" görevleri dahil). *Bugüne kadar* (kapanış düzeltmesi, 2026-09-18): bugün ve öncesindeki günlerin görevleri + tamamlanmış "bu hafta içinde" görevleri (henüz yapılmamış gün atanmamış görev gecikmiş sayılmaz); geçmiş haftada iki değer eşittir, gelecek haftada bugüne kadar `null`. İkisi de yalnızca yayınlanmış plan; öğe yoksa `null` ("—"). K1 sütununda bugüne kadar öne, hafta geneli ikincil ("hafta %57"); K2 kutusunda ikisi de. Erteleme yüzdeyi **etkilemez**; `postponed_count` ayrı, bilgi amaçlı bir sayaçtır. 01 §7 "Plan uyumu düşük" uyarısı (Faz 7) geçen haftayı kullanır.
 
 **Öğrenci değerlendirmesi (karar A9):** "Haftam nasıl geçti?" alanı o haftanın cumartesi 00:00'ından (İstanbul) itibaren açılır ve hafta bitene kadar (pazar 23:59) düzenlenebilir; hafta kapandıktan sonra salt okunur (`set_plan_reflection` de `week_start + 7 > bugün` koşulunu denetler; geçmiş hafta → `week_closed` hatası). Koç her zaman okur.
 
@@ -326,6 +327,8 @@ export function alertReason(a: TopicAlert): string;   // "40 soruda %52 başarı
 export function pickStudentNudge(alerts: TopicAlert[]): TopicAlert | null;  // yalnızca maintenance + not_started; suçlayıcı dil yok
 // Metin örnekleri: "Üslü İfadeler'e bir göz atma zamanı. 12 gündür bakmadın." · "Sırada Olasılık var, istersen bugün başla."
 ```
+
+**Kurulum uyarıları (kapanış düzeltmesi, 2026-09-18; yalnızca koç):** `v_student_setup_facts` olguları + `evaluateSetupAlerts(facts, { setup_account_days }, today)` → `SetupAlert { studentId, kind }`; türler `no_schedule` (busy_slots ve schedule_exceptions boş), `no_goal` (aktif günlük/haftalık hedef yok), `no_plan` (bu hafta yayınlanmış plan yok), `no_logs` (hiç soru kaydı yok ve hesap `setup_account_days` günden eski). Soru kaydı olan öğrencide `no_schedule` / `no_logs` üretilmez, `no_goal` / `no_plan` kalır; kapalı modülün uyarısı üretilmez. K1 "Kurulum" bölümü (Dikkat ile Öneriler arasında, öğrenciye göre gruplu) ve K2 kartı; eylemler Program sekmesi, K2 `#goals`, Plan sekmesi, öğrenci sayfası. Öğrenci ekranında gösterilmez. Etiketler `setupAlertKindLabels`.
 
 **Kabul:** Seed öğrencisinde (Ayşe, 14 günlük kayıt) en az bir uyarı üretilir ve koç listesinde görünür; eşik değiştirilince (ayar formu) sonuç değişir; öğrenci Bugün'de en fazla bir nötr kart; birim testleri her kural + öncelik + ders düzeyi için. ✅ Uygulandı (2026-09-18; e2e `alerts.spec.ts`). Notlar: K1 "Dikkat gerektirenler" (acil müdahale) ile "Öneriler" (plana eklenebilecekler) tek satır açıklama taşır; aynı öğrenci + konu + tür iki bölümde birden görünmez (dikkat öncelikli, sayfa öneri listesinden eler); öneriler öğrenci başına 3 açık, kalanı "Tümünü gör" (`details`; sorgu sınırı `max_per_student` ayrı). `TopicAlert` Parça 4 için `questions`, `accuracy`, `threshold`, `idleDays`, `delayDays` taşır (`review_due`'da `idleDays` son etkinlik, `delayDays` eşiği aşan gün); K1 listesi `not_started` türünü göstermez (dikkat gerektirmez), pasif/arşiv öğrenciler listeye girmez, ilk 6 satır açık gerisi `details`; havuz eşlemesi `features/planner/lib/alert-pool.ts` (analytics'ten yalnızca tip alır, sebep metni `alertReason` sayfadan parametre gelir): bakım türlerinin üçü `review_due` kategorisinde `review` görevi, ders düzeyi uyarı havuza girmez; ayar formu tek şema `orgSettingsFormSchema` (core `schemas.ts`), `revalidatePath` listesine `/coach/settings` eklendi.
 

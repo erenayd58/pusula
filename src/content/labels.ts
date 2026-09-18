@@ -109,6 +109,14 @@ export const planItemKindLabels = {
   custom: "Serbest",
 } as const;
 
+/** Kurulum uyarıları (Faz 4 kapanışı; yalnızca koç ekranında). */
+export const setupAlertKindLabels = {
+  no_schedule: "Haftalık program girilmemiş",
+  no_goal: "Aktif hedef yok",
+  no_plan: "Bu hafta yayınlanmış plan yok",
+  no_logs: "Hiç soru kaydı yok",
+} as const;
+
 /** Konu uyarı türü (Faz 4c; öğrenciye yalnızca bakım türleri ve başlanmamış gösterilir, karar A7). */
 export const topicAlertKindLabels = {
   knowledge_gap: "Bilgi eksiği",

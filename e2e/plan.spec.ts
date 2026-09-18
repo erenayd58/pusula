@@ -61,6 +61,13 @@ test.describe("haftalık plan", () => {
       await page.getByRole("button", { name: "Görev havuzunu aç" }).click();
       await expect(page.getByRole("complementary", { name: "Görev havuzu" })).toBeVisible();
 
+      // Koç mesajı boş haftada da yazılır; kaydedilince taslak plan açılır.
+      await page.getByLabel("Haftalık mesaj (öğrenci görür)").fill("Bu hafta hafif başlıyoruz.");
+      await page.getByRole("button", { name: "Mesajı kaydet" }).click();
+      await expect(page.getByText("Haftalık mesaj kaydedildi.")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Bu hafta henüz görev yok" })).toBeVisible();
+      await expect(page.getByText("Taslak", { exact: true }).first()).toBeVisible();
+
       // İlk görev: soru, Matematik, 20 soru, bugüne
       await page.getByRole("button", { name: "İlk görevi ekle" }).click();
       let dialog = page.getByRole("dialog");
@@ -170,7 +177,9 @@ test.describe("haftalık plan", () => {
         .getByTestId("student-row")
         .filter({ hasText: student.username })
         .filter({ visible: true });
-      await expect(row).toContainText("%50");
+      // Bugüne kadar: bugünün tamamlanan görevi 1/1 → %100; hafta geneli 1/2 → %50.
+      await expect(row).toContainText("%100");
+      await expect(row).toContainText("hafta %50");
     } finally {
       await page.setViewportSize({ width: 1440, height: 900 });
       if (/\/coach\//.test(page.url())) await logout(page);

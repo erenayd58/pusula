@@ -73,11 +73,7 @@ export function StudentTable({
               </dd>
               <dt className="text-ink-500">Plan uyumu</dt>
               <dd className="text-ink-900">
-                {s.planPercentWeek === null ? (
-                  <span className="text-ink-500">—</span>
-                ) : (
-                  formatPercent(s.planPercentWeek)
-                )}
+                <PlanCompliance row={s} />
               </dd>
             </dl>
             <StudentRowActions
@@ -131,11 +127,7 @@ export function StudentTable({
                   <WeekGoal row={s} />
                 </td>
                 <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
-                  {s.planPercentWeek === null ? (
-                    <span className="text-ink-500">—</span>
-                  ) : (
-                    formatPercent(s.planPercentWeek)
-                  )}
+                  <PlanCompliance row={s} />
                 </td>
                 <td className="px-4 py-3 text-ink-700">{studentStatusLabels[s.status]}</td>
                 {viewerRole === "owner" ? (
@@ -179,5 +171,22 @@ function WeekGoal({ row }: { row: StudentListRow }) {
       />
       <span className="text-ink-900">{formatPercent(row.weekGoalPercent)}</span>
     </div>
+  );
+}
+
+/** Plan uyumu: bugüne kadarki oran öne, hafta geneli ikincil (plan yoksa "—"). */
+function PlanCompliance({ row }: { row: StudentListRow }) {
+  if (row.planPercentWeek === null && row.planToDatePercentWeek === null) {
+    return <span className="text-ink-500">—</span>;
+  }
+  return (
+    <span className="inline-flex flex-col items-end leading-tight md:items-end">
+      <span className="font-medium">
+        {row.planToDatePercentWeek === null ? "—" : formatPercent(row.planToDatePercentWeek)}
+      </span>
+      <span className="text-micro-lg text-ink-500">
+        {`hafta ${row.planPercentWeek === null ? "—" : formatPercent(row.planPercentWeek)}`}
+      </span>
+    </span>
   );
 }

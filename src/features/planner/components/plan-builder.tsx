@@ -359,13 +359,10 @@ export function PlanBuilder(props: PlanBuilderProps) {
       {!readOnly ? (
         <section className="rounded-sm border border-line bg-bg-paper p-4 print:hidden">
           <CoachMessageForm
-            planId={plan?.id ?? null}
             studentId={studentId}
+            weekStart={weekStart}
             initial={plan?.coachMessage ?? null}
           />
-          {!plan ? (
-            <p className="mt-2 text-micro-lg text-ink-500">Mesaj için önce bir görev ekleyin.</p>
-          ) : null}
         </section>
       ) : null}
 

@@ -160,12 +160,15 @@ export function OrgSettingsForm({ initial, canEdit }: { initial: OrgSettings; ca
           name="alerts.neglected_subject_days"
           label="İhmal edilen ders (gün)"
         />
+        <NumberField
+          {...field}
+          name="alerts.setup_account_days"
+          label="Kurulum: hesap yaşı (gün)"
+          hint="Bu kadar günden eski hesapta hiç soru kaydı yoksa koç uyarılır"
+        />
       </Section>
 
-      <Section
-        title="Öneriler"
-        hint="Plan önerileri sonraki güncellemeyle geliyor; sınırlar hazır."
-      >
+      <Section title="Öneriler" hint="Koç ana ekranındaki öneriler ve “Şimdi değil” süresi.">
         <NumberField
           {...field}
           name="suggestions.max_per_student"
