@@ -80,6 +80,7 @@ test.describe("öneri motoru", () => {
       await login(page, accounts.coach.identifier);
       await page.goto(`/coach/students/${student.studentId}/plan`);
       await expect(page.getByRole("heading", { name: "Bu hafta için plan yok" })).toBeVisible();
+      await page.getByRole("button", { name: "Görev havuzunu aç" }).click();
       const pool = page.getByRole("complementary", { name: "Görev havuzu" });
       await expect(pool.getByRole("heading", { name: /^Öneriler/ })).toBeVisible();
 

@@ -18,10 +18,12 @@ import { formatDateTr } from "@/lib/format";
 export const metadata: Metadata = { title: "Öğrenciler" };
 
 /**
- * K1 Öğrenciler: başlık, "Dikkat gerektirenler" ve "Öneriler" (karar A12), liste. Uyarı ve
+ * K1 Öğrenciler: başlık, "Dikkat gerektirenler" (acil müdahale) ve "Öneriler" (plana
+ * eklenebilecekler; öğrenci başına 3 açık, gerisi "Tümünü gör"), liste (karar A12). Uyarı ve
  * öneriler tek sorguyla görünen tüm öğrenciler için; sıradaki konu (`not_started`) dikkat
- * gerektirmez, listeye girmez. Her iki listenin `action` yuvasında planner'ın "Plana ekle"
- * düğmesi (bu haftanın taslağına yazar; analytics planner'ı import etmez, sayfa takar).
+ * gerektirmez; dikkat listesindeki öğrenci + konu + tür öneri listesinde tekrar etmez. Her iki
+ * listenin `action` yuvasında planner'ın "Plana ekle" düğmesi (bu haftanın taslağına yazar;
+ * analytics planner'ı import etmez, sayfa takar).
  */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
@@ -34,7 +36,15 @@ export default async function StudentsPage() {
   ]);
   const active = new Set(students.filter((s) => s.status === "active").map((s) => s.profileId));
   const attention = alerts.filter((a) => a.kind !== "not_started" && active.has(a.studentId));
-  const activeSuggestions = suggestions.filter((s) => active.has(s.studentId));
+  // Aynı öğrenci + konu + tür iki bölümde birden görünmesin: dikkat listesi öncelikli.
+  const attentionKeys = new Set(
+    attention.map((a) => `${a.studentId}:${a.kind}:${a.subject.id}:${a.topicId ?? ""}`),
+  );
+  const activeSuggestions = suggestions.filter(
+    (s) =>
+      active.has(s.studentId) &&
+      !attentionKeys.has(`${s.studentId}:${s.kind}:${s.subjectId}:${s.topicId ?? ""}`),
+  );
   const studentNames = new Map(students.map((s) => [s.profileId, s.fullName]));
   const week = toDateKey(weekStart(todayInIstanbul()));
 
@@ -59,6 +69,7 @@ export default async function StudentsPage() {
           <AttentionList
             alerts={attention}
             studentNames={studentNames}
+            description="Acil müdahale gerektiren konular; her satır plana eklenebilir."
             action={(a) => (
               <AddSuggestionButton
                 studentId={a.studentId}
@@ -76,6 +87,8 @@ export default async function StudentsPage() {
             suggestions={activeSuggestions}
             studentNames={studentNames}
             dismissDays={settings.suggestions.dismiss_days}
+            description="Bu hafta plana eklenebilecek konular; dikkat listesindekiler burada tekrar etmez."
+            visiblePerGroup={3}
             action={(s) => (
               <AddSuggestionButton
                 studentId={s.studentId}

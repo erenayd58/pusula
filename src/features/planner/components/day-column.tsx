@@ -36,6 +36,7 @@ export function DayColumn({
   info,
   items,
   readOnly,
+  wide,
   onAdd,
   onMenu,
 }: {
@@ -43,6 +44,8 @@ export function DayColumn({
   info: DayHeaderInfo | null;
   items: PlanItem[];
   readOnly: boolean;
+  /** Havuz açıkken (yatay kaydırma var) sütun daha geniş; kapalıyken 8 sütun 1440 px'e sığar. */
+  wide?: boolean;
   onAdd: (day: number | null) => void;
   onMenu: (item: PlanItem) => void;
 }) {
@@ -56,11 +59,12 @@ export function DayColumn({
       aria-labelledby={`${id}-heading`}
       data-testid={id}
       className={cn(
-        "flex min-h-[320px] min-w-[176px] flex-1 basis-[176px] flex-col rounded-sm border border-line bg-bg-surface",
+        "flex min-h-[320px] flex-1 basis-0 flex-col rounded-sm border border-line bg-bg-surface",
+        wide ? "min-w-[160px]" : "min-w-[112px]",
         isOver && "border-ink-900",
       )}
     >
-      <header className="flex flex-col gap-1 border-b border-line px-3 py-2">
+      <header className="flex flex-col gap-1 border-b border-line px-2 py-2">
         <div className="flex items-baseline justify-between gap-2">
           <h3 id={`${id}-heading`} className="text-small font-semibold text-ink-900">
             {day === null ? "Bu hafta içinde" : dayOfWeekShortLabels[day]}
@@ -83,11 +87,14 @@ export function DayColumn({
                 ))}
               </ul>
             ) : null}
-            <p className="text-micro-lg text-ink-500 tabular-nums">
-              {info.allDayBusy
-                ? "Tüm gün meşgul"
-                : `Müsait ${formatDuration(info.availableMinutes)} · planlı ${formatDuration(planned)}`}
-            </p>
+            {info.allDayBusy ? (
+              <p className="text-micro-lg text-ink-500">Tüm gün meşgul</p>
+            ) : (
+              <p className="flex flex-col text-micro-lg text-ink-500 tabular-nums">
+                <span>{`Müsait ${formatDuration(info.availableMinutes)}`}</span>
+                <span>{`Planlı ${formatDuration(planned)}`}</span>
+              </p>
+            )}
             {over ? (
               <p className="flex items-center gap-1 text-micro-lg text-ink-700">
                 <InfoIcon aria-hidden="true" className="size-3.5" />

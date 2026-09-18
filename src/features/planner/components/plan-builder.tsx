@@ -12,7 +12,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { CalendarPlusIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
+import { CalendarPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,39 @@ import { PreparePlanButton } from "./prepare-plan-button";
 import { POOL_PREFIX, TaskPool } from "./task-pool";
 
 const DAYS: (number | null)[] = [1, 2, 3, 4, 5, 6, 7, null];
+/** Havuz açık/kapalı tercihi (cihazda, localStorage; ilk açılış kapalı). */
+const POOL_OPEN_KEY = "pusula.plan-pool-open";
+const POOL_EVENT = "pusula:plan-pool";
+
+function readPoolOpen() {
+  try {
+    return localStorage.getItem(POOL_OPEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function usePoolOpen() {
+  return useSyncExternalStore(
+    (cb) => {
+      window.addEventListener(POOL_EVENT, cb);
+      window.addEventListener("storage", cb);
+      return () => {
+        window.removeEventListener(POOL_EVENT, cb);
+        window.removeEventListener("storage", cb);
+      };
+    },
+    readPoolOpen,
+    () => false,
+  );
+}
+function togglePool() {
+  try {
+    localStorage.setItem(POOL_OPEN_KEY, readPoolOpen() ? "0" : "1");
+  } catch {
+    // Depolama kapalıysa tercih tutulamaz; havuz kapalı kalır.
+  }
+  window.dispatchEvent(new Event(POOL_EVENT));
+}
 
 /** < 768 px salt okunur (04 §8.4); sunucu ve ilk istemci render'ı aynı (false) olsun. */
 function useIsDesktop() {
@@ -75,7 +108,7 @@ export function PlanBuilder(props: PlanBuilderProps) {
   const readOnly = !isDesktop;
   const [pending, startTransition] = useTransition();
   const [items, setItems] = useState<PlanItem[]>(plan?.items ?? []);
-  const [poolOpen, setPoolOpen] = useState(true);
+  const poolOpen = usePoolOpen();
   const [form, setForm] = useState<PlanItemFormState>(null);
   const [menuItem, setMenuItem] = useState<PlanItem | null>(null);
   const [copy, setCopy] = useState<CopyDialogState>(null);
@@ -247,6 +280,8 @@ export function PlanBuilder(props: PlanBuilderProps) {
         readOnly={readOnly}
         hasItems={hasItems}
         pending={pending}
+        poolOpen={poolOpen}
+        onTogglePool={togglePool}
         onCopyLastWeek={openCopyLastWeek}
         onCopyToOthers={openCopyToOthers}
         onCarryOver={openCarryOver}
@@ -255,34 +290,13 @@ export function PlanBuilder(props: PlanBuilderProps) {
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
         <div className={cn("flex items-start gap-4 print:hidden", readOnly && "flex-col")}>
-          {!readOnly ? (
-            <div
-              className={cn("flex shrink-0 items-start gap-2", poolOpen ? "w-[280px]" : "w-auto")}
-            >
-              {poolOpen ? (
-                <div className="min-w-0 flex-1">
-                  <TaskPool
-                    categories={pool}
-                    readOnly={readOnly}
-                    onAdd={(item) => setForm({ mode: "add", days: [null], preset: item })}
-                  />
-                </div>
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={poolOpen ? "Görev havuzunu daralt" : "Görev havuzunu aç"}
-                aria-expanded={poolOpen}
-                onClick={() => setPoolOpen((v) => !v)}
-                className="shrink-0"
-              >
-                {poolOpen ? (
-                  <PanelLeftCloseIcon aria-hidden="true" />
-                ) : (
-                  <PanelLeftOpenIcon aria-hidden="true" />
-                )}
-              </Button>
+          {!readOnly && poolOpen ? (
+            <div className="w-[320px] shrink-0">
+              <TaskPool
+                categories={pool}
+                readOnly={readOnly}
+                onAdd={(item) => setForm({ mode: "add", days: [null], preset: item })}
+              />
             </div>
           ) : null}
 
@@ -323,7 +337,8 @@ export function PlanBuilder(props: PlanBuilderProps) {
                 }
               />
             ) : null}
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            {/* Havuz kapalıyken 1440 px'te 8 sütun kaydırmasız sığar; açıkken yatay kayar. */}
+            <div className="flex gap-1.5 overflow-x-auto pb-2">
               {DAYS.map((day) => (
                 <DayColumn
                   key={String(day)}
@@ -331,6 +346,7 @@ export function PlanBuilder(props: PlanBuilderProps) {
                   info={dayInfo(day)}
                   items={byDay.get(columnId(day)) ?? []}
                   readOnly={readOnly}
+                  wide={poolOpen}
                   onAdd={(d) => setForm({ mode: "add", days: [d] })}
                   onMenu={setMenuItem}
                 />

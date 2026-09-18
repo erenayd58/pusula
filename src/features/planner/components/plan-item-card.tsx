@@ -50,7 +50,7 @@ export function PlanItemCard({
         className="w-1 shrink-0 rounded-l-xs bg-subject"
         style={subjectVars(item.subjectColor ?? "line-strong")}
       />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-2 pr-2">
         <span className="flex items-start gap-1.5">
           <Icon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-ink-500" />
           <span className="text-small font-medium break-words text-ink-900">{item.title}</span>
@@ -79,29 +79,30 @@ export function PlanItemCard({
         {item.studentNote ? (
           <span className="text-micro-lg text-ink-700">“{item.studentNote}”</span>
         ) : null}
+        {/* Eylemler metnin altında: dar sütunda (112 px) başlık tam genişlik kullanır. */}
+        {!readOnly ? (
+          <div className="-mb-1 flex items-center justify-end gap-1 pt-0.5">
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              aria-label={`Taşı: ${item.title}`}
+              className="flex size-7 cursor-grab items-center justify-center rounded-xs text-ink-300 hover:bg-bg-surface hover:text-ink-700 focus-visible:outline-2 focus-visible:outline-focus active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVerticalIcon aria-hidden="true" className="size-4" />
+            </button>
+            <button
+              type="button"
+              aria-label={`Görev menüsü: ${item.title}`}
+              onClick={() => onMenu(item)}
+              className="flex size-7 items-center justify-center rounded-xs text-ink-500 hover:bg-bg-surface hover:text-ink-900 focus-visible:outline-2 focus-visible:outline-focus"
+            >
+              <MoreHorizontalIcon aria-hidden="true" className="size-4" />
+            </button>
+          </div>
+        ) : null}
       </div>
-      {!readOnly ? (
-        <div className="flex shrink-0 flex-col items-center justify-between py-1 pr-1">
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            aria-label={`Taşı: ${item.title}`}
-            className="flex size-7 cursor-grab items-center justify-center rounded-xs text-ink-300 hover:bg-bg-surface hover:text-ink-700 focus-visible:outline-2 focus-visible:outline-focus active:cursor-grabbing"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVerticalIcon aria-hidden="true" className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Görev menüsü: ${item.title}`}
-            onClick={() => onMenu(item)}
-            className="flex size-7 items-center justify-center rounded-xs text-ink-500 hover:bg-bg-surface hover:text-ink-900 focus-visible:outline-2 focus-visible:outline-focus"
-          >
-            <MoreHorizontalIcon aria-hidden="true" className="size-4" />
-          </button>
-        </div>
-      ) : null}
     </li>
   );
 }

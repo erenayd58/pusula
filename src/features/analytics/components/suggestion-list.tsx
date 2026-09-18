@@ -20,6 +20,8 @@ export function SuggestionList({
   title = "Öneriler",
   emptyText = "Şu an yeni öneri yok.",
   headingLevel = 2,
+  visiblePerGroup,
+  description,
 }: {
   suggestions: Suggestion[];
   studentNames?: ReadonlyMap<string, string>;
@@ -29,6 +31,10 @@ export function SuggestionList({
   title?: string;
   emptyText?: string;
   headingLevel?: 2 | 3;
+  /** Grup (öğrenci) başına açık satır; kalanı "Tümünü gör" (details). Sunum sınırı, sorgu sınırı değil. */
+  visiblePerGroup?: number;
+  /** Başlık altında tek satır açıklama. */
+  description?: string;
 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const groups = studentNames
@@ -50,6 +56,7 @@ export function SuggestionList({
           </span>
         ) : null}
       </div>
+      {description ? <p className="-mt-1 text-small text-ink-500">{description}</p> : null}
 
       {suggestions.length === 0 ? (
         <p className="flex items-center gap-2 rounded-sm border border-line bg-bg-paper px-4 py-3 text-small text-ink-700">
@@ -70,46 +77,79 @@ export function SuggestionList({
                 </h3>
               ) : null}
               <ul className="flex flex-col gap-2" aria-label="Öneriler">
-                {g.items.map((s) => (
-                  <li
+                {(visiblePerGroup ? g.items.slice(0, visiblePerGroup) : g.items).map((s) => (
+                  <SuggestionRow
                     key={rowKey(s)}
-                    data-testid="suggestion-row"
-                    className="flex flex-col gap-2 rounded-sm border border-line bg-bg-paper px-4 py-3 md:flex-row md:items-center md:gap-4"
-                  >
-                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-                      <LightbulbIcon
-                        aria-hidden="true"
-                        className="size-[18px] shrink-0 text-ink-500"
-                      />
-                      <SubjectBadge color={s.subjectColor} shortName={s.subjectShortName} />
-                      <span className="text-small font-medium text-ink-900">
-                        {s.topicName ?? s.subjectName}
-                      </span>
-                      <span className="text-small text-ink-700">{s.reason}</span>
-                      <span className="text-micro-lg text-ink-500">
-                        {topicAlertKindLabels[s.kind]} · {planItemKindLabels[s.task.kind]} ·{" "}
-                        {formatDuration(s.task.estimatedMinutes)}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-2 md:shrink-0">
-                      {action?.(s)}
-                      <DismissSuggestionButton
-                        studentId={s.studentId}
-                        subjectId={s.subjectId}
-                        topicId={s.topicId}
-                        kind={s.kind}
-                        label={s.task.title}
-                        dismissDays={dismissDays}
-                      />
-                    </span>
-                  </li>
+                    suggestion={s}
+                    action={action}
+                    dismissDays={dismissDays}
+                  />
                 ))}
               </ul>
+              {visiblePerGroup && g.items.length > visiblePerGroup ? (
+                <details className="group">
+                  <summary className="cursor-pointer list-none text-small font-medium text-ink-700 underline underline-offset-4">
+                    <span className="group-open:hidden">
+                      Tümünü gör ({formatCount(g.items.length - visiblePerGroup, "öneri")} daha)
+                    </span>
+                    <span className="hidden group-open:inline">Daha az göster</span>
+                  </summary>
+                  <ul className="mt-2 flex flex-col gap-2" aria-label="Diğer öneriler">
+                    {g.items.slice(visiblePerGroup).map((s) => (
+                      <SuggestionRow
+                        key={rowKey(s)}
+                        suggestion={s}
+                        action={action}
+                        dismissDays={dismissDays}
+                      />
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
             </div>
           ))}
         </div>
       )}
     </section>
+  );
+}
+
+function SuggestionRow({
+  suggestion: s,
+  action,
+  dismissDays,
+}: {
+  suggestion: Suggestion;
+  action?: (suggestion: Suggestion) => ReactNode;
+  dismissDays: number;
+}) {
+  return (
+    <li
+      data-testid="suggestion-row"
+      className="flex flex-col gap-2 rounded-sm border border-line bg-bg-paper px-4 py-3 md:flex-row md:items-center md:gap-4"
+    >
+      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+        <LightbulbIcon aria-hidden="true" className="size-[18px] shrink-0 text-ink-500" />
+        <SubjectBadge color={s.subjectColor} shortName={s.subjectShortName} />
+        <span className="text-small font-medium text-ink-900">{s.topicName ?? s.subjectName}</span>
+        <span className="text-small text-ink-700">{s.reason}</span>
+        <span className="text-micro-lg text-ink-500">
+          {topicAlertKindLabels[s.kind]} · {planItemKindLabels[s.task.kind]} ·{" "}
+          {formatDuration(s.task.estimatedMinutes)}
+        </span>
+      </span>
+      <span className="flex items-center gap-2 md:shrink-0">
+        {action?.(s)}
+        <DismissSuggestionButton
+          studentId={s.studentId}
+          subjectId={s.subjectId}
+          topicId={s.topicId}
+          kind={s.kind}
+          label={s.task.title}
+          dismissDays={dismissDays}
+        />
+      </span>
+    </li>
   );
 }
 

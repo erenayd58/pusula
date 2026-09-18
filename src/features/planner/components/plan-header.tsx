@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon, PrinterIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+  PrinterIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { planStatusLabels } from "@/content/labels";
@@ -25,6 +31,8 @@ export function PlanHeader({
   readOnly,
   hasItems,
   pending,
+  poolOpen,
+  onTogglePool,
   onCopyLastWeek,
   onCopyToOthers,
   onCarryOver,
@@ -42,6 +50,8 @@ export function PlanHeader({
   readOnly: boolean;
   hasItems: boolean;
   pending: boolean;
+  poolOpen: boolean;
+  onTogglePool: () => void;
   onCopyLastWeek: () => void;
   onCopyToOthers: () => void;
   onCarryOver: () => void;
@@ -80,11 +90,29 @@ export function PlanHeader({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-small text-ink-700 tabular-nums">
-          {`Hafta toplamı: ${formatCount(totals.count, "görev")} · ${formatDuration(totals.minutes)}${
-            totals.questions > 0 ? ` · ${formatCount(totals.questions, "soru")}` : ""
-          }`}
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          {!readOnly ? (
+            <Button
+              type="button"
+              variant="secondary"
+              aria-label={poolOpen ? "Görev havuzunu daralt" : "Görev havuzunu aç"}
+              aria-expanded={poolOpen}
+              onClick={onTogglePool}
+            >
+              {poolOpen ? (
+                <PanelLeftCloseIcon aria-hidden="true" />
+              ) : (
+                <PanelLeftOpenIcon aria-hidden="true" />
+              )}
+              Görev havuzu
+            </Button>
+          ) : null}
+          <p className="text-small text-ink-700 tabular-nums">
+            {`Hafta toplamı: ${formatCount(totals.count, "görev")} · ${formatDuration(totals.minutes)}${
+              totals.questions > 0 ? ` · ${formatCount(totals.questions, "soru")}` : ""
+            }`}
+          </p>
+        </div>
         {!readOnly ? (
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="secondary" onClick={onCopyLastWeek} disabled={pending}>

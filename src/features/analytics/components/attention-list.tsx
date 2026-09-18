@@ -19,12 +19,15 @@ export function AttentionList({
   studentNames,
   action,
   visible = DEFAULT_VISIBLE,
+  description,
 }: {
   alerts: TopicAlert[];
   studentNames: ReadonlyMap<string, string>;
   /** Satır başına ek eylem (Parça 4 "Plana ekle"); Parça 3'te boş. */
   action?: (alert: TopicAlert) => ReactNode;
   visible?: number;
+  /** Başlık altında tek satır açıklama. */
+  description?: string;
 }) {
   const head = alerts.slice(0, visible);
   const rest = alerts.slice(visible);
@@ -44,6 +47,7 @@ export function AttentionList({
           </span>
         ) : null}
       </div>
+      {description ? <p className="-mt-1 text-small text-ink-500">{description}</p> : null}
 
       {alerts.length === 0 ? (
         <p className="flex items-center gap-2 rounded-sm border border-line bg-bg-paper px-4 py-3 text-small text-ink-700">

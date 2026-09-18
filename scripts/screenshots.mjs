@@ -251,19 +251,21 @@ const SHOTS = [
   },
   {
     dir: "uygulama-4",
-    file: "koc-plan-havuz-1440.png",
+    file: "koc-plan-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}/plan`,
   },
   {
     dir: "uygulama-4",
-    file: "koc-plan-1440.png",
+    file: "koc-plan-havuz-1440.png",
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}/plan`,
+    // Havuz varsayılan kapalı; açılınca tercih localStorage'da kalır (aynı bağlam sonraki kareler).
     before: async (page) => {
-      await page.getByRole("button", { name: "Görev havuzunu daralt" }).click();
+      await page.getByRole("button", { name: "Görev havuzunu aç" }).click();
+      await page.getByRole("complementary", { name: "Görev havuzu" }).waitFor();
     },
   },
   {
@@ -272,6 +274,11 @@ const SHOTS = [
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.zeynep}/plan`,
+    before: async (page) => {
+      // Önceki kare havuzu açtı; boş hafta varsayılan görünümde (havuz kapalı).
+      const collapse = page.getByRole("button", { name: "Görev havuzunu daralt" });
+      if (await collapse.isVisible()) await collapse.click();
+    },
   },
   {
     dir: "uygulama-4",

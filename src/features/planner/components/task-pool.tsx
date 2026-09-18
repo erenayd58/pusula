@@ -112,9 +112,9 @@ function PoolItem({
         <span className="w-2" />
       )}
       <span className="flex min-w-0 flex-1 flex-col py-1.5">
-        <span className="flex items-center gap-1.5 text-small text-ink-900">
-          <Icon aria-hidden="true" className="size-3.5 shrink-0 text-ink-500" />
-          <span className="truncate">{item.title}</span>
+        <span className="flex items-start gap-1.5 text-small text-ink-900">
+          <Icon aria-hidden="true" className="mt-[3px] size-3.5 shrink-0 text-ink-500" />
+          <span className="line-clamp-2 break-words">{item.title}</span>
         </span>
         <span className="text-micro-lg text-ink-500">
           {item.reason ? `${item.reason} · ` : ""}
