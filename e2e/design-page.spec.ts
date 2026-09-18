@@ -1,7 +1,8 @@
 import { expect, test, type Locator } from "@playwright/test";
 
 /*
- * /dev/design yalnızca geliştirme sunucusunda açılır (webServer: pnpm dev).
+ * /dev/design yalnızca geliştirme sunucusunda açılır; bu dosya `design-desktop` / `design-mobile`
+ * projeleriyle dev sunucusuna (3000) karşı koşar, diğer testler üretim derlemesine (3100).
  * Burada yüzey mekanizmasının ölçülebilir kuralları doğrulanır:
  * düğme/giriş yükseklikleri, calm > clay önceliği, portal'a çıkan diyaloğun yüzeyi.
  */
@@ -28,7 +29,7 @@ test.describe("tasarım sistemi sayfası", () => {
   });
 
   test("clay ve flat düğme/giriş yükseklikleri (48 / 38 px)", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-chromium", "Ölçüler fare işaretçisi için.");
+    test.skip(testInfo.project.name !== "design-desktop", "Ölçüler fare işaretçisi için.");
     await page.goto("/dev/design");
     expect(await height(page.getByTestId("button-primary-clay"))).toBeCloseTo(48, 0);
     expect(await height(page.getByTestId("button-primary-flat"))).toBeCloseTo(38, 0);
@@ -37,7 +38,7 @@ test.describe("tasarım sistemi sayfası", () => {
   });
 
   test("dokunmatik cihazda flat düğme en az 44 px", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile-chromium", "pointer-coarse emülasyonu gerekir.");
+    test.skip(testInfo.project.name !== "design-mobile", "pointer-coarse emülasyonu gerekir.");
     await page.goto("/dev/design");
     expect(await height(page.getByTestId("button-primary-flat"))).toBeGreaterThanOrEqual(44);
     expect(await height(page.getByTestId("input-flat"))).toBeGreaterThanOrEqual(44);

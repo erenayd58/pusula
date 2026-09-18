@@ -56,10 +56,48 @@ export function daysUntil(dateKey: string, now: Date = new Date()): number {
   return differenceInCalendarDays(target, todayInIstanbul(now));
 }
 
+/**
+ * Verilen tarih ya da zaman damgasından `todayKey` (YYYY-MM-DD, İstanbul günü) gününe geçen tam
+ * gün sayısı; aynı gün → 0, gelecek → negatif. Uyarı kuralları ("12 gündür bakılmadı") için.
+ */
+export function daysSince(value: Date | number | string, todayKey: string): number {
+  return differenceInCalendarDays(new TZDate(todayKey, TIME_ZONE), toIstanbul(value));
+}
+
 /** Saate göre selamlama (İstanbul): 05–12 Günaydın, 12–18 İyi günler, sonrası İyi akşamlar. */
 export function greetingFor(now: Date = new Date()): string {
   const hour = toIstanbul(now).getHours();
   if (hour >= 5 && hour < 12) return "Günaydın";
   if (hour >= 12 && hour < 18) return "İyi günler";
   return "İyi akşamlar";
+}
+
+/** Hafta anahtarına (`YYYY-MM-DD`, pazartesi) hafta ekler/çıkarır. */
+export function shiftWeek(weekKey: string, weeks: number): string {
+  return toDateKey(addDays(new TZDate(weekKey, TIME_ZONE), weeks * 7));
+}
+
+/**
+ * `?week=` parametresi: geçerli bir pazartesi anahtarıysa onu, değilse İstanbul'a göre bu
+ * haftanın pazartesisini döner (hatalı/eksik parametre sessizce bu haftaya düşer).
+ */
+export function resolveWeekParam(value: string | undefined, now: Date = new Date()): string {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const d = new TZDate(value, TIME_ZONE);
+    if (!Number.isNaN(d.getTime()) && toDateKey(d) === value && d.getDay() === 1) return value;
+  }
+  return toDateKey(weekStart(todayInIstanbul(now)));
+}
+
+/** Haftanın 7 günü: gün (1 = pazartesi) → tarih anahtarı. */
+export function weekDates(weekKey: string): Record<number, string> {
+  const monday = new TZDate(weekKey, TIME_ZONE);
+  const out: Record<number, string> = {};
+  for (let i = 0; i < 7; i++) out[i + 1] = toDateKey(addDays(monday, i));
+  return out;
+}
+
+/** ISO haftanın günü (1 = pazartesi … 7 = pazar), İstanbul'a göre. */
+export function isoDayOfWeek(date: Date | number | string = new Date()): number {
+  return ((toIstanbul(date).getDay() + 6) % 7) + 1;
 }

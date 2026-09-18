@@ -62,7 +62,7 @@ export async function deleteStudentAsOwner(page: Page, username: string) {
   }
   await page.goto("/coach/students");
   const row = studentRow(page, username);
-  await row.getByRole("button", { name: "Sil" }).click();
+  await row.getByRole("button", { name: "Sil", exact: true }).click();
   await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
   await expect(page.getByText("silindi.")).toBeVisible();
 }

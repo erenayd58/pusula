@@ -12,7 +12,13 @@ import {
 
 const NOT_ALLOWED = "Bu işlem için yetkin yok.";
 const NOT_FOUND = "Kayıt bulunamadı; sayfayı yenile.";
-const PATHS = ["/student/today", "/student/logs", "/student/topics", "/coach/students"] as const;
+const PATHS = [
+  "/student/today",
+  "/student/logs",
+  "/student/topics",
+  "/student/plan",
+  "/coach/students",
+] as const;
 
 /** Öğrenci yalnızca kendi adına yazar; koç/owner için RLS öğrencisiyle sınırlar. */
 function assertOwn(role: string, userId: string, studentId: string) {
@@ -45,6 +51,27 @@ export const createQuestionLog = createAction({
   revalidate: PATHS,
   handler: async (input, ctx) => {
     assertOwn(ctx.profile.role, ctx.userId, input.studentId);
+    if (input.planItemId) {
+      // Plan görevi: kayıt + tamamlama tek transaction (RPC yetkiyi kendi denetler).
+      const { data, error } = await ctx.supabase.rpc("complete_plan_item", {
+        p_item_id: input.planItemId,
+        p_log: {
+          subject_id: input.subjectId,
+          topic_id: input.topicId,
+          correct: input.correct,
+          wrong: input.wrong,
+          blank: input.blank,
+          duration_minutes: input.durationMinutes,
+        },
+      });
+      if (error) {
+        if (error.code === "42501") throw new ActionError(NOT_ALLOWED);
+        throw error;
+      }
+      const logId = (data as { log_id?: string } | null)?.log_id;
+      if (!logId) throw new ActionError(NOT_FOUND);
+      return { id: logId, ...(await todayStatus(ctx.supabase, input.studentId)) };
+    }
     const { data, error } = await ctx.supabase
       .from("question_logs")
       .insert({

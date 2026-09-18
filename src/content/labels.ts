@@ -63,3 +63,59 @@ export const goalPeriodLabels = {
   daily: "Günlük",
   weekly: "Haftalık",
 } as const;
+
+/** Sabit meşguliyet türü (Faz 4a, haftalık program). */
+export const busySlotKindLabels = {
+  school: "Okul",
+  tutoring_center: "Dershane",
+  private_lesson: "Özel ders",
+  course: "Kurs",
+  other: "Diğer",
+} as const;
+
+/** ISO haftanın günü (1 = pazartesi). */
+export const dayOfWeekLabels: Record<number, string> = {
+  1: "Pazartesi",
+  2: "Salı",
+  3: "Çarşamba",
+  4: "Perşembe",
+  5: "Cuma",
+  6: "Cumartesi",
+  7: "Pazar",
+};
+
+export const dayOfWeekShortLabels: Record<number, string> = {
+  1: "Pzt",
+  2: "Sal",
+  3: "Çar",
+  4: "Per",
+  5: "Cum",
+  6: "Cmt",
+  7: "Paz",
+};
+
+/** Plan durumu (Faz 4b). */
+export const planStatusLabels = {
+  draft: "Taslak",
+  published: "Yayınlandı",
+} as const;
+
+/** Plan görev türü (Faz 4b; kitap/video Faz 5). */
+export const planItemKindLabels = {
+  topic_study: "Konu çalışması",
+  questions: "Soru",
+  review: "Tekrar",
+  link: "Bağlantı",
+  custom: "Serbest",
+} as const;
+
+/** Konu uyarı türü (Faz 4c; öğrenciye yalnızca bakım türleri ve başlanmamış gösterilir, karar A7). */
+export const topicAlertKindLabels = {
+  knowledge_gap: "Bilgi eksiği",
+  low_accuracy: "Düşük başarı",
+  review_due: "Tekrar zamanı",
+  forgetting_risk: "Unutma riski",
+  stale: "Soğumuş konu",
+  not_started: "Başlanmamış",
+  neglected_subject: "İhmal edilen ders",
+} as const;

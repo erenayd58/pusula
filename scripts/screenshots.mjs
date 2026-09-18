@@ -15,6 +15,7 @@ const PASSWORD = "pusula-demo";
 const ACCOUNTS = {
   student: "ayse.k",
   coach: "koc@pusula.local",
+  owner: "sahip@pusula.local",
   parent: "veli.ayse@pusula.local",
 };
 const SEED = {
@@ -197,6 +198,94 @@ const SHOTS = [
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}`,
+  },
+  // Faz 4: plan sistemi (program, plan, uyarılar, öneriler)
+  {
+    dir: "uygulama-4",
+    file: "ogrenci-bugun-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/today",
+  },
+  {
+    dir: "uygulama-4",
+    file: "ogrenci-plan-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/plan",
+  },
+  {
+    dir: "uygulama-4",
+    file: "ogrenci-plan-gorev-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/plan",
+    before: async (page) => {
+      await page
+        .getByRole("button", { name: /^Görev detayı: / })
+        .first()
+        .click();
+      await page.getByRole("dialog").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-4",
+    file: "ogrenci-program-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/schedule",
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-genel-bakis-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-plan-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-plan-havuz-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+    // Havuz varsayılan kapalı; açılınca tercih localStorage'da kalır (aynı bağlam sonraki kareler).
+    before: async (page) => {
+      await page.getByRole("button", { name: "Görev havuzunu aç" }).click();
+      await page.getByRole("complementary", { name: "Görev havuzu" }).waitFor();
+    },
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-plan-bos-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.zeynep}/plan`,
+    before: async (page) => {
+      // Önceki kare havuzu açtı; boş hafta varsayılan görünümde (havuz kapalı).
+      const collapse = page.getByRole("button", { name: "Görev havuzunu daralt" });
+      if (await collapse.isVisible()) await collapse.click();
+    },
+  },
+  {
+    dir: "uygulama-4",
+    file: "koc-ayarlar-1440.png",
+    as: "owner",
+    width: 1440,
+    path: "/coach/settings",
   },
 ];
 

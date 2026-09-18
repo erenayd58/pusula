@@ -72,14 +72,16 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       aria-label={`Düzenle: ${r.subjectName}${r.topicName ? ` · ${r.topicName}` : ""}, ${formatDateTr(r.logDate)}`}
                       onClick={() =>
                         open({
-                          id: r.id,
-                          logDate: r.logDate,
-                          subjectId: r.subjectId,
-                          topicId: r.topicId,
-                          correct: r.correct,
-                          wrong: r.wrong,
-                          blank: r.blank,
-                          durationMinutes: r.durationMinutes,
+                          edit: {
+                            id: r.id,
+                            logDate: r.logDate,
+                            subjectId: r.subjectId,
+                            topicId: r.topicId,
+                            correct: r.correct,
+                            wrong: r.wrong,
+                            blank: r.blank,
+                            durationMinutes: r.durationMinutes,
+                          },
                         })
                       }
                     >

@@ -154,3 +154,51 @@ from (values
 insert into public.goals (student_id, created_by, period, target_value, starts_on) values
   ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002', 'daily',  60,  (now() at time zone 'Europe/Istanbul')::date - 20),
   ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002', 'weekly', 300, (now() at time zone 'Europe/Istanbul')::date - 20);
+
+-- Haftalık program (Faz 4a): Ayşe hafta içi okul, salı/perşembe dershane, cumartesi kurs;
+-- gelecek haftanın çarşambası tüm gün yazılı (istisna). Öğrencinin kendi girdiği kabul edilir.
+insert into public.busy_slots (student_id, day_of_week, starts_at, ends_at, kind, note, created_by)
+select 'b0000000-0000-4000-8000-000000000011', r.day, r.starts_at::time, r.ends_at::time, r.kind::public.busy_slot_kind, r.note,
+       'b0000000-0000-4000-8000-000000000011'
+from (values
+  (1, '08:30', '15:00', 'school', null),
+  (2, '08:30', '15:00', 'school', null),
+  (3, '08:30', '15:00', 'school', null),
+  (4, '08:30', '15:00', 'school', null),
+  (5, '08:30', '15:00', 'school', null),
+  (2, '17:00', '19:30', 'tutoring_center', 'Matematik'),
+  (4, '17:00', '19:30', 'tutoring_center', 'Fen'),
+  (6, '10:00', '12:00', 'course', 'İngilizce kursu')
+) as r (day, starts_at, ends_at, kind, note);
+
+insert into public.schedule_exceptions (student_id, on_date, title, created_by)
+values (
+  'b0000000-0000-4000-8000-000000000011',
+  (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date + 9,
+  'Yazılı: Türkçe',
+  'b0000000-0000-4000-8000-000000000011'
+);
+
+-- Haftalık plan (Faz 4b): Ayşe için bu haftanın yayınlanmış planı (koç Murat), 7 görev; pazartesi
+-- görevleri tamamlanmış, biri ertelenmiş; koç mesajı. Sabit kimlik: d0000000-…-0001.
+insert into public.weekly_plans (id, student_id, week_start, created_by, status, coach_message, published_at)
+values (
+  'd0000000-0000-4000-8000-000000000001',
+  'b0000000-0000-4000-8000-000000000011',
+  (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date,
+  'b0000000-0000-4000-8000-000000000002',
+  'published',
+  'Bu hafta paragrafa ağırlık veriyoruz. Her gün 30 soru yeterli, acele etme.',
+  now() - interval '2 days'
+);
+
+insert into public.plan_items (plan_id, day_of_week, sort_order, kind, title, subject_id, topic_id, target_value, target_unit, estimated_minutes, completed_at, postponed_from, postponed_at)
+values
+  ('d0000000-0000-4000-8000-000000000001', 1, 0, 'questions',   'Sözcükte Anlam · 30 soru',      'c1000000-0000-4000-8000-000000000001', 'c2000000-0000-4000-8000-000000001001', 30, 'questions', 45, now() - interval '1 day', null, null),
+  ('d0000000-0000-4000-8000-000000000001', 1, 1, 'topic_study', 'Çarpanlar ve Katlar · konu çalışması', 'c1000000-0000-4000-8000-000000000002', 'c2000000-0000-4000-8000-000000002001', null, null, 40, now() - interval '1 day', null, null),
+  ('d0000000-0000-4000-8000-000000000001', 2, 0, 'questions',   'Çarpanlar ve Katlar · 40 soru', 'c1000000-0000-4000-8000-000000000002', 'c2000000-0000-4000-8000-000000002001', 40, 'questions', 60, null, null, null),
+  ('d0000000-0000-4000-8000-000000000001', 3, 0, 'review',      'Mevsimler ve İklim · tekrar',   'c1000000-0000-4000-8000-000000000003', 'c2000000-0000-4000-8000-000000003001', null, null, 20, null, 2, now() - interval '12 hours'),
+  ('d0000000-0000-4000-8000-000000000001', 4, 0, 'questions',   'Cümlenin Ögeleri · 20 soru',    'c1000000-0000-4000-8000-000000000001', 'c2000000-0000-4000-8000-000000001005', 20, 'questions', 30, null, null, null),
+  ('d0000000-0000-4000-8000-000000000001', 6, 0, 'link',        'Paragraf kampı · bağlantı',     'c1000000-0000-4000-8000-000000000001', null, null, null, 15, null, null, null),
+  ('d0000000-0000-4000-8000-000000000001', null, 0, 'custom',   'Kitap oku · 40 sayfa',          null, null, null, null, 30, null, null, null);
+update public.plan_items set url = 'https://www.youtube.com/' where kind = 'link' and plan_id = 'd0000000-0000-4000-8000-000000000001';

@@ -1,6 +1,8 @@
 import "server-only";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { parseOrgSettings, type OrgSettings } from "../lib/org-settings";
 
 /**
  * Çekirdek modül okuma sorguları. Kullanıcının oturumuyla çalışır; RLS koçun yalnızca kendi
@@ -22,6 +24,8 @@ export type StudentListRow = {
   weeklyTarget: number | null;
   /** 0-100; haftalık hedef yoksa null. */
   weekGoalPercent: number | null;
+  /** Bu haftanın yayınlanmış planında tamamlanan / toplam (0-100); plan yoksa null (Faz 4b). */
+  planPercentWeek: number | null;
 };
 
 /**
@@ -33,7 +37,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
   const { data, error } = await supabase
     .from("v_coach_student_overview")
     .select(
-      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week",
     )
     .order("full_name");
   if (error) throw error;
@@ -64,6 +68,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
             weekQuestions: row.week_questions ?? 0,
             weeklyTarget: row.weekly_target === null ? null : Number(row.weekly_target),
             weekGoalPercent: row.week_goal_percent,
+            planPercentWeek: row.plan_percent_week,
           },
         ]
       : [],
@@ -152,6 +157,8 @@ export type StudentHeader = {
   schoolName: string | null;
   examDate: string | null;
   status: "active" | "paused" | "archived";
+  /** Koçun adı (profiles RLS: öğrenci ve veli koçu görür). */
+  coachName: string | null;
 };
 
 /**
@@ -163,7 +170,7 @@ export async function getStudentHeader(studentId: string): Promise<StudentHeader
   const { data, error } = await supabase
     .from("students")
     .select(
-      "profile_id, grade, class_section, school_name, exam_date, status, profile:profiles!students_profile_id_fkey(full_name)",
+      "profile_id, grade, class_section, school_name, exam_date, status, profile:profiles!students_profile_id_fkey(full_name), coach:profiles!students_coach_id_fkey(full_name)",
     )
     .eq("profile_id", studentId)
     .maybeSingle();
@@ -177,6 +184,7 @@ export async function getStudentHeader(studentId: string): Promise<StudentHeader
     schoolName: data.school_name,
     examDate: data.exam_date,
     status: data.status,
+    coachName: data.coach?.full_name ?? null,
   };
 }
 
@@ -217,3 +225,20 @@ export async function getConsentStatus(studentId: string): Promise<ConsentStatus
       : null,
   };
 }
+
+// Kurum ayarları -----------------------------------------------------------------------
+
+/**
+ * Oturum sahibinin kurumunun ayarları (08 §1.2). RLS herkese yalnızca kendi kurumunu gösterir;
+ * eksik/bozuk anahtarlar şemadaki varsayılanla tamamlanır. İstek başına bir kez (React cache).
+ */
+export const getOrgSettings = cache(async (): Promise<OrgSettings> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("settings")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return parseOrgSettings(data?.settings);
+});

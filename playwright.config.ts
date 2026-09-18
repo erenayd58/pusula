@@ -1,6 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+/**
+ * Uygulama testleri üretim derlemesine karşı koşar (3100; dev sunucusu 3000'de kalır). Ölçüm
+ * (4 paralel oturum, giriş → plan → K1 → çıkış): dev sunucusu oturum başına ~45 s (tek işlem,
+ * CPU'ya bağlı derleme + React dev render), üretim ~2,4 s. Dev'de 4 işçi 60 s test bütçesini
+ * aşıyordu; paralel "çıkış / giriş zamanlaması" hataları bundandı. `pnpm e2e:server` elle
+ * açıksa yeniden kullanılır. Yalnızca `/dev/design` (üretimde 404) dev sunucusunda test edilir.
+ */
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
+const devURL = process.env.PLAYWRIGHT_DEV_URL ?? "http://localhost:3000";
+const DESIGN_SPEC = /design-page\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -9,7 +18,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : 4,
-  // Dev sunucusu (Turbopack) ilk derlemede ve paralel yükte yavaş; oturum akışları çok adımlı.
+  // Oturum akışları çok adımlı (birden fazla giriş/çıkış); üretim sunucusunda 4 işçiyle yeterli.
   timeout: 60_000,
   expect: { timeout: 15_000 },
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
@@ -20,14 +29,38 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "desktop-chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: DESIGN_SPEC,
+    },
     // WebKit kurulmaz; mobil profil de Chromium tabanlı (Pixel 7).
-    { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
+    { name: "mobile-chromium", use: { ...devices["Pixel 7"] }, testIgnore: DESIGN_SPEC },
+    // Tasarım sistemi sayfası yalnızca dev sunucusunda (src/app/dev/layout.tsx üretimde 404).
+    {
+      name: "design-desktop",
+      use: { ...devices["Desktop Chrome"], baseURL: devURL },
+      testMatch: DESIGN_SPEC,
+    },
+    {
+      name: "design-mobile",
+      use: { ...devices["Pixel 7"], baseURL: devURL },
+      testMatch: DESIGN_SPEC,
+    },
   ],
-  webServer: {
-    command: "pnpm dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "pnpm e2e:server",
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      // next build + start; soğuk makinede derleme birkaç dakika sürebilir.
+      timeout: 300_000,
+    },
+    {
+      command: "pnpm dev",
+      url: `${devURL}/login`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });

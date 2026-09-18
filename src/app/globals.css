@@ -318,3 +318,19 @@
     transform: scale(0.97);
   }
 }
+
+/* Yazdırma (Faz 4b, 08 §2 Parça 2): kabuk gizlenir, yalnızca içerik; plan sayfaları
+   etkileşimli parçaları `print:hidden`, yazdırma listesini `print:block` ile ayırır. */
+@media print {
+  [data-print="hide"] {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  body {
+    background: var(--bg-paper);
+  }
+}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRightIcon, PencilLineIcon } from "lucide-react";
+import { CalendarClockIcon, ChevronRightIcon, PencilLineIcon } from "lucide-react";
 import { LogoutButton, getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 import { formatDateTr } from "@/lib/format";
@@ -47,6 +47,17 @@ export default async function ProfilePage() {
           </div>
         ))}
       </dl>
+
+      {enabled.has("schedule") ? (
+        <Link
+          href="/student/schedule"
+          className="flex clay-press items-center gap-3 rounded-card clay-md p-4 text-body font-medium text-ink-900"
+        >
+          <CalendarClockIcon aria-hidden="true" className="size-5 text-ink-700" />
+          <span className="flex-1">Haftalık programım</span>
+          <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
+        </Link>
+      ) : null}
 
       {enabled.has("question-log") ? (
         <Link
