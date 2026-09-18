@@ -24,7 +24,7 @@ Faz 4 kapsam dışı (01 §11'den fark): `plan_templates`, `meetings` tabloları
 ```sql
 create type busy_slot_kind   as enum ('school', 'tutoring_center', 'private_lesson', 'course', 'other');
 create type plan_status      as enum ('draft', 'published');
--- 03'teki tam liste yerine Faz 4 değerleri; Faz 5'te `alter type … add value 'section'`, `'video'` (karar #32 kalıbı)
+-- 03'teki tam liste yerine Faz 4 değerleri; Faz 7'de `alter type … add value 'section'`, `'video'` (karar #32 kalıbı)
 create type plan_item_kind   as enum ('topic_study', 'questions', 'review', 'link', 'custom');
 create type topic_alert_kind as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk',
                                       'stale', 'not_started', 'neglected_subject');
@@ -128,7 +128,7 @@ plan_items (
   created_at, updated_at
 )
 -- index (plan_id, day_of_week, sort_order), (subject_id), (topic_id)
--- Faz 5: section_id, video_id kolonları ve enum değerleri eklenir (kolon şimdi yok)
+-- Faz 7: section_id, video_id kolonları ve enum değerleri eklenir (kolon şimdi yok)
 
 alter table question_logs add column plan_item_id uuid references plan_items(id) on delete set null;
 create index question_logs_plan_item_id_idx on question_logs (plan_item_id);
@@ -173,7 +173,7 @@ Yayınlama RPC gerektirmez: koç `status = 'published', published_at = now()` g�
 | `v_week_plan_topics` | student_id, week_start, subject_id, topic_id | Öneri motoru "bu hafta zaten planlı" |
 | `v_coach_student_overview` (replace) | + `plan_percent_week`, `plan_items_week`, `plan_done_week`, `plan_percent_last_week` (İstanbul haftası, yalnızca `published`) | K1 listesi "Plan uyumu" |
 
-**Plan uyum yüzdesi tanımı:** iki değer. *Hafta geneli* `items_completed / items_total` (gün atanmamış "bu hafta içinde" görevleri dahil). *Bugüne kadar* (kapanış düzeltmesi, 2026-09-18): bugün ve öncesindeki günlerin görevleri + tamamlanmış "bu hafta içinde" görevleri (henüz yapılmamış gün atanmamış görev gecikmiş sayılmaz); geçmiş haftada iki değer eşittir, gelecek haftada bugüne kadar `null`. İkisi de yalnızca yayınlanmış plan; öğe yoksa `null` ("—"). K1 sütununda bugüne kadar öne, hafta geneli ikincil ("hafta %57"); K2 kutusunda ikisi de. Erteleme yüzdeyi **etkilemez**; `postponed_count` ayrı, bilgi amaçlı bir sayaçtır. 01 §7 "Plan uyumu düşük" uyarısı (Faz 7) geçen haftayı kullanır.
+**Plan uyum yüzdesi tanımı:** iki değer. *Hafta geneli* `items_completed / items_total` (gün atanmamış "bu hafta içinde" görevleri dahil). *Bugüne kadar* (kapanış düzeltmesi, 2026-09-18): bugün ve öncesindeki günlerin görevleri + tamamlanmış "bu hafta içinde" görevleri (henüz yapılmamış gün atanmamış görev gecikmiş sayılmaz); geçmiş haftada iki değer eşittir, gelecek haftada bugüne kadar `null`. İkisi de yalnızca yayınlanmış plan; öğe yoksa `null` ("—"). K1 sütununda bugüne kadar öne, hafta geneli ikincil ("hafta %57"); K2 kutusunda ikisi de. Erteleme yüzdeyi **etkilemez**; `postponed_count` ayrı, bilgi amaçlı bir sayaçtır. 01 §7 "Plan uyumu düşük" uyarısı (Faz 8) geçen haftayı kullanır.
 
 **Öğrenci değerlendirmesi (karar A9):** "Haftam nasıl geçti?" alanı o haftanın cumartesi 00:00'ından (İstanbul) itibaren açılır ve hafta bitene kadar (pazar 23:59) düzenlenebilir; hafta kapandıktan sonra salt okunur (`set_plan_reflection` de `week_start + 7 > bugün` koşulunu denetler; geçmiş hafta → `week_closed` hatası). Koç her zaman okur.
 
@@ -383,7 +383,7 @@ export function distributeTasks(input: {
 
 ```ts
 // features/planner/types.ts
-export type TaskPoolCategoryId = "suggestions" | "weak" | "not_started" | "review_due" | "frequent";  // Faz 5: "resources" | "videos"
+export type TaskPoolCategoryId = "suggestions" | "weak" | "not_started" | "review_due" | "frequent";  // Faz 5a: + "behind"; Faz 7: "resources" | "videos"
 export type TaskPoolItem = {
   key: string; categoryId: TaskPoolCategoryId;
   kind: PlanItemKind; title: string; subjectId: string | null; topicId: string | null;
@@ -397,7 +397,7 @@ Sıra: öneriler, zayıf konular, hiç başlanmamış, tekrar zamanı, sık kull
 
 ### 3.2 Görev türü sunumu
 
-`features/planner/lib/kinds.ts`: tür başına `{ icon, defaultTargetUnit, needsTopic, needsUrl, completeMode: "quick-log" | "tap" }` tablosu. Kart, form ve başlık üretici bu tablodan okur; Faz 5'te `section`/`video` satırı eklemek yeterli.
+`features/planner/lib/kinds.ts`: tür başına `{ icon, defaultTargetUnit, needsTopic, needsUrl, completeMode: "quick-log" | "tap" }` tablosu. Kart, form ve başlık üretici bu tablodan okur; Faz 7'de `section`/`video` satırı eklemek yeterli.
 
 ### 3.3 Plan uyum yüzdesi
 
@@ -444,4 +444,4 @@ Parça oturumları bu kararları verili kabul eder; Faz sonunda 02 karar kaydın
 | A10 | Koç plan ekranı | `/coach/students/[id]/plan` sekmesi + `/coach/plans` liste sayfası | Yalnızca sekme |
 | A11 | Öğrenci program sayfası | Menüde yok; "Ben" ve plan ekranındaki "Programını düzenle" bağlantısı; 04 §8.2 ray listesi değişmez | Masaüstü rayına "Program" |
 | A12 | K1 bölümleri | "Dikkat gerektirenler" ve "Öneriler" `/coach/students` üstünde; `/coach` yönlendirmesi kalır | `/coach` ayrı sayfa |
-| A13 | `plan_item_kind` | Faz 4'ün 5 değeri; Faz 5'te `add value` (karar #32 kalıbı) | 03'teki 8 değeri şimdiden tanımlamak |
+| A13 | `plan_item_kind` | Faz 4'ün 5 değeri; Faz 7'de `add value` (karar #32 kalıbı) | 03'teki 8 değeri şimdiden tanımlamak |

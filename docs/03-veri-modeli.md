@@ -60,7 +60,7 @@ create type question_source      as enum ('resource', 'plan', 'school', 'online'
 create type goal_metric          as enum ('questions');           -- Faz 3 sade (02 karar #32); ileride add value
 create type goal_period          as enum ('daily', 'weekly');     -- Faz 3 sade; 'monthly', 'custom' gerekince eklenir
 create type plan_status          as enum ('draft', 'published');
-create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 5: add value 'section', 'video'
+create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 7: add value 'section', 'video'
 create type topic_alert_kind     as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk', 'stale', 'not_started', 'neglected_subject', 'behind_school');   -- Faz 4c; 4d suggestion_dismissals.kind; Faz 5a add value 'behind_school'
 create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');
 create type mistake_status       as enum ('open', 'reviewing', 'solved');
@@ -234,7 +234,7 @@ question_logs (
   log_date date not null default (now() at time zone 'Europe/Istanbul')::date,
   subject_id uuid not null references subjects(id),
   topic_id uuid references topics(id),
-  -- section_id uuid references resource_sections(id)                  -- Faz 5'te eklenir (kolon yok)
+  -- section_id uuid references resource_sections(id)                  -- Faz 7'de eklenir (kolon yok)
   plan_item_id uuid references plan_items(id) on delete set null,      -- Faz 4b; dolu kayıtta source = 'plan'
   source question_source not null default 'free',
   total_count int not null check (total_count > 0 and total_count <= 500),
@@ -323,7 +323,7 @@ plan_items (
   plan_id uuid not null references weekly_plans(id) on delete cascade,
   day_of_week smallint check (day_of_week between 1 and 7),   -- NULL = "bu hafta içinde"
   sort_order smallint not null default 0,
-  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom (Faz 5: section, video)
+  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom (Faz 7: section, video)
   title text not null,                    -- 1–120; boşsa uygulama `taskTitle` ile üretir
   subject_id uuid references subjects(id) on delete set null,
   topic_id uuid references topics(id) on delete set null,
@@ -393,7 +393,7 @@ announcements (
 )
 ```
 
-### 4.5 Kaynaklar ve Videolar (Faz 5)
+### 4.5 Kaynaklar ve Videolar (Faz 7)
 
 ```sql
 resources (
@@ -549,7 +549,7 @@ LGS puanı standart sapmaya dayalı olarak ÖSYM/MEB tarafından hesaplandığı
 
 Deneme sonucu kaydı (sonuç + ders sonuçları + konu yanlışları) `public.save_mock_exam_result(payload jsonb)` fonksiyonuyla tek transaction'da yapılır.
 
-### 4.7 Bildirimler (Faz 7)
+### 4.7 Bildirimler (Faz 8)
 
 ```sql
 notifications (
@@ -566,7 +566,7 @@ notifications (
 )
 -- index (recipient_id, read_at, created_at desc)
 
-push_subscriptions (                      -- Faz 8
+push_subscriptions (                      -- Faz 9
   id uuid pk,
   profile_id uuid not null references profiles(id) on delete cascade,
   endpoint text unique not null,
@@ -575,7 +575,7 @@ push_subscriptions (                      -- Faz 8
 )
 ```
 
-### 4.8 Zenginleştirme Modülleri (Faz 8)
+### 4.8 Zenginleştirme Modülleri (Faz 9)
 
 ```sql
 study_sessions (

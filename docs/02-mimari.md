@@ -20,7 +20,7 @@
 | Sürükle-bırak | **dnd-kit** | Plan oluşturucu için |
 | Görsel sıkıştırma | **browser-image-compression** | Yanlış defteri fotoğrafları |
 | Bildirim (toast) | **sonner** | |
-| PWA | **Serwist** (`@serwist/next`) | Faz 8 |
+| PWA | **Serwist** (`@serwist/next`) | Faz 9 |
 | Test | **Vitest** (birim), **Playwright** (uçtan uca), **pgTAP** (RLS, `supabase test db`) | |
 | Kod kalitesi | **ESLint** (flat config) + **Prettier** + `prettier-plugin-tailwindcss` | |
 | Paket yöneticisi | **pnpm** | |
@@ -423,7 +423,7 @@ Her kullanımdan önce çağıranın o öğrencinin koçu veya kurum sahibi oldu
 
 - Her rota segmentinde `error.tsx` ve `loading.tsx` bulunur (iskelet ekranlar).
 - Kullanıcıya gösterilen hata mesajları Türkçe, ne olduğunu ve ne yapılacağını söyler: "Kayıt kaydedilemedi. İnternet bağlantını kontrol edip tekrar dene."
-- Beklenmeyen hatalar Faz 9'da Sentry'ye gönderilir; öncesinde `console.error` + Vercel logları.
+- Beklenmeyen hatalar Faz 10'da Sentry'ye gönderilir; öncesinde `console.error` + Vercel logları.
 
 ## 7. Performans İlkeleri
 
@@ -466,7 +466,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=                 # sadece sunucu
 STUDENT_EMAIL_DOMAIN=ogrenci.pusula.local   # boşsa koddaki varsayılan; bulutta da aynı kalmalı
-YOUTUBE_API_KEY=                     # sadece sunucu, Faz 5
+YOUTUBE_API_KEY=                     # sadece sunucu, Faz 7
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
@@ -482,7 +482,7 @@ Yerel `config.toml`'daki şu ayarların üretim/staging projesinde elle yapılma
 | E-posta doğrulama | `enable_confirmations = true` | Confirm email **kapalı** (veli davet koduyla gelir; kayıttan sonra doğrudan `/consent`). Uygulama iki durumda da çalışır (`registerParent`: signUp oturum döndürürse daveti hemen kabul eder) |
 | Onay e-postası şablonu | `supabase/templates/confirmation.html` | Sadece doğrulama açılırsa: Email Templates → Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/invite/accept` |
 | Site URL / redirect | `site_url`, `additional_redirect_urls` | Üretim alan adı |
-| SMTP | Mailpit | Doğrulama kapalıyken gerekmez (Faz 7 e-posta bildirimleri ayrı karar) |
+| SMTP | Mailpit | Doğrulama kapalıyken gerekmez (Faz 8 e-posta bildirimleri ayrı karar) |
 | Öğrenci e-posta alanı | `ogrenci.pusula.local` | Aynı değer (`DEFAULT_STUDENT_EMAIL_DOMAIN`); değişirse mevcut öğrenciler giriş yapamaz |
 
 ### package.json betikleri

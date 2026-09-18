@@ -60,26 +60,28 @@ Her modül bağımsız bir klasördür (`src/features/<modul>`), kendi menü ö�
 | # | Modül (id) | Öğrenci ne yapar | Koç ne yapar | Veli ne görür | Faz |
 |---|---|---|---|---|---|
 | 0 | **Çekirdek** (`core`) | Giriş, profil, "Bugün" ekranı | Kurum ve öğrenci yönetimi | Giriş, çocuk seçimi | 1 |
-| 1 | **Konu Takibi** (`topics`) | Konu durumunu işaretler (başlamadım, çalışıyorum, bitti, tekrar gerekli, oturdu), kendine güven puanı verir | Şablon ve konu listesi düzenler, öğrencinin konu haritasını görür | Ders bazlı tamamlanma yüzdesi | 2 |
+| 1 | **Konu Takibi** (`topics`) | Konu durumunu işaretler (başlamadım, çalışıyorum, bitti, tekrar gerekli, oturdu), kendine güven puanı verir | Şablon ve konu listesi düzenler, öğrencinin konu haritasını görür | Ders bazlı tamamlanma yüzdesi | 2, 5 (okul takvimi) |
 | 2 | **Soru Takibi** (`question-log`) | Ders, konu, kaynak seçip doğru/yanlış/boş girer | Günlük, haftalık grafikleri ve konu bazlı başarı oranını görür | Haftalık toplam soru | 3 |
-| 3 | **Hedefler** (`goals`) | Hedef ilerleme çubuklarını görür | Günlük, haftalık, aylık hedef atar (soru, süre, video, konu, net) | Hedef tamamlanma oranı | 3 |
-| 4 | **Haftalık Plan** (`planner`) | Günlük görev listesini tamamlar, hafta sonu kısa değerlendirme yazar | Sürükle-bırak plan hazırlar, plan şablonu kaydeder, başka öğrenciye kopyalar | Planın yüzde kaçının yapıldığı | 4 |
+| 3 | **Hedefler** (`goals`) | Hedef ilerleme çubuklarını görür | Günlük, haftalık, aylık hedef atar (soru, süre, video, konu, net) | Hedef tamamlanma oranı | 3, 5 ("Hedef" sekmesi, geri planlama) |
+| 4 | **Haftalık Plan** (`planner`) | Günlük görev listesini tamamlar, hafta sonu kısa değerlendirme yazar | Sürükle-bırak plan hazırlar, plan şablonu kaydeder, başka öğrenciye kopyalar | Planın yüzde kaçının yapıldığı | 4, 5 (dönem karışımı, ders çeşitliliği) |
 | 5 | **Koç Notları ve Görüşmeler** (`coach-notes`) | Kendisine açık notları okur | Not yazar (görünürlük seçerek), görüşme kaydı ve aksiyon maddesi tutar | Veliye açık notlar | 4 |
 | 6 | **Duyurular** (`announcements`) | Duyuruları görür | Tüm veya seçili öğrencilere duyuru gönderir | Veliye açık duyurular | 4 |
-| 7 | **Kaynak Takibi** (`resources`) | Kitaplarını, testleri tek tek işaretler; test bitince soru kaydı otomatik açılır | Kaynak kataloğu oluşturur (yayınevi, test listesi, konu eşleşmesi), öğrenciye atar | Kaynak ilerleme yüzdeleri | 5 |
-| 8 | **Video Takibi** (`videos`) | Oynatma listesindeki videoları uygulama içinde izler, izlendi işaretler, not düşer | YouTube oynatma listesini linkle içe aktarır, videoları konulara eşler | İzlenen video sayısı | 5 |
+| 7 | **Kaynak Takibi** (`resources`) | Kitaplarını, testleri tek tek işaretler; test bitince soru kaydı otomatik açılır | Kaynak kataloğu oluşturur (yayınevi, test listesi, konu eşleşmesi), öğrenciye atar | Kaynak ilerleme yüzdeleri | 7 |
+| 8 | **Video Takibi** (`videos`) | Oynatma listesindeki videoları uygulama içinde izler, izlendi işaretler, not düşer | YouTube oynatma listesini linkle içe aktarır, videoları konulara eşler | İzlenen video sayısı | 7 |
 | 9 | **Denemeler** (`mock-exams`) | Deneme sonucunu ders bazında girer, yanlış yaptığı konuları işaretler | Deneme kataloğu tutar, aynı denemede öğrencileri karşılaştırır, net trendini görür | Net grafiği | 6 |
 | 10 | **Yanlış Defteri** (`mistakes`) | Sorunun fotoğrafını çeker, konu ve hata nedeni seçer (bilgi eksiği, dikkat, süre, soru kökü, işlem hatası) | Hata nedeni dağılımını görür: "Bu öğrencinin sorunu bilgi değil, dikkat" | Yok (isteğe bağlı) | 6 |
 | 11 | **Tekrar Sistemi** (`review`) | "Bugün tekrar edilecekler" listesi (konu ve yanlış soru) | Tekrar aralıklarını ayarlar (varsayılan 1-3-7-15-30 gün) | Yok | 6 |
-| 12 | **Analiz ve Raporlar** (`analytics`) | Kendi istatistiklerini görür | Konu haritası (ısı haritası), zayıf konu listesi, yazdırılabilir veli görüşmesi raporu | Haftalık özet raporu | 6-8 |
-| 13 | **Veli Paneli** (`parent`) | Yok | Veli davet eder, veliye neyin görüneceğini seçer | Özet panel | 7 |
-| 14 | **Bildirimler** (`notifications`) | Plan, not, tekrar hatırlatmaları | Uyarılar, haftalık özet | Haftalık özet | 7 |
-| 15 | **Odak Sayacı** (`study-timer`) | Pomodoro veya serbest sayaç; süre otomatik kaydedilir | Çalışma süresi dağılımını görür | Haftalık çalışma süresi | 8 |
-| 16 | **Günlük Durum** (`checkins`) | 10 saniyelik günlük giriş: ruh hali, enerji, uyku saati | Motivasyon ve uyku ile performans ilişkisini görür, düşüş uyarısı alır | Yok (isteğe bağlı) | 8 |
-| 17 | **Kitap Okuma** (`reading`) | Okuduğu kitap ve sayfa sayısını girer (LGS Türkçe paragraf becerisi için) | Okuma hedefi atar | Okunan sayfa | 8 |
-| 18 | **Hedef Lise** (`target-schools`) | Hedef liselerini ve geçen yılın yüzdelik dilimini görür | Lise kataloğu girer | Hedef liseler | 8 |
-| 19 | **Rozetler ve Seri** (`achievements`) | Çalışma serisi, kilometre taşı rozetleri (ör. ilk 1000 soru) | Rozet kurallarını açıp kapatır | Seri bilgisi | 8 |
-| 20 | **Okul Sınavları** (`school-exams`) | Yazılı notlarını girer | Okul notlarını görür | Notlar | 8 |
+| 12 | **Analiz ve Raporlar** (`analytics`) | Kendi istatistiklerini görür | Konu haritası (ısı haritası), zayıf konu listesi, yazdırılabilir veli görüşmesi raporu | Haftalık özet raporu | 4–9 (uyarılar ve öneriler 4, strateji 5, ısı haritası 6, veli raporu 9) |
+| 13 | **Veli Paneli** (`parent`) | Yok | Veli davet eder, veliye neyin görüneceğini seçer | Özet panel | 8 |
+| 14 | **Bildirimler** (`notifications`) | Plan, not, tekrar hatırlatmaları | Uyarılar, haftalık özet | Haftalık özet | 8 |
+| 15 | **Odak Sayacı** (`study-timer`) | Pomodoro veya serbest sayaç; süre otomatik kaydedilir | Çalışma süresi dağılımını görür | Haftalık çalışma süresi | 9 |
+| 16 | **Günlük Durum** (`checkins`) | 10 saniyelik günlük giriş: ruh hali, enerji, uyku saati | Motivasyon ve uyku ile performans ilişkisini görür, düşüş uyarısı alır | Yok (isteğe bağlı) | 9 |
+| 17 | **Kitap Okuma** (`reading`) | Okuduğu kitap ve sayfa sayısını girer (LGS Türkçe paragraf becerisi için) | Okuma hedefi atar | Okunan sayfa | 9 |
+| 18 | **Hedef Lise** (`target-schools`) | Hedef liselerini ve geçen yılın yüzdelik dilimini görür | Lise kataloğu girer | Hedef liseler | 9 |
+| 19 | **Rozetler ve Seri** (`achievements`) | Çalışma serisi, kilometre taşı rozetleri (ör. ilk 1000 soru) | Rozet kurallarını açıp kapatır | Seri bilgisi | 9 |
+| 20 | **Okul Sınavları** (`school-exams`) | Yazılı notlarını girer | Okul notlarını görür | Notlar | 9 |
+
+Faz 5 (strateji katmanı, `09-faz5-strateji.md`) yeni modül eklemez: `core`, `topics`, `goals`, `analytics` ve `planner` içine giren bir katmandır (karar B6).
 
 **MVP (ilk kullanılabilir sürüm):** Faz 0-3. Bu noktada 2-3 öğrenciyle pilot başlatılabilir.
 
@@ -214,7 +216,7 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] Bugün ekranı: `defineWidgets` / `src/modules/widgets.ts` altyapısı (yalnızca `studentToday`) ve "tamamlanan konu" kartı
 - [x] Yeni öğrenci formunda şablon seçimi (sistem şablonu varsayılan)
 - [x] Testler: birim (`completionPercent`), pgTAP (39 yeni), e2e (`topics.spec.ts`: öğrenci durum değiştirir → yüzde → koç görür; koç konu ekler → öğrencide görünür → siler); `pnpm screenshots --only 2` → `docs/tasarim/uygulama-2/`
-- Ertelenen: `next_review_at` / tekrar aralıkları (Faz 6, tekrar modülü); şablon kopyalama (`based_on_id`) ve şablon seçici; hücre detayında soru sayısı/başarı/kaynaklar (Faz 3, 5)
+- Ertelenen: `next_review_at` / tekrar aralıkları (Faz 6, tekrar modülü); şablon kopyalama (`based_on_id`) ve şablon seçici; hücre detayında soru sayısı/başarı/kaynaklar (Faz 3, 7)
 - **Kabul:** Koç şablona konu ekleyince tüm öğrencilerde görünüyor (e2e ✅); öğrenci konu durumunu değiştirebiliyor (e2e ✅).
 
 ### Faz 3: Soru Takibi, Hedefler ve "Bugün" Ekranı (L) → **MVP** — ✅ 2026-09-17 (dal: `faz-3-gunluk`)
@@ -223,7 +225,7 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - [x] Öğrenci: Bugün (seri, LGS, hedef halkası, bugünkü kayıtlar, haftalık ders çubukları, konu kartı; masaüstünde main/side iki sütun, karar #33), `/student/logs` geçmiş (düzenle, onaylı sil), konu detayında soru sayısı ve başarı
 - [x] Koç: öğrenci listesi görünümden (son kayıt, bu hafta, haftalık hedef %; telefonda kart), Genel bakış (bugün/hafta/son 14 gün çubukları, hedef formu, sınav tarihi), Sorular sekmesi (tarih + ders filtresi); yeni öğrenci sınav tarihi şablondan (karar #35)
 - [x] Testler: birim (net, seri, toast metni), pgTAP (40 yeni), e2e `question-log.spec.ts` (masaüstü + mobil); teardown yalnızca yerel Supabase'de, e2e öğrencilerini de temizler; `pnpm screenshots --only 3` → `docs/tasarim/uygulama-3/`
-- Ertelenen: koçun öğrenci adına kayıt girmesi; "dikkat gerektirenler" (Faz 7); kaynak (`section_id`) ve plan (`plan_item_id`) bağları (Faz 4-5)
+- Ertelenen: koçun öğrenci adına kayıt girmesi; "dikkat gerektirenler" (Faz 4 Parça 3'te yapıldı); kaynak (`section_id`) ve plan (`plan_item_id`) bağları (Faz 4, 7)
 - **Kabul:** Öğrenci 3 dokunuşta kayıt giriyor (e2e ✅); hedef halkası anında güncelleniyor (e2e ✅); koç listesinde son kayıt ve bu hafta görünüyor (e2e ✅). **Pilot başlayabilir.**
 
 ### Faz 4: Plan Sistemi (L, dört parça; tasarım: `08-faz4-plan-sistemi.md`) — ✅ 2026-09-18 (dal: `faz-4-plan`)
@@ -235,13 +237,14 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - Bu fazdan çıkarılan: `plan_templates`, `meetings`; `coach-notes` ve `announcements` ayrı planlanır
 - **Kabul:** Koç bir planı 3 öğrenciye kopyalayabiliyor (e2e ✅ kopyalama onayı; RPC pgTAP ✅); öğrencinin tamamladığı görev koç ekranına yansıyor (e2e ✅).
 
-### Faz 5: Kaynaklar ve Videolar (M)
-- `resources`, `resource_sections`, `student_resources`, `video_playlists`, `videos`, `student_playlists`, `student_video_progress`
-- YouTube Data API ile oynatma listesi içe aktarma (sunucu tarafında)
-- Uygulama içi video oynatıcı ve "izlendi" işareti
-- **Kabul:** Koç bir YouTube listesi linki yapıştırınca videolar geliyor; öğrencinin test tamamlaması kaynak yüzdesini güncelliyor.
+### Faz 5: Strateji Katmanı (M, üç parça; tasarım: `09-faz5-strateji.md`) — devam ediyor
+Yeni sekme değil: plan oluşturucu, öneri motoru, Bugün, konu haritası ve koç listesinin içine giren strateji katmanı; tek yeni ekran koçun bir kez dolduracağı ayar ve hedef sayfaları.
+- [x] **Parça 1 — Takvim ve dönemler** (`core`, `topics`, `analytics`; 2026-09-18, dal `faz-5a-takvim`): kurum ayarı `strategy` (sezon dönemleri + karışım, eşikler; `faz5a_strategy_settings`, pgTAP `200`) ve ayar formunda "Sezon dönemleri" liste editörü (Satır ekle / Sil / "Varsayılanları öner" → `suggestSeasonPeriods(examDate)`) + "Strateji" bölümü; `topics.school_finish_on` + `set_topic_school_dates` RPC + `v_topic_alert_facts.school_finish_on` (`faz5a_topic_school_dates`, pgTAP `205`); şablon "Takvim" görünümü (`/coach/templates?view=calendar`: Sıradan dağıt / Temizle / ara tatil, satır satır tarih + hafta etiketi); harita hücresinde okul çentiği ve hücre detayında "Okulda" satırı; `behind_school` uyarı türü (bitmemiş konuların hepsi, tolerans `school_lag_weeks`; K1 dikkat listesi, K2 "Okulun gerisinde", havuz `behind`; öğrenci Bugün kartında yok); `src/lib/strategy/` (`periods.ts`, `school-calendar.ts`, birim testli); e2e `curriculum-calendar.spec.ts`
+- [ ] **Parça 2 — Hedef ve geri planlama** (`goals`, `schedule`, `topics`): `student_subject_targets`, `student_topic_targets`, `students` hedef ve uyanık aralık kolonları, `set_student_targets` RPC; `backPlanTopics` / `splitQuestions` / `feasibility` / `topicPace`; "Hedef" sekmesi, gidişat görünümleri, K1 "Takvim" sütunu, K2 ders bazlı tablo, Bugün cümlesi + ince çubuk (dal `faz-5b-hedef`)
+- [ ] **Parça 3 — Strateji farkındalığı** (`analytics`, `planner`): `buildSuggestions.strategy`, dönem karışımı kotası, `priorityScore` sınav yakınlığı / hedef gecikmesi / ders açığı, `distributeTasks` ders çeşitliliği + çok haftalık anahtar (dal `faz-5c-oneri`)
+- **Kabul (09 §2):** 54 konunun okul takvimi tek oturumda doldurulur, seed öğrencisinde "Okulun gerisinde" K1'de görünür, dönemler önerilir/kaydedilir (e2e ✅); koç hedefi kurunca konu tarihleri yazılır, öğrenci Bugün'de gidişat cümlesi (Parça 2); aynı uyarı kümesi farklı dönemde farklı karışım verir (Parça 3).
 
-### Faz 6: Denemeler, Yanlış Defteri, Tekrar, Konu Haritası (L)
+### Faz 6: Denemeler ve Yanlış Defteri (L; tekrar sistemi ve ısı haritası dahil)
 - `mock_exams`, `mock_exam_results`, `mock_exam_subject_results`, `mock_exam_topic_mistakes`, `mistakes`, tekrar alanları
 - Deneme giriş sihirbazı, net trend grafiği, aynı denemede öğrenci karşılaştırma
 - Fotoğraflı yanlış kaydı (tarayıcıda sıkıştırma), hata nedeni analizi
@@ -249,19 +252,25 @@ Her faz bir Git dalında geliştirilir, Vercel önizleme linkinde test edilir, s
 - Konu haritası (ısı haritası): konu durumu + soru başarı oranı + deneme yanlışları birleşik
 - **Kabul:** Deneme girildiğinde net otomatik hesaplanıyor; zayıf konular haritada öne çıkıyor.
 
-### Faz 7: Veli Paneli, Bildirimler, Uyarılar (M)
-- Veli özet paneli, görünürlük ayarları
-- Uygulama içi bildirimler, koç uyarı görünümü (Bölüm 7)
+### Faz 7: Kaynaklar ve Videolar (M)
+- `resources`, `resource_sections`, `student_resources`, `video_playlists`, `videos`, `student_playlists`, `student_video_progress`; `plan_item_kind` + `section`, `video`; `question_logs.section_id`
+- YouTube Data API ile oynatma listesi içe aktarma (sunucu tarafında)
+- Uygulama içi video oynatıcı ve "izlendi" işareti
+- **Kabul:** Koç bir YouTube listesi linki yapıştırınca videolar geliyor; öğrencinin test tamamlaması kaynak yüzdesini güncelliyor.
+
+### Faz 8: Veli Paneli ve Bildirimler (M)
+- Veli özet paneli (gidişat cümlesi "siz" diliyle, 09 §5), görünürlük ayarları
+- Uygulama içi bildirimler, koç uyarı görünümü (Bölüm 7; konu uyarıları Faz 4'te yapıldı)
 - Haftalık özet üretimi (`pg_cron`), isteğe bağlı e-posta (Resend vb.)
 - **Kabul:** Pazar akşamı veliye haftalık özet bildirimi düşüyor; koç panelinde uyarılar listeleniyor.
 
-### Faz 8: Deneyimi Zenginleştirme (L, parçalı yapılabilir)
+### Faz 9: Deneyimi Zenginleştirme (L, parçalı yapılabilir)
 - PWA (ana ekrana ekleme, çevrimdışı açılış ekranı), web push bildirimleri
 - Odak sayacı, günlük durum, kitap okuma, rozetler ve seri, hedef lise, okul sınavları
 - Yazdırılabilir veli görüşmesi raporu
 - **Kabul:** Her modül tek tek açılıp kapatılabiliyor ve kapalıyken iz bırakmıyor.
 
-### Faz 9: Sağlamlaştırma (M)
+### Faz 10: Sağlamlaştırma (M)
 - Uçtan uca testlerin kritik akışları kapsaması, erişilebilirlik denetimi
 - Performans (sorgu indeksleri, görünümlerin maliyeti), hata izleme (Sentry ücretsiz plan)
 - Yedekten geri yükleme tatbikatı
@@ -282,4 +291,4 @@ Geliştirme sırasında netleştirilecek konular. Karar verildikçe `02-mimari.m
 - [ ] Veli, öğrencinin yanlış defteri fotoğraflarını görebilsin mi?
 - [ ] Öğrenci kendi hedefini oluşturabilsin mi, yoksa sadece koç mu?
 - [ ] Sıralama tablosu tamamen kaldırılsın mı, yoksa koç isterse açabilsin mi?
-- [ ] E-posta bildirimleri Faz 7'de mi, sonra mı?
+- [ ] E-posta bildirimleri Faz 8'de mi, sonra mı?
