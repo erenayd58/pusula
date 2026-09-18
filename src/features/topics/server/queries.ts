@@ -17,10 +17,16 @@ import type {
  * kendi ilerlemesini, koçun kendi öğrencilerininkini görmesini sağlar (03 §5.3).
  */
 
-type TopicRow = { id: string; name: string; sort_order: number; parent_id: string | null };
+type TopicRow = {
+  id: string;
+  name: string;
+  sort_order: number;
+  parent_id: string | null;
+  school_finish_on: string | null;
+};
 
 const SUBJECT_SELECT =
-  "id, code, name, short_name, color, sort_order, topics(id, name, sort_order, parent_id)";
+  "id, code, name, short_name, color, sort_order, topics(id, name, sort_order, parent_id, school_finish_on)";
 
 async function listSubjectsWithTopics(templateId: string) {
   const supabase = await createClient();
@@ -91,6 +97,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
           completedAt: p?.completed_at ?? null,
           questions,
           accuracy: accuracyPercent(st?.correct ?? 0, questions),
+          schoolFinishOn: t.school_finish_on,
         };
       }),
   }));
@@ -128,6 +135,7 @@ function nestTopics(rows: TopicRow[], progressStudents: Map<string, number>): Te
         name: r.name,
         sortOrder: r.sort_order,
         progressStudents: progressStudents.get(r.id) ?? 0,
+        schoolFinishOn: r.school_finish_on,
         children: build(r.id),
       }));
   return build(null);

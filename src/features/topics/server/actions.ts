@@ -7,6 +7,7 @@ import {
   moveTopicSchema,
   renameTopicSchema,
   setTopicProgressSchema,
+  setTopicSchoolDatesSchema,
   topicIdSchema,
 } from "../schemas";
 
@@ -125,6 +126,29 @@ export const deleteTopic = createAction({
     if (error) throw error;
     if (data.length === 0) throw new ActionError(NOT_ALLOWED);
     return { topicId: input.topicId };
+  },
+});
+
+/**
+ * Okul takvimi (Faz 5a): `set_topic_school_dates(p_rows)` RPC'si security invoker, tek UPDATE →
+ * atomik; RLS'nin filtrelediği satır varsa RPC 42501 verir ve hiçbir satır yazılmaz. Tek satır
+ * düzenlemesi de "Sıradan dağıt" da bu eylemle. Uyarılar için `/coach/students` da tazelenir.
+ */
+export const setTopicSchoolDates = createAction({
+  name: "setTopicSchoolDates",
+  schema: setTopicSchoolDatesSchema,
+  roles: ["coach", "owner"],
+  revalidate: TEMPLATE_PATHS,
+  handler: async (input, ctx) => {
+    const { data, error } = await ctx.supabase.rpc("set_topic_school_dates", {
+      p_rows: input.rows.map((r) => ({ topic_id: r.topicId, on: r.schoolFinishOn })),
+    });
+    if (error) {
+      if (error.code === "42501") throw new ActionError(NOT_ALLOWED);
+      throw error;
+    }
+    if ((data ?? 0) < input.rows.length) throw new ActionError(NOT_ALLOWED);
+    return { updated: data ?? 0 };
   },
 });
 

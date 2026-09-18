@@ -3,6 +3,9 @@ export { topicsModule } from "./module";
 export { topicsWidgets } from "./widgets";
 export { TopicMap, TopicLegend } from "./components/topic-map";
 export { TemplateEditor } from "./components/template-editor";
+export { TemplateCalendar } from "./components/template-calendar";
+export { setTopicSchoolDates } from "./server/actions";
+export { setTopicSchoolDatesSchema, type SetTopicSchoolDatesInput } from "./schemas";
 export {
   getTopicMap,
   getTemplateEditor,

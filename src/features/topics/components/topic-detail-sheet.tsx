@@ -16,7 +16,9 @@ import {
 } from "@/components/ui/responsive-sheet";
 import { topicStatusLabels } from "@/content/labels";
 import { FormError } from "@/components/shared/form-error";
-import { formatCount, formatDateTr, formatPercent } from "@/lib/format";
+import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { formatCount, formatDateTr, formatPercent, formatWeekRange } from "@/lib/format";
+import { schoolLagWeeks } from "@/lib/strategy/school-calendar";
 import { cn } from "@/lib/utils";
 import type { TopicStatus } from "@/types";
 import { topicStatusValues } from "../schemas";
@@ -36,9 +38,21 @@ const CONFIDENCE_HINT: Record<number, string> = {
 export type TopicDetailSelection = { subject: TopicMapSubject; cell: TopicMapCell };
 
 /**
+ * Okul satırı (Faz 5a, 09 §2 Parça 1): "Okulda: 12 – 18 Ekim haftası · 3 hafta önce" /
+ * "… · bu hafta" / "Okul bu konuya henüz gelmedi (… haftası)"; tarih yoksa satır yok.
+ */
+export function schoolText(schoolFinishOn: string, today: string): string {
+  const week = `${formatWeekRange(weekStart(schoolFinishOn))} haftası`;
+  const lag = schoolLagWeeks(schoolFinishOn, today);
+  if (lag < 0) return `Okul bu konuya henüz gelmedi (${week})`;
+  if (lag === 0) return `Okulda: ${week} · bu hafta`;
+  return `Okulda: ${week} · ${formatCount(lag, "hafta")} önce`;
+}
+
+/**
  * Hücre detayı: telefonda alt panel, masaüstünde diyalog (ResponsiveSheet; 02 karar #30).
  * Üstte çözülen soru ve başarı (Faz 3, görünümden); durum ve 1-5 güven puanı seçilir,
- * kaydedilir. Bağlı kaynaklar Faz 5'te eklenir.
+ * kaydedilir. Okul takvimi doluysa nötr "Okulda" satırı. Bağlı kaynaklar Faz 7'de eklenir.
  */
 export function TopicDetailSheet({
   selection,
@@ -135,6 +149,12 @@ function DetailForm({
               : "Öğrencinin bu konudaki durumu ve güven puanı."}
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
+
+      {cell.schoolFinishOn ? (
+        <p data-testid="topic-school" className="text-small text-ink-700">
+          {schoolText(cell.schoolFinishOn, toDateKey(todayInIstanbul()))}
+        </p>
+      ) : null}
 
       <dl className="grid grid-cols-2 gap-3">
         <div className="flex flex-col rounded-sm border border-line bg-bg-paper px-4 py-3 clay:rounded-md clay:border-0 clay:clay-well">
