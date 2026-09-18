@@ -2,14 +2,20 @@ import { describe, expect, it } from "vitest";
 import type { OrgSettings } from "@/features/core";
 import { NBSP } from "@/lib/format";
 import type { TopicAlertKind } from "@/types";
-import type { TopicAlert } from "../types";
+import type { StudentStrategy, TopicAlert } from "../types";
 import { distributeTasks, type DistributeDay } from "./distribute";
-import { DELAY_SATURATION_DAYS, KIND_BASE_SCORE, priorityScore } from "./priority";
+import {
+  DELAY_SATURATION_DAYS,
+  KIND_BASE_SCORE,
+  PROXIMITY_SWING,
+  priorityScore,
+} from "./priority";
 import {
   alertToTask,
   buildSuggestions,
   dismissalKey,
   plannedKey,
+  strategyNoteFor,
   type Suggestion,
 } from "./suggestions";
 
@@ -148,6 +154,94 @@ describe("priorityScore", () => {
   });
 });
 
+describe("priorityScore (strateji alanları, Faz 5c)", () => {
+  const base = { examQuestionCount: 20, maxExamQuestionCount: 20, accuracy: null, threshold: null };
+
+  it("alanlar verilmezse ya da sıfırsa Faz 4 sonucu birebir", () => {
+    const plain = priorityScore({ ...base, delayDays: 0, kind: "knowledge_gap" });
+    expect(
+      priorityScore({
+        ...base,
+        delayDays: 0,
+        kind: "knowledge_gap",
+        examProximity: 0,
+        targetDelayDays: 0,
+        subjectGap: 0,
+      }),
+    ).toBe(plain);
+  });
+
+  it("sınav yakınlığı zayıf/bakım türünü yukarı, yeni konuyu aşağı çeker (1 ± 0,25 × yakınlık)", () => {
+    // knowledge_gap tabanı 70 → 70 × 1,25 = 87,5 → 88; not_started 52 → 52 × 0,75 = 39
+    expect(priorityScore({ ...base, delayDays: 0, kind: "knowledge_gap", examProximity: 1 })).toBe(
+      Math.round(70 * (1 + PROXIMITY_SWING)),
+    );
+    expect(priorityScore({ ...base, delayDays: 0, kind: "not_started", examProximity: 1 })).toBe(
+      Math.round(52 * (1 - PROXIMITY_SWING)),
+    );
+    expect(
+      priorityScore({ ...base, delayDays: 0, kind: "behind_school", examProximity: 0.5 }),
+    ).toBe(Math.round(100 * (0.4 + 0.3 * 0.75) * (1 - PROXIMITY_SWING * 0.5)));
+  });
+
+  it("sınava 30 gün kala aynı puanlı yeni konu, zayıf konunun altına düşer", () => {
+    // Yakınlık yokken ikisi de 70: knowledge_gap (ders 1, zayıflık 1) ve not_started (gecikme 30, zayıflık 0,4 → 82? hayır: 40 + 12 + 30 = 82).
+    // Eşit puan için not_started gecikmesi 18 gün: 40 + 12 + 18 = 70.
+    const weak = { ...base, delayDays: 0, kind: "knowledge_gap" as const };
+    const fresh = { ...base, delayDays: 18, kind: "not_started" as const };
+    expect(priorityScore(weak)).toBe(priorityScore(fresh));
+    // Sınava 30 gün, proximity_days 120 → yakınlık 0,75: zayıf 83, yeni 57.
+    const proximity = 0.75;
+    expect(priorityScore({ ...fresh, examProximity: proximity })).toBeLessThan(
+      priorityScore({ ...weak, examProximity: proximity }),
+    );
+  });
+
+  it("hedef tarihi geçmiş konu gecikme puanı alır: gecikme = max(uyarı, hedef)", () => {
+    const without = priorityScore({ ...base, delayDays: 0, kind: "not_started" });
+    const withTarget = priorityScore({
+      ...base,
+      delayDays: 0,
+      kind: "not_started",
+      targetDelayDays: 15,
+    });
+    // 100 × 0,3 × 0,5 = 15 puan fark
+    expect(withTarget - without).toBe(15);
+    // Uyarı gecikmesi daha büyükse o kazanır.
+    expect(priorityScore({ ...base, delayDays: 30, kind: "stale", targetDelayDays: 3 })).toBe(
+      priorityScore({ ...base, delayDays: 30, kind: "stale" }),
+    );
+  });
+
+  it("ders açığı ders ağırlığını büyütür, 1'e kırpılır", () => {
+    // ders 10/20 = 0,5 × (1 + 0,5) = 0,75 → 100 × (0,3 + 0,12) = 42
+    expect(
+      priorityScore({
+        ...base,
+        examQuestionCount: 10,
+        delayDays: 0,
+        kind: "not_started",
+        subjectGap: 0.5,
+      }),
+    ).toBe(42);
+    // Tam ağırlıkta açık artık etkilemez (1'e kırpılır).
+    expect(priorityScore({ ...base, delayDays: 0, kind: "not_started", subjectGap: 1 })).toBe(52);
+  });
+
+  it("sonuç 0–100 aralığında kalır", () => {
+    expect(
+      priorityScore({
+        ...base,
+        delayDays: 90,
+        kind: "knowledge_gap",
+        accuracy: 0,
+        threshold: 55,
+        examProximity: 1,
+      }),
+    ).toBe(100);
+  });
+});
+
 describe("alertToTask", () => {
   it("bilgi eksiği ve başlanmamış → konu çalışması (kurum süresi)", () => {
     const t = alertToTask(alert({ kind: "knowledge_gap" }), SETTINGS.planner);
@@ -268,6 +362,100 @@ describe("buildSuggestions", () => {
   });
 });
 
+describe("buildSuggestions (strateji, Faz 5c)", () => {
+  function strategy(over: Partial<StudentStrategy> = {}): StudentStrategy {
+    return {
+      daysToExam: null,
+      mix: null,
+      topicDelayDays: new Map(),
+      subjectGap: new Map(),
+      ...over,
+    };
+  }
+  const NO_NEW = { new_topic: 0, weak: 50, review: 50 };
+  const HALF_NEW = { new_topic: 50, weak: 30, review: 20 };
+  const alerts = [
+    alert({ topicId: "n1", kind: "not_started", delayDays: 0 }),
+    alert({ topicId: "n2", kind: "not_started", delayDays: 0 }),
+    alert({ topicId: "n3", kind: "behind_school", delayDays: 0 }),
+    alert({ topicId: "w1", kind: "knowledge_gap", questions: 40, accuracy: 30, threshold: 55 }),
+    alert({ topicId: "r1", kind: "review_due", delayDays: 5 }),
+    alert({ topicId: "r2", kind: "stale", delayDays: 10 }),
+  ];
+
+  it("strateji verilmeyince Faz 4 kesimi: puana göre ilk max_per_student, not yok", () => {
+    const plain = build(alerts);
+    expect(plain).toHaveLength(5);
+    expect(plain.every((s) => s.strategyNote === undefined)).toBe(true);
+  });
+
+  it("aynı uyarı kümesi farklı dönemde farklı karışım verir", () => {
+    const noNew = build(alerts, { strategy: new Map([["s1", strategy({ mix: NO_NEW })]]) });
+    // Kota 0/3/2: zayıf 1 + bakım 2 = 3 dolu; kalan 2 yuva en yüksek puanlı yeni konulara açılır.
+    expect(noNew).toHaveLength(5);
+    expect(noNew.map((s) => s.topicId)).toEqual(expect.arrayContaining(["w1", "r1", "r2"]));
+    expect(noNew.filter((s) => ["n1", "n2", "n3"].includes(s.topicId!))).toHaveLength(2);
+
+    const halfNew = build(alerts, { strategy: new Map([["s1", strategy({ mix: HALF_NEW })]]) });
+    // Kota 3/1/1: üç yeni konu, en iyi zayıf, en iyi bakım.
+    expect(halfNew.map((s) => s.topicId).sort()).toEqual(["n1", "n2", "n3", "r2", "w1"]);
+    // Sıra yine puana göre azalan.
+    for (let i = 1; i < halfNew.length; i++)
+      expect(halfNew[i]!.score).toBeLessThanOrEqual(halfNew[i - 1]!.score);
+  });
+
+  it("yeni %0 dönemde yeni konu yalnızca kota boş kalırsa ve diğer kategoriler tükenmişse gelir", () => {
+    const few = [alerts[0]!, alerts[3]!, alerts[4]!]; // n1, w1, r1
+    const out = build(few, { strategy: new Map([["s1", strategy({ mix: NO_NEW })]]) });
+    expect(out.map((s) => s.topicId).sort()).toEqual(["n1", "r1", "w1"]);
+    // Zayıf ve bakım yeterliyse yeni konu gelmez.
+    const enough = [
+      ...alerts.slice(3),
+      alert({ topicId: "w2", kind: "low_accuracy", questions: 20, accuracy: 40, threshold: 60 }),
+      alert({ topicId: "r3", kind: "forgetting_risk", accuracy: 50, threshold: 60 }),
+      alerts[0]!,
+    ];
+    const full = build(enough, { strategy: new Map([["s1", strategy({ mix: NO_NEW })]]) });
+    expect(full).toHaveLength(5);
+    expect(full.some((s) => s.kind === "not_started")).toBe(false);
+  });
+
+  it("hedef gecikmesi ve ders açığı puana ve nota işler; bağlamsız öğrenci Faz 4", () => {
+    const st = strategy({
+      daysToExam: 30,
+      topicDelayDays: new Map([["n1", 14]]),
+      subjectGap: new Map([["mat", 0.5]]),
+    });
+    const out = build(
+      [alerts[0]!, alerts[1]!, alert({ studentId: "s2", topicId: "x", kind: "not_started", delayDays: 0 })],
+      { strategy: new Map([["s1", st]]) },
+    );
+    const n1 = out.find((s) => s.topicId === "n1")!;
+    const n2 = out.find((s) => s.topicId === "n2")!;
+    expect(n1.strategyNote).toBe(`hedef tarihi 2${NBSP}hafta geçti`);
+    expect(n2.strategyNote).toBe("bu derste soru hedefinin gerisinde");
+    expect(n1.score).toBeGreaterThan(n2.score);
+    // Ders ağırlığı 1'de kırpıldığı için açık puanı değiştirmez; yakınlık 0,75 yeni konuyu düşürür: 52 × 0,8125 = 42.
+    expect(n2.score).toBe(42);
+    const x = out.find((s) => s.topicId === "x")!;
+    expect(x.strategyNote).toBeUndefined();
+    expect(x.score).toBe(52);
+  });
+
+  it("strategyNoteFor: gecikme hafta/gün, açık eşik", () => {
+    expect(strategyNoteFor({ targetDelayDays: 14, subjectGap: 1 })).toBe(
+      `hedef tarihi 2${NBSP}hafta geçti`,
+    );
+    expect(strategyNoteFor({ targetDelayDays: 3, subjectGap: undefined })).toBe(
+      `hedef tarihi 3${NBSP}gün geçti`,
+    );
+    expect(strategyNoteFor({ targetDelayDays: 0, subjectGap: 0.19 })).toBeUndefined();
+    expect(strategyNoteFor({ targetDelayDays: undefined, subjectGap: 0.2 })).toBe(
+      "bu derste soru hedefinin gerisinde",
+    );
+  });
+});
+
 describe("distributeTasks", () => {
   const days: DistributeDay[] = [1, 2, 3, 4, 5, 6, 7].map((dayOfWeek) => ({
     dayOfWeek,
@@ -347,8 +535,9 @@ describe("distributeTasks", () => {
       ratio: 1,
       maxPerSubjectPerDay: 2,
     });
-    // Pzt'de Matematik zaten 1: a Pzt (sınır doldu); b ve c Salı (Salı'da 2, sınırda).
-    expect(out.map((p) => p.dayOfWeek)).toEqual([1, 2, 2]);
+    // Ders çeşitliliği (Faz 5c): Pzt'de Matematik zaten 1 → a Salı (0 Matematik); b Pzt (eşit
+    // sayı, kapasite büyük; Pzt sınırda); c Salı (Salı'da 2, sınırda).
+    expect(out.map((p) => p.dayOfWeek)).toEqual([2, 1, 2]);
     const more = distributeTasks({
       suggestions: [suggestion({ topicId: "d", minutes: 10 })],
       days: [{ dayOfWeek: 1, availableMinutes: 1000 }],
@@ -384,5 +573,50 @@ describe("distributeTasks", () => {
         maxPerSubjectPerDay: 2,
       }),
     ).toEqual([{ dayOfWeek: null, suggestion: suggestion() }]);
+  });
+
+  it("aynı güne aynı dersten üst üste görev koymaz (ders çeşitliliği, Faz 5c)", () => {
+    const out = distributeTasks({
+      suggestions: [
+        suggestion({ topicId: "a", subjectId: "mat", minutes: 10 }),
+        suggestion({ topicId: "b", subjectId: "mat", minutes: 10 }),
+        suggestion({ topicId: "c", subjectId: "mat", minutes: 10 }),
+        suggestion({ topicId: "d", subjectId: "fen", minutes: 10 }),
+      ],
+      days: [
+        { dayOfWeek: 1, availableMinutes: 100 },
+        { dayOfWeek: 2, availableMinutes: 100 },
+        { dayOfWeek: 3, availableMinutes: 100 },
+      ],
+      existing: [],
+      ratio: 1,
+      maxPerSubjectPerDay: 3,
+    });
+    // Matematik üç güne yayılır; Fen için her günde 0 Fen var → kapasitesi en yüksek olan (eşitlikte erken).
+    expect(out.map((p) => p.dayOfWeek)).toEqual([1, 2, 3, 1]);
+  });
+
+  it("date anahtarıyla iki hafta dağıtır; aynı haftanın günü iki kez geçebilir", () => {
+    const days: DistributeDay[] = [
+      { dayOfWeek: 1, availableMinutes: 50, date: "2026-09-21" },
+      { dayOfWeek: 1, availableMinutes: 50, date: "2026-09-28" },
+    ];
+    const out = distributeTasks({
+      suggestions: [
+        suggestion({ topicId: "a", subjectId: "mat", minutes: 40 }),
+        suggestion({ topicId: "b", subjectId: "fen", minutes: 40 }),
+        suggestion({ topicId: "c", subjectId: "tur", minutes: 40 }),
+      ],
+      days,
+      existing: [{ dayOfWeek: 1, subjectId: null, minutes: 20, date: "2026-09-28" }],
+      ratio: 1,
+      maxPerSubjectPerDay: 2,
+    });
+    // 21 Eyl 50, 28 Eyl 30 (mevcut görev tarihle düşer): a → 21 Eyl; b, c sığmaz.
+    expect(out.map((p) => [p.dayOfWeek, p.date ?? null])).toEqual([
+      [1, "2026-09-21"],
+      [null, null],
+      [null, null],
+    ]);
   });
 });

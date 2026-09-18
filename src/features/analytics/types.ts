@@ -1,3 +1,4 @@
+import type { PeriodMix } from "@/lib/strategy/periods";
 import type { TopicAlertKind, TopicStatus } from "@/types";
 
 /** `v_topic_alert_facts` satırı: öğrenci × ünite düzeyi konu (08 §1.5). Karar vermez. */
@@ -100,4 +101,20 @@ export type AlertGroup = {
   maintenance: TopicAlert[];
   /** neglected_subject (ders düzeyi) */
   subjects: TopicAlert[];
+};
+
+/**
+ * Öğrencinin strateji bağlamı (09 §2 Parça 3): sorgu katmanı kurum ayarı + `students.exam_date`
+ * + gidişat görünümlerinden kurar, `buildSuggestions` puan ve kotada kullanır. Verilmezse Faz 4
+ * davranışı birebir.
+ */
+export type StudentStrategy = {
+  /** `students.exam_date`'e kalan gün; sınav tarihi yoksa null (yakınlık 0). */
+  daysToExam: number | null;
+  /** Bugünü kapsayan sezon döneminin karışımı (`periodFor`); dönem yoksa null (kota yok). */
+  mix: PeriodMix | null;
+  /** Konu → hedef tarihini aşan gün (`student_topic_targets`; yalnızca bitmemiş ve tarihi geçmiş). */
+  topicDelayDays: ReadonlyMap<string, number>;
+  /** Ders → 0–1 soru açığı: (bugüne kadar beklenen − gerçekleşen) / beklenen; hedef yoksa boş. */
+  subjectGap: ReadonlyMap<string, number>;
 };

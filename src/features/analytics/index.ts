@@ -14,12 +14,13 @@ export {
   type AlertThresholds,
 } from "./lib/alerts";
 export { pickStudentNudge, nudgeText } from "./lib/nudge";
-export { priorityScore, SCORE_WEIGHTS } from "./lib/priority";
+export { priorityScore, SCORE_WEIGHTS, PROXIMITY_SWING } from "./lib/priority";
 export {
   buildSuggestions,
   alertToTask,
   dismissalKey,
   plannedKey,
+  strategyNoteFor,
   type Suggestion,
   type SuggestionTask,
 } from "./lib/suggestions";
@@ -37,6 +38,7 @@ export type {
   SetupFacts,
   SetupAlert,
   SetupAlertKind,
+  StudentStrategy,
 } from "./types";
 export { AttentionList } from "./components/attention-list";
 export { WeakTopics } from "./components/weak-topics";
