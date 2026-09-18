@@ -1,7 +1,12 @@
 "use server";
 
 import { ActionError, createAction } from "@/lib/actions/create-action";
-import { busySlotSchema, deleteScheduleRowSchema, scheduleExceptionSchema } from "../schemas";
+import {
+  busySlotSchema,
+  deleteScheduleRowSchema,
+  scheduleExceptionSchema,
+  setWakeWindowSchema,
+} from "../schemas";
 
 const NOT_ALLOWED = "Bu işlem için yetkin yok.";
 const NOT_FOUND = "Kayıt bulunamadı; sayfayı yenile.";
@@ -125,5 +130,27 @@ export const deleteScheduleException = createAction({
     if (error) rethrow(error);
     if (data.length === 0) throw new ActionError(NOT_FOUND);
     return { id: input.id };
+  },
+});
+
+/**
+ * Öğrenci uyanık aralığı (Faz 5b, karar B10): koç/owner yazar; ikisi boş → kurum varsayılanına
+ * döner. `students.wake_*` kolon grant'ı + RLS (is_coach_of) sınırlar. Program ve plan sayfaları
+ * yeniden hesaplanır.
+ */
+export const setWakeWindow = createAction({
+  name: "setWakeWindow",
+  schema: setWakeWindowSchema,
+  roles: ["coach", "owner"],
+  revalidate: [...PATHS, "/coach/plans"],
+  handler: async (input, ctx) => {
+    const { data, error } = await ctx.supabase
+      .from("students")
+      .update({ wake_start: input.wakeStart, wake_end: input.wakeEnd })
+      .eq("profile_id", input.studentId)
+      .select("profile_id");
+    if (error) rethrow(error);
+    if (data.length === 0) throw new ActionError(NOT_ALLOWED);
+    return { wakeStart: input.wakeStart, wakeEnd: input.wakeEnd };
   },
 });

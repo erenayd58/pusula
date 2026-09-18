@@ -24,6 +24,9 @@ export type WeekSchedule = {
   slots: BusySlotRow[];
   /** Yalnızca istenen haftanın istisnaları, tarihe göre sıralı. */
   exceptions: ScheduleExceptionRow[];
-  /** Kurum uyanık aralığı (`SS:DD`). */
-  wake: { start: string; end: string };
+  /** Uyanık aralık (`SS:DD`): öğrencinin kendi değeri ya da kurum varsayılanı (`isDefault`). */
+  wake: WakeWindow;
 };
+
+/** Faz 5b (karar B10): `students.wake_*` doluysa öğrencininki, boşsa kurum ayarı. */
+export type WakeWindow = { start: string; end: string; isDefault: boolean };

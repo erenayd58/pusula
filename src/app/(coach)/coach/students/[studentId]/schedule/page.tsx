@@ -4,6 +4,7 @@ import { getStudentHeader } from "@/features/core";
 import {
   AvailabilitySummary,
   ScheduleEditor,
+  WakeWindowForm,
   availabilityForWeek,
   getScheduleForEditor,
   wakeInterval,
@@ -14,7 +15,10 @@ import { requireModule } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Program" };
 
-/** K2 Program sekmesi: öğrencinin programı, aynı editör (flat); koç düzenleyebilir. */
+/**
+ * K2 Program sekmesi: öğrencinin programı, aynı editör (flat); koç düzenleyebilir. Başlıkta
+ * uyanık aralık (Faz 5b, karar B10: öğrenci değeri yoksa kurum varsayılanı; koç düzenler).
+ */
 export default async function CoachStudentSchedulePage({
   params,
 }: PageProps<"/coach/students/[studentId]/schedule">) {
@@ -36,6 +40,7 @@ export default async function CoachStudentSchedulePage({
 
   return (
     <div className="flex flex-col gap-6">
+      <WakeWindowForm studentId={studentId} wake={schedule.wake} />
       <AvailabilitySummary days={days} wake={schedule.wake} />
       <ScheduleEditor studentId={studentId} audience="coach" schedule={schedule} />
     </div>

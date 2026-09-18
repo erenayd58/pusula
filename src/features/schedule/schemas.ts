@@ -26,6 +26,33 @@ function endAfterStart<T extends { startsAt: string; endsAt: string }>(v: T, ctx
   }
 }
 
+/**
+ * Öğrenci uyanık aralığı (Faz 5b, karar B10): ikisi birlikte boş (kurum varsayılanına dön) ya da
+ * dolu ve bitiş > başlangıç. Koç Program sekmesinden yazar.
+ */
+export const setWakeWindowSchema = z
+  .object({
+    studentId: z.uuid("Öğrenci kimliği geçersiz."),
+    wakeStart: time.nullable(),
+    wakeEnd: time.nullable(),
+  })
+  .superRefine((v, ctx) => {
+    if ((v.wakeStart === null) !== (v.wakeEnd === null)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["wakeEnd"],
+        message: "İki saati de gir ya da ikisini de boş bırak.",
+      });
+    } else if (v.wakeStart !== null && v.wakeEnd !== null && v.wakeEnd <= v.wakeStart) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["wakeEnd"],
+        message: "Bitiş başlangıçtan sonra olmalı.",
+      });
+    }
+  });
+export type SetWakeWindowInput = z.infer<typeof setWakeWindowSchema>;
+
 /** Sabit meşguliyet: `id` varsa güncelleme, yoksa ekleme. */
 export const busySlotSchema = z
   .object({
