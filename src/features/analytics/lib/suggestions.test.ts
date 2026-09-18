@@ -48,6 +48,7 @@ const SETTINGS: OrgSettings = {
     pace_window_days: 28,
     topics_finish_weeks_before_exam: 8,
   },
+  mock_exams: { recent_count: 3, weak_min_marks: 2, weak_min_mistakes: 3, gap_weight: 0.5 },
 };
 
 const MAT = {
