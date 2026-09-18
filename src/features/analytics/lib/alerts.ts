@@ -3,7 +3,14 @@ import { daysSince } from "@/lib/dates";
 import { accuracyPercent } from "@/lib/exam/net";
 import { formatCount, formatPercent } from "@/lib/format";
 import type { TopicAlertKind, TopicStatus } from "@/types";
-import type { AlertGroup, AlertSubject, TopicAlert, TopicAlertFacts } from "../types";
+import type {
+  AlertGroup,
+  AlertSubject,
+  SetupAlert,
+  SetupFacts,
+  TopicAlert,
+  TopicAlertFacts,
+} from "../types";
 
 /** Kurum ayarındaki `alerts` anahtarı; eşikler koda gömülmez, parametre gelir. */
 export type AlertThresholds = OrgSettings["alerts"];
@@ -201,6 +208,39 @@ export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
     }
   }
   return g;
+}
+
+/** Kurulum uyarısı → gerektirdiği modül; modül kapalıysa uyarı üretilmez. */
+const SETUP_MODULE: Record<SetupAlert["kind"], string> = {
+  no_schedule: "schedule",
+  no_goal: "goals",
+  no_plan: "planner",
+  no_logs: "question-log",
+};
+
+/**
+ * Kurulum uyarıları (yalnızca koç; sırası kurulum adımlarıdır): program yok, hedef yok, bu hafta
+ * yayınlanmış plan yok, hiç soru kaydı yok (hesap `setup_account_days`'den eskiyse). Soru kaydı
+ * olan öğrencide program ve kayıt uyarısı üretilmez; plan/hedef eksiği yine gösterilir.
+ */
+export function evaluateSetupAlerts(
+  facts: readonly SetupFacts[],
+  t: Pick<AlertThresholds, "setup_account_days">,
+  today: string,
+): SetupAlert[] {
+  const out: SetupAlert[] = [];
+  for (const f of facts) {
+    const hasLogs = f.questionLogCount > 0;
+    const push = (kind: SetupAlert["kind"]) => {
+      if (!f.disabledModules.includes(SETUP_MODULE[kind]))
+        out.push({ studentId: f.studentId, kind });
+    };
+    if (!hasLogs && !f.hasSchedule) push("no_schedule");
+    if (!f.hasActiveGoal) push("no_goal");
+    if (!f.hasPublishedPlanWeek) push("no_plan");
+    if (!hasLogs && daysSince(f.createdAt, today) >= t.setup_account_days) push("no_logs");
+  }
+  return out;
 }
 
 /** Kısa sebep metni (koç dili, nötr): "40 soruda %52 başarı" · "12 gündür bakılmadı". */

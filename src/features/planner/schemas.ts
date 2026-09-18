@@ -91,9 +91,10 @@ export const planWeekSchema = z.object({
   weekStart,
 });
 
+/** Koç mesajı: plan yoksa taslak açılır (ensurePlan), bu yüzden hafta anahtarıyla gelir. */
 export const coachMessageSchema = z.object({
-  planId: uuid("Plan kimliği geçersiz."),
   studentId: uuid("Öğrenci kimliği geçersiz."),
+  weekStart,
   message: optionalText(500),
 });
 

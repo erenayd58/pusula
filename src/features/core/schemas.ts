@@ -149,6 +149,7 @@ export const orgSettingsFormSchema = z.object({
     forgetting_risk: z.object({ min_accuracy: percent, idle_days: int(1) }),
     stale_days: int(1),
     neglected_subject_days: int(1),
+    setup_account_days: int(1),
   }),
   suggestions: z.object({ max_per_student: int(1), dismiss_days: int(1) }),
 });

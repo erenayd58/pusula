@@ -48,6 +48,8 @@ export const orgSettingsSchema = z.object({
         .default({ min_accuracy: 60, idle_days: 21 }),
       stale_days: z.number().int().min(1).default(45),
       neglected_subject_days: z.number().int().min(1).default(10),
+      /** Kurulum uyarısı "hiç soru kaydı yok": hesap bu kadar günden eskiyse. */
+      setup_account_days: z.number().int().min(1).default(7),
     })
     .prefault({}),
   suggestions: z

@@ -4,8 +4,10 @@ import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AttentionList,
+  SetupList,
   SuggestionList,
   alertToTask,
+  getSetupAlerts,
   getSuggestions,
   getTopicAlerts,
 } from "@/features/analytics";
@@ -18,7 +20,8 @@ import { formatDateTr } from "@/lib/format";
 export const metadata: Metadata = { title: "Öğrenciler" };
 
 /**
- * K1 Öğrenciler: başlık, "Dikkat gerektirenler" (acil müdahale) ve "Öneriler" (plana
+ * K1 Öğrenciler: başlık, "Dikkat gerektirenler" (acil müdahale), "Kurulum" (yeni öğrencide
+ * eksik adımlar; yalnızca koç görür) ve "Öneriler" (plana
  * eklenebilecekler; öğrenci başına 3 açık, gerisi "Tümünü gör"), liste (karar A12). Uyarı ve
  * öneriler tek sorguyla görünen tüm öğrenciler için; sıradaki konu (`not_started`) dikkat
  * gerektirmez; dikkat listesindeki öğrenci + konu + tür öneri listesinde tekrar etmez. Her iki
@@ -27,11 +30,12 @@ export const metadata: Metadata = { title: "Öğrenciler" };
  */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
-  const [students, coaches, alerts, suggestions, settings] = await Promise.all([
+  const [students, coaches, alerts, suggestions, setup, settings] = await Promise.all([
     listStudents(),
     profile.role === "owner" ? listCoaches() : Promise.resolve([]),
     getTopicAlerts(),
     getSuggestions(),
+    getSetupAlerts(),
     getOrgSettings(),
   ]);
   const active = new Set(students.filter((s) => s.status === "active").map((s) => s.profileId));
@@ -82,6 +86,11 @@ export default async function StudentsPage() {
                 }}
               />
             )}
+          />
+          <SetupList
+            alerts={setup.filter((a) => active.has(a.studentId))}
+            studentNames={studentNames}
+            description="Yeni öğrencide eksik kurulum adımları; her satır ilgili sayfaya götürür."
           />
           <SuggestionList
             suggestions={activeSuggestions}

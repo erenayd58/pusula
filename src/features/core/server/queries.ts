@@ -26,6 +26,8 @@ export type StudentListRow = {
   weekGoalPercent: number | null;
   /** Bu haftanın yayınlanmış planında tamamlanan / toplam (0-100); plan yoksa null (Faz 4b). */
   planPercentWeek: number | null;
+  /** Bugüne kadar: bugün ve öncesindeki günler + tamamlanmış hafta içi görevleri (0-100); yoksa null. */
+  planToDatePercentWeek: number | null;
 };
 
 /**
@@ -37,7 +39,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
   const { data, error } = await supabase
     .from("v_coach_student_overview")
     .select(
-      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week",
     )
     .order("full_name");
   if (error) throw error;
@@ -69,6 +71,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
             weeklyTarget: row.weekly_target === null ? null : Number(row.weekly_target),
             weekGoalPercent: row.week_goal_percent,
             planPercentWeek: row.plan_percent_week,
+            planToDatePercentWeek: row.plan_to_date_percent_week,
           },
         ]
       : [],

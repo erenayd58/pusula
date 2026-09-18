@@ -9,15 +9,18 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { setCoachMessage } from "../server/actions";
 
-/** Koçun haftalık mesajı (öğrenci plan ekranında kart olarak görünür). */
+/**
+ * Koçun haftalık mesajı (öğrenci plan ekranında kart olarak görünür). Boş haftada da yazılır;
+ * kaydedilince plan yoksa taslak açılır (`setCoachMessage` → ensurePlan).
+ */
 export function CoachMessageForm({
-  planId,
   studentId,
+  weekStart,
   initial,
   disabled,
 }: {
-  planId: string | null;
   studentId: string;
+  weekStart: string;
   initial: string | null;
   disabled?: boolean;
 }) {
@@ -28,10 +31,9 @@ export function CoachMessageForm({
   const dirty = value.trim() !== (initial ?? "").trim();
 
   function save() {
-    if (!planId) return;
     setError(undefined);
     startTransition(async () => {
-      const result = await setCoachMessage({ planId, studentId, message: value });
+      const result = await setCoachMessage({ studentId, weekStart, message: value });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -49,7 +51,7 @@ export function CoachMessageForm({
         rows={2}
         maxLength={500}
         value={value}
-        disabled={disabled || !planId}
+        disabled={disabled}
         placeholder="ör. Bu hafta paragrafa ağırlık veriyoruz. Her gün 30 soru yeterli, acele etme."
         onChange={(e) => setValue(e.target.value)}
         className={cn(
@@ -63,7 +65,7 @@ export function CoachMessageForm({
           type="button"
           variant="secondary"
           onClick={save}
-          disabled={pending || !dirty || !planId || disabled}
+          disabled={pending || !dirty || disabled}
         >
           {pending ? "Kaydediliyor…" : "Mesajı kaydet"}
         </Button>

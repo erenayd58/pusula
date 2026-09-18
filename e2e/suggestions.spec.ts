@@ -19,6 +19,21 @@ test.describe("öneri motoru", () => {
     try {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto("/coach/students");
+      // Kurulum: yeni öğrencide program, hedef ve plan eksik; hesap 7 günden yeni → kayıt uyarısı yok.
+      const setupGroup = page
+        .getByRole("region", { name: "Kurulum" })
+        .getByTestId("setup-group")
+        .filter({ hasText: student.fullName });
+      await expect(setupGroup.getByTestId("setup-row")).toHaveCount(3);
+      await expect(setupGroup).toContainText("Haftalık program girilmemiş");
+      await expect(setupGroup).toContainText("Aktif hedef yok");
+      await expect(setupGroup).toContainText("Bu hafta yayınlanmış plan yok");
+      await expect(setupGroup).not.toContainText("Hiç soru kaydı yok");
+      await expect(setupGroup.getByRole("link", { name: "Programı gir" })).toHaveAttribute(
+        "href",
+        `/coach/students/${student.studentId}/schedule`,
+      );
+
       const region = page.getByRole("region", { name: "Öneriler" });
       const group = region.getByTestId("suggestion-group").filter({ hasText: student.fullName });
       await expect(group).toHaveCount(1);

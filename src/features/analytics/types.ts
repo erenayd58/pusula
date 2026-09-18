@@ -64,6 +64,27 @@ export type TopicAlert = {
   delayDays: number;
 };
 
+/** `v_student_setup_facts` satırı + öğrencinin kapalı modülleri (sorgu katmanı ekler). */
+export type SetupFacts = {
+  studentId: string;
+  /** students.created_at (hesap yaşı). */
+  createdAt: string;
+  hasSchedule: boolean;
+  hasActiveGoal: boolean;
+  hasPublishedPlanWeek: boolean;
+  questionLogCount: number;
+  /** Kapalı modül kimlikleri (`student_modules.enabled = false`); ilgili uyarı üretilmez. */
+  disabledModules: readonly string[];
+};
+
+export type SetupAlertKind = "no_schedule" | "no_goal" | "no_plan" | "no_logs";
+
+/**
+ * Kurulum uyarısı (yalnızca koç): yeni öğrencide eksik adımlar. Soru kaydı olan öğrencide
+ * program ve kayıt uyarıları üretilmez; plan ve hedef eksiği her zaman gösterilir.
+ */
+export type SetupAlert = { studentId: string; kind: SetupAlertKind };
+
 /** Koç ve öğrenci ekranları için gruplar (08 §2 Parça 3). */
 export type AlertGroup = {
   /** knowledge_gap, low_accuracy */

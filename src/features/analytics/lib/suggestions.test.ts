@@ -36,6 +36,7 @@ const SETTINGS: OrgSettings = {
     forgetting_risk: { min_accuracy: 60, idle_days: 21 },
     stale_days: 45,
     neglected_subject_days: 10,
+    setup_account_days: 7,
   },
   suggestions: { max_per_student: 5, dismiss_days: 14 },
 };

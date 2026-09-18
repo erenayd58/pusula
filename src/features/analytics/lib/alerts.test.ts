@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { NBSP } from "@/lib/format";
-import type { TopicAlertFacts } from "../types";
-import { alertReason, evaluateTopicAlerts, groupAlerts, type AlertThresholds } from "./alerts";
+import type { SetupFacts, TopicAlertFacts } from "../types";
+import {
+  alertReason,
+  evaluateSetupAlerts,
+  evaluateTopicAlerts,
+  groupAlerts,
+  type AlertThresholds,
+} from "./alerts";
 import { nudgeText, pickStudentNudge } from "./nudge";
 
 const TODAY = "2026-09-18";
@@ -14,6 +20,7 @@ const t: AlertThresholds = {
   forgetting_risk: { min_accuracy: 60, idle_days: 21 },
   stale_days: 45,
   neglected_subject_days: 10,
+  setup_account_days: 7,
 };
 
 /** Bugünden n gün önce (İstanbul öğle saati; gün hesapları takvim günüdür). */
@@ -324,5 +331,77 @@ describe("pickStudentNudge / nudgeText", () => {
       title: "Sırada Olasılık var.",
       body: "İstersen bugün başla.",
     });
+  });
+});
+
+describe("evaluateSetupAlerts", () => {
+  function setup(over: Partial<SetupFacts> = {}): SetupFacts {
+    return {
+      studentId: "s1",
+      createdAt: ago(10),
+      hasSchedule: false,
+      hasActiveGoal: false,
+      hasPublishedPlanWeek: false,
+      questionLogCount: 0,
+      disabledModules: [],
+      ...over,
+    };
+  }
+
+  it("yeni öğrencide dört eksik, kurulum sırasıyla", () => {
+    expect(evaluateSetupAlerts([setup()], t, TODAY).map((a) => a.kind)).toEqual([
+      "no_schedule",
+      "no_goal",
+      "no_plan",
+      "no_logs",
+    ]);
+  });
+
+  it("hesap 7 günden yeniyse kayıt uyarısı yok", () => {
+    expect(
+      evaluateSetupAlerts([setup({ createdAt: ago(6) })], t, TODAY).map((a) => a.kind),
+    ).not.toContain("no_logs");
+    expect(
+      evaluateSetupAlerts([setup({ createdAt: ago(7) })], t, TODAY).map((a) => a.kind),
+    ).toContain("no_logs");
+  });
+
+  it("soru kaydı olan öğrencide program ve kayıt uyarısı yok; plan/hedef eksiği kalır", () => {
+    expect(
+      evaluateSetupAlerts([setup({ questionLogCount: 3 })], t, TODAY).map((a) => a.kind),
+    ).toEqual(["no_goal", "no_plan"]);
+    expect(
+      evaluateSetupAlerts(
+        [setup({ questionLogCount: 3, hasActiveGoal: true, hasPublishedPlanWeek: true })],
+        t,
+        TODAY,
+      ),
+    ).toEqual([]);
+  });
+
+  it("kapalı modülün uyarısı üretilmez", () => {
+    expect(
+      evaluateSetupAlerts([setup({ disabledModules: ["planner", "goals"] })], t, TODAY).map(
+        (a) => a.kind,
+      ),
+    ).toEqual(["no_schedule", "no_logs"]);
+  });
+
+  it("tam kurulmuş öğrencide uyarı yok; birden çok öğrenci ayrı ayrı", () => {
+    const out = evaluateSetupAlerts(
+      [
+        setup({
+          hasSchedule: true,
+          hasActiveGoal: true,
+          hasPublishedPlanWeek: true,
+          questionLogCount: 1,
+        }),
+        setup({ studentId: "s2", hasSchedule: true }),
+      ],
+      t,
+      TODAY,
+    );
+    expect(out.every((a) => a.studentId === "s2")).toBe(true);
+    expect(out.map((a) => a.kind)).toEqual(["no_goal", "no_plan", "no_logs"]);
   });
 });

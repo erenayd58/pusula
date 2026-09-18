@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SuggestionList, getSuggestions } from "@/features/analytics";
+import { SetupList, SuggestionList, getSetupAlerts, getSuggestions } from "@/features/analytics";
 import { ExamDateForm, getOrgSettings, getStudentHeader } from "@/features/core";
 import { GoalForm, getActiveGoals } from "@/features/goals";
 import {
@@ -36,13 +36,14 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
   const analyticsOn = enabled.has("analytics");
   const week = toDateKey(weekStart(todayInIstanbul()));
   const lastWeek = shiftWeek(week, -1);
-  const [goals, planThisWeek, planLastWeek, lastWeekPlan, suggestions, settings] =
+  const [goals, planThisWeek, planLastWeek, lastWeekPlan, suggestions, setup, settings] =
     await Promise.all([
       goalsOn ? getActiveGoals(studentId) : Promise.resolve({ daily: null, weekly: null }),
       plannerOn ? getPlanCompletion(studentId, week) : Promise.resolve(null),
       plannerOn ? getPlanCompletion(studentId, lastWeek) : Promise.resolve(null),
       plannerOn ? getWeekPlan(studentId, lastWeek) : Promise.resolve(null),
       analyticsOn ? getSuggestions(studentId) : Promise.resolve([]),
+      analyticsOn ? getSetupAlerts(studentId) : Promise.resolve([]),
       getOrgSettings(),
     ]);
 
@@ -70,6 +71,8 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
         </div>
       ) : null}
 
+      {analyticsOn ? <SetupList alerts={setup} /> : null}
+
       {analyticsOn ? (
         <SuggestionList
           suggestions={suggestions}
@@ -92,7 +95,10 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
 
       <div className="grid gap-6 lg:grid-cols-2">
         {goalsOn ? (
-          <section className="flex flex-col gap-3 rounded-sm border border-line bg-bg-paper p-4">
+          <section
+            id="goals"
+            className="flex flex-col gap-3 rounded-sm border border-line bg-bg-paper p-4"
+          >
             <h2 className="text-heading font-semibold text-ink-900">Hedefler</h2>
             <GoalForm studentId={studentId} initial={goals} />
           </section>
