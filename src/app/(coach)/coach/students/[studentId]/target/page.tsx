@@ -109,7 +109,12 @@ export default async function TargetPage({
             yanında görünür.
           </p>
         </div>
-        <TopicTargetList targets={targets} today={today} />
+        {/* key: hedefler yeniden üretilince liste yerel tarih durumunu sıfırdan kurar. */}
+        <TopicTargetList
+          key={targets.topics.map((t) => t.targetOn ?? "").join("|")}
+          targets={targets}
+          today={today}
+        />
       </section>
     </div>
   );
