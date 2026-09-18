@@ -1,5 +1,6 @@
 /**
- * Uygulama ekran görüntüleri (belge amaçlı): `pnpm screenshots [--only <faz>] [--out docs/tasarim]`.
+ * Uygulama ekran görüntüleri (belge amaçlı):
+ * `pnpm screenshots [--only <faz>] [--file <dosya.png>] [--out docs/tasarim]`.
  *
  * Çalışan bir sunucu bekler (varsayılan http://localhost:3000; `PLAYWRIGHT_BASE_URL` ile değişir)
  * ve yerel seed hesaplarını kullanır (supabase/seed.sql). e2e testlerinin parçası değildir;
@@ -20,6 +21,7 @@ const ACCOUNTS = {
 };
 const SEED = {
   ayse: "b0000000-0000-4000-8000-000000000011",
+  mehmet: "b0000000-0000-4000-8000-000000000012",
   zeynep: "b0000000-0000-4000-8000-000000000013",
 };
 const VIEWPORTS = {
@@ -288,7 +290,8 @@ const SHOTS = [
     path: "/coach/settings",
   },
 
-  // Faz 5: strateji katmanı (Parça 2: hedef ve geri planlama; seed'de Ayşe'nin hedefi kurulu)
+  // Faz 5: strateji katmanı (seed: Ayşe'nin hedefi kurulu ve takvimin önünde, Mehmet takvimin
+  // gerisinde; Parça 3: K1/K2 öneri listesinde dönem satırı ve strateji notu)
   {
     dir: "uygulama-5",
     file: "koc-hedef-1440.png",
@@ -328,6 +331,20 @@ const SHOTS = [
   },
   {
     dir: "uygulama-5",
+    file: "koc-genel-bakis-geride-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.mehmet}`,
+  },
+  {
+    dir: "uygulama-5",
+    file: "koc-hedef-gecikmis-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.mehmet}/target`,
+  },
+  {
+    dir: "uygulama-5",
     file: "ogrenci-bugun-390.png",
     as: "student",
     width: 390,
@@ -363,7 +380,9 @@ const outArg = process.argv.indexOf("--out");
 const outRoot = resolve(outArg > -1 ? process.argv[outArg + 1] : "docs/tasarim");
 const onlyArg = process.argv.indexOf("--only");
 const only = onlyArg > -1 ? `uygulama-${process.argv[onlyArg + 1]}` : null;
-const shots = only ? SHOTS.filter((s) => s.dir === only) : SHOTS;
+const fileArg = process.argv.indexOf("--file");
+const onlyFile = fileArg > -1 ? process.argv[fileArg + 1] : null;
+const shots = SHOTS.filter((s) => (!only || s.dir === only) && (!onlyFile || s.file === onlyFile));
 
 const browser = await chromium.launch();
 /** Aynı hesap + genişlik için tek oturum. */
