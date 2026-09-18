@@ -267,3 +267,49 @@ from (
         and p.status in ('completed', 'mastered')
     )
 ) as r;
+
+-- Mehmet: takvimin gerisinde örnek (Faz 5c seed düzeltmesi). Hedef 6 hafta önce kuruldu (6.000 soru,
+-- bitirme tarihi sınav − 8 hafta); konu takvimi Ayşe'deki gibi okul kelepçeli yayılır. Koç Türkçe,
+-- Matematik ve Fen'in ilk iki konusunu tek tek öne aldı (dershane okuldan önde gidiyor; karar B5
+-- "koç tek tek düzenleyerek öne alabilir"); Mehmet hiçbirine başlamadı → 6 konu "Hedef geçti",
+-- K1 Takvim sütunu ve K2 gidişat "geride", öneri satırlarında "hedef tarihi N hafta geçti" notu.
+-- Soru kaydı olmadığı için her derste soru hedefinin gerisinde. Ayşe ilerideki örnek olarak kalır.
+update public.students
+set topics_finish_by = date '2027-06-13' - 56,
+    target_starts_on = (now() at time zone 'Europe/Istanbul')::date - 42
+where profile_id = 'b0000000-0000-4000-8000-000000000012';
+
+insert into public.student_subject_targets (student_id, subject_id, questions) values
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000001', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000002', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000003', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000004', 500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000005', 500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000006', 500);
+
+insert into public.student_topic_targets (student_id, topic_id, target_on, created_by)
+select
+  'b0000000-0000-4000-8000-000000000012',
+  r.id,
+  case
+    -- Koçun öne aldığı konular: dersin 1. konusu 3 hafta, 2. konusu 1 hafta önce.
+    when r.subject_rn = 1 and r.subject_id in ('c1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000003')
+      then (now() at time zone 'Europe/Istanbul')::date - 21
+    when r.subject_rn = 2 and r.subject_id in ('c1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000003')
+      then (now() at time zone 'Europe/Istanbul')::date - 7
+    else greatest(
+      ((now() at time zone 'Europe/Istanbul')::date - 42)
+        + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 42)) / r.n)::int,
+      coalesce(r.school_finish_on, date '1970-01-01')
+    )
+  end,
+  'b0000000-0000-4000-8000-000000000002'
+from (
+  select t.id, t.subject_id, t.school_finish_on,
+         row_number() over (order by s.sort_order, t.sort_order) as rn,
+         row_number() over (partition by t.subject_id order by t.sort_order) as subject_rn,
+         count(*) over () as n
+  from public.topics t
+  join public.subjects s on s.id = t.subject_id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t.parent_id is null
+) as r;
