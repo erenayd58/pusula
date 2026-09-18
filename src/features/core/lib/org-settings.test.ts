@@ -95,7 +95,11 @@ describe("orgSettingsFormSchema.strategy", () => {
 
     const many = withPeriods(
       Array.from({ length: 7 }, (_, i) =>
-        period({ name: `D${i}`, starts_on: `2026-${10 + (i % 3)}-0${i + 1}`, ends_on: `2026-${10 + (i % 3)}-0${i + 1}` }),
+        period({
+          name: `D${i}`,
+          starts_on: `2026-${10 + (i % 3)}-0${i + 1}`,
+          ends_on: `2026-${10 + (i % 3)}-0${i + 1}`,
+        }),
       ),
     );
     expect(many.error?.issues.some((i) => i.message === "En fazla 6 dönem tanımlanabilir.")).toBe(

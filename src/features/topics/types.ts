@@ -13,6 +13,8 @@ export type TopicMapCell = {
   accuracy: number | null;
   /** Okulda tahmini bitiş (`topics.school_finish_on`, YYYY-AA-GG); takvim doldurulmadıysa null. */
   schoolFinishOn: string | null;
+  /** Koçun hedef tarihi (`student_topic_targets.target_on`); hedef kurulmadıysa null (Faz 5b). */
+  targetOn: string | null;
 };
 
 export type TopicMapSubject = {

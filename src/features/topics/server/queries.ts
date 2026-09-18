@@ -1,8 +1,11 @@
 import "server-only";
 
+import { getOrgSettings } from "@/features/core";
+import { toDateKey, todayInIstanbul } from "@/lib/dates";
 import { accuracyPercent } from "@/lib/exam/net";
+import { topicPace, type PaceTopic, type TopicPace } from "@/lib/strategy/pace";
 import { createClient } from "@/lib/supabase/server";
-import { countDone } from "../lib/completion";
+import { countDone, isDone } from "../lib/completion";
 import type {
   TemplateEditor,
   TemplateOption,
@@ -54,7 +57,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
   if (error) throw error;
   if (!student?.curriculum_template_id || !student.template) return null;
 
-  const [subjects, progress, stats] = await Promise.all([
+  const [subjects, progress, stats, targets] = await Promise.all([
     listSubjectsWithTopics(student.curriculum_template_id),
     supabase
       .from("student_topic_progress")
@@ -73,9 +76,19 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
         if (error) throw error;
         return data;
       }),
+    // Konu hedef tarihleri (Faz 5b; RLS: öğrenci kendisi, koç öğrencisi, veli çocuğu).
+    supabase
+      .from("student_topic_targets")
+      .select("topic_id, target_on")
+      .eq("student_id", studentId)
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      }),
   ]);
   const byTopic = new Map(progress.map((p) => [p.topic_id, p]));
   const statsByTopic = new Map(stats.map((r) => [r.topic_id, r]));
+  const targetByTopic = new Map(targets.map((t) => [t.topic_id, t.target_on]));
 
   const mapped: TopicMapSubject[] = subjects.map((s) => ({
     subjectId: s.id,
@@ -98,6 +111,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
           questions,
           accuracy: accuracyPercent(st?.correct ?? 0, questions),
           schoolFinishOn: t.school_finish_on,
+          targetOn: targetByTopic.get(t.id) ?? null,
         };
       }),
   }));
@@ -193,4 +207,52 @@ export async function getTopicCompletionSummary(
   if (!map) return null;
   const statuses = map.subjects.flatMap((s) => s.topics.map((t) => t.status));
   return { done: countDone(statuses), total: statuses.length };
+}
+
+/** Bugün kartı (Faz 5b, karar B7): gidişat (`topicPace`, saf) + hedef var mı. Şablon yoksa null. */
+export type StudentPaceSummary = { pace: TopicPace; hasTargets: boolean };
+
+export async function getStudentPaceSummary(studentId: string): Promise<StudentPaceSummary | null> {
+  const supabase = await createClient();
+  const [{ data: student, error }, facts, settings] = await Promise.all([
+    supabase
+      .from("students")
+      .select("curriculum_template_id, topics_finish_by, exam_date")
+      .eq("profile_id", studentId)
+      .maybeSingle(),
+    // Görünümle modüller arası okuma (karar #37): hedef tarihleri goals'un tablosundan.
+    supabase
+      .from("v_student_pace_facts")
+      .select("topic_id, subject_id, status, completed_at, target_on")
+      .eq("student_id", studentId)
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      }),
+    getOrgSettings(),
+  ]);
+  if (error) throw error;
+  if (!student?.curriculum_template_id) return null;
+
+  const topics: PaceTopic[] = facts.flatMap((f) =>
+    f.topic_id && f.subject_id && f.status
+      ? [
+          {
+            topicId: f.topic_id,
+            subjectId: f.subject_id,
+            done: isDone(f.status),
+            completedAt: f.completed_at,
+            targetOn: f.target_on,
+          },
+        ]
+      : [],
+  );
+  return {
+    pace: topicPace(topics, {
+      today: toDateKey(todayInIstanbul()),
+      examOn: student.exam_date,
+      windowDays: settings.strategy.pace_window_days,
+    }),
+    hasTargets: student.topics_finish_by !== null,
+  };
 }

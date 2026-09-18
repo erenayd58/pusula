@@ -150,10 +150,17 @@ function DetailForm({
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 
-      {cell.schoolFinishOn ? (
-        <p data-testid="topic-school" className="text-small text-ink-700">
-          {schoolText(cell.schoolFinishOn, toDateKey(todayInIstanbul()))}
-        </p>
+      {cell.schoolFinishOn || cell.targetOn ? (
+        <div className="flex flex-col gap-0.5 text-small text-ink-700">
+          {cell.targetOn ? (
+            <p data-testid="topic-target">{`Hedef: ${formatWeekRange(weekStart(cell.targetOn))} haftası`}</p>
+          ) : null}
+          {cell.schoolFinishOn ? (
+            <p data-testid="topic-school">
+              {schoolText(cell.schoolFinishOn, toDateKey(todayInIstanbul()))}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       <dl className="grid grid-cols-2 gap-3">

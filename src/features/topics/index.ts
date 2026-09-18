@@ -10,7 +10,9 @@ export {
   getTopicMap,
   getTemplateEditor,
   getTopicCompletionSummary,
+  getStudentPaceSummary,
   listTemplates,
+  type StudentPaceSummary,
 } from "./server/queries";
 export type {
   TopicMap as TopicMapData,

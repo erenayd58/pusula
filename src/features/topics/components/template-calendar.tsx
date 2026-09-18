@@ -103,7 +103,8 @@ function SubjectCalendar({
     );
   }
 
-  const canDistribute = !pending && subject.topics.length > 0 && from !== "" && to !== "" && to >= from;
+  const canDistribute =
+    !pending && subject.topics.length > 0 && from !== "" && to !== "" && to >= from;
 
   return (
     <section

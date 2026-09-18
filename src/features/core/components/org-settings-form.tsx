@@ -431,7 +431,12 @@ function PeriodRow({
         type: "date",
       })}
       {cell(`${base}.ends_on`, `${n}. dönem bitişi`, e?.ends_on?.message, { type: "date" })}
-      {cell(`${base}.mix.new_topic`, `${n}. dönem yeni konu yüzdesi`, e?.mix?.new_topic?.message, pct)}
+      {cell(
+        `${base}.mix.new_topic`,
+        `${n}. dönem yeni konu yüzdesi`,
+        e?.mix?.new_topic?.message,
+        pct,
+      )}
       {cell(`${base}.mix.weak`, `${n}. dönem zayıf konu yüzdesi`, e?.mix?.weak?.message, pct)}
       {cell(`${base}.mix.review`, `${n}. dönem bakım yüzdesi`, e?.mix?.review?.message, pct)}
       {!disabled ? (
