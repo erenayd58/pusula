@@ -39,6 +39,14 @@ const SETTINGS: OrgSettings = {
     setup_account_days: 7,
   },
   suggestions: { max_per_student: 5, dismiss_days: 14 },
+  strategy: {
+    periods: [],
+    proximity_days: 120,
+    school_lag_weeks: 2,
+    topic_minutes_default: 90,
+    pace_window_days: 28,
+    topics_finish_weeks_before_exam: 8,
+  },
 };
 
 const MAT = {

@@ -120,6 +120,29 @@ const int = (min: number) =>
   z.number("Sayı gir.").int("Tam sayı gir.").min(min, `En az ${min} olmalı.`);
 const percent = z.number("Sayı gir.").min(0, "0–100 arası gir.").max(100, "0–100 arası gir.");
 const accuracyRule = z.object({ min_questions: int(1), max_accuracy: percent });
+const isoDate = z.iso.date("Tarih gir (YYYY-AA-GG).");
+
+/** Sezon dönemi satırı (09 §1.2, karar B14): ad 1–40, tarih aralığı, karışım toplamı 100. */
+export const seasonPeriodSchema = z
+  .object({
+    name: z
+      .string("Dönem adı gir.")
+      .trim()
+      .min(1, "Dönem adı gir.")
+      .max(40, "Dönem adı en fazla 40 karakter."),
+    starts_on: isoDate,
+    ends_on: isoDate,
+    mix: z
+      .object({ new_topic: percent, weak: percent, review: percent })
+      .refine((m) => m.new_topic + m.weak + m.review === 100, {
+        message: "Üç yüzdenin toplamı 100 olmalı.",
+        path: ["review"],
+      }),
+  })
+  .refine((p) => p.ends_on >= p.starts_on, {
+    message: "Bitiş başlangıçtan önce olamaz.",
+    path: ["ends_on"],
+  });
 
 export const orgSettingsFormSchema = z.object({
   schedule: z
@@ -152,5 +175,33 @@ export const orgSettingsFormSchema = z.object({
     setup_account_days: int(1),
   }),
   suggestions: z.object({ max_per_student: int(1), dismiss_days: int(1) }),
+  strategy: z.object({
+    periods: z
+      .array(seasonPeriodSchema)
+      .max(6, "En fazla 6 dönem tanımlanabilir.")
+      .superRefine((periods, ctx) => {
+        // Aralıklar çakışamaz; boşluk serbest (karar B14). Her çakışma sonraki satırda gösterilir.
+        const sorted = periods
+          .map((p, index) => ({ ...p, index }))
+          .sort((a, b) => a.starts_on.localeCompare(b.starts_on) || a.index - b.index);
+        for (let i = 1; i < sorted.length; i++) {
+          const prev = sorted[i - 1]!;
+          const cur = sorted[i]!;
+          if (cur.starts_on <= prev.ends_on) {
+            ctx.addIssue({
+              code: "custom",
+              message: `“${prev.name}” dönemiyle çakışıyor.`,
+              path: [cur.index, "starts_on"],
+            });
+          }
+        }
+      }),
+    proximity_days: int(1),
+    school_lag_weeks: int(0),
+    topic_minutes_default: int(1),
+    pace_window_days: int(7),
+    topics_finish_weeks_before_exam: int(0),
+  }),
 });
 export type OrgSettingsFormInput = z.infer<typeof orgSettingsFormSchema>;
+export type SeasonPeriodInput = z.infer<typeof seasonPeriodSchema>;
