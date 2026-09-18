@@ -6,10 +6,16 @@ import { defineConfig, devices } from "@playwright/test";
  * CPU'ya bağlı derleme + React dev render), üretim ~2,4 s. Dev'de 4 işçi 60 s test bütçesini
  * aşıyordu; paralel "çıkış / giriş zamanlaması" hataları bundandı. `pnpm e2e:server` elle
  * açıksa yeniden kullanılır. Yalnızca `/dev/design` (üretimde 404) dev sunucusunda test edilir.
+ *
+ * Paylaşımlı durum (02 karar #47): kurum ayarını ya da sistem şablonunu değiştiren spec'ler
+ * `e2e/shared/` altındadır ve `shared-desktop` projesinde tek işçiyle seri koşar; diğer uygulama
+ * projeleri bu projeye bağımlıdır (önce o biter, durum geri alınmış olur), böylece okuyan testler
+ * değişmiş ayarı görmez. Tek dosya koşarken bağımlılığı atlamak için `--no-deps`.
  */
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 const devURL = process.env.PLAYWRIGHT_DEV_URL ?? "http://localhost:3000";
 const DESIGN_SPEC = /design-page\.spec\.ts/;
+const SHARED_SPECS = /[\\/]shared[\\/].*\.spec\.ts$/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -30,12 +36,25 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "shared-desktop",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: SHARED_SPECS,
+      fullyParallel: false,
+      workers: 1,
+    },
+    {
       name: "desktop-chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: DESIGN_SPEC,
+      testIgnore: [DESIGN_SPEC, SHARED_SPECS],
+      dependencies: ["shared-desktop"],
     },
     // WebKit kurulmaz; mobil profil de Chromium tabanlı (Pixel 7).
-    { name: "mobile-chromium", use: { ...devices["Pixel 7"] }, testIgnore: DESIGN_SPEC },
+    {
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 7"] },
+      testIgnore: [DESIGN_SPEC, SHARED_SPECS],
+      dependencies: ["shared-desktop"],
+    },
     // Tasarım sistemi sayfası yalnızca dev sunucusunda (src/app/dev/layout.tsx üretimde 404).
     {
       name: "design-desktop",

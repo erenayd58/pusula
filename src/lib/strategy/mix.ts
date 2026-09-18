@@ -46,6 +46,7 @@ export function allocateByMix(max: number, mix: PeriodMix): Record<MixCategory, 
     remainders.push({ category: c, remainder: exact - floor });
   }
   remainders.sort((a, b) => b.remainder - a.remainder);
-  for (let i = 0; used < slots && i < remainders.length; i++, used++) out[remainders[i]!.category]++;
+  for (let i = 0; used < slots && i < remainders.length; i++, used++)
+    out[remainders[i]!.category]++;
   return out;
 }

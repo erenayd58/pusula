@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { accounts } from "./fixtures/accounts";
-import { login, logout } from "./fixtures/auth";
-import { createStudentAsOwner, deleteStudentAsOwner } from "./fixtures/students";
+import { accounts } from "../fixtures/accounts";
+import { login, logout } from "../fixtures/auth";
+import { createStudentAsOwner, deleteStudentAsOwner } from "../fixtures/students";
 
 /**
  * Faz 5 Parça 3 kabulü (09 §2): owner dönemleri bugünü kapsayan tek "Deneme ve eksik kapatma"
@@ -12,7 +12,8 @@ import { createStudentAsOwner, deleteStudentAsOwner } from "./fixtures/students"
  * "Başlanmamış" geri gelir. Takvimin gerisindeki seed öğrencisinde (Mehmet) satırda strateji notu
  * ("hedef tarihi 3 hafta geçti"). "Önerilen planı hazırla" sonucu aynı gün sütununda aynı
  * dersten iki görev yok (ders çeşitliliği; asıl kural birim testte). Kurum geneli ayar
- * değiştiği için yalnızca masaüstü projesi; ayar `finally` içinde varsayılanlara döndürülür.
+ * değiştiği için `shared-desktop` projesi (seri, diğer projelerden önce); ayar `finally` içinde
+ * varsayılanlara döndürülür.
  */
 const NBSP = "\u00a0";
 const AYSE = "b0000000-0000-4000-8000-000000000011";
@@ -37,8 +38,7 @@ test.describe("strateji farkındalığı", () => {
 
   test("dönem karışımı önerileri değiştirir; başlıkta dönem adı, satırda strateji notu", async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-chromium", "kurum geneli ayar; masaüstü");
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await login(page, accounts.owner.identifier);
     await page.goto("/coach/settings");
@@ -102,8 +102,7 @@ test.describe("strateji farkındalığı", () => {
 
   test("Önerilen planı hazırla: aynı gün sütununda aynı dersten iki görev yok", async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-chromium", "masaüstü koç ekranı");
+  }) => {
     const student = await createStudentAsOwner(page, { fullName: "E2E Strateji", prefix: "str" });
     try {
       await logout(page);

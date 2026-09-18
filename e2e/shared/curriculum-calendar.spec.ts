@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { accounts } from "./fixtures/accounts";
-import { login, logout } from "./fixtures/auth";
-import { clearSchoolDates } from "./fixtures/db";
+import { accounts } from "../fixtures/accounts";
+import { login, logout } from "../fixtures/auth";
+import { clearSchoolDates } from "../fixtures/db";
 
 /**
  * Faz 5 Parça 1 kabulü (09 §2): koç takvim görünümünde 6 derste "Sıradan dağıt" + bir satırı elle
@@ -9,7 +9,8 @@ import { clearSchoolDates } from "./fixtures/db";
  * konu seed öğrencisinin (Ayşe) haritasında işaretli, hücre detayında "Okulda … hafta önce" →
  * K1 "Dikkat gerektirenler"de "Okulun gerisinde"; owner ayarlarda "Varsayılanları öner" → 3 satır
  * → kaydeder → yeniden açılınca kalır. Takvim şablon düzeyinde paylaşımlı olduğu için sonunda
- * temizlenir; yalnızca masaüstü projesi (kurum geneli veri).
+ * temizlenir. Kurum geneli veri: `shared-desktop` projesi (seri, diğer projelerden önce; bkz.
+ * playwright.config.ts).
  */
 const SUBJECTS = [
   "Türkçe",
@@ -41,8 +42,7 @@ test.describe("müfredat takvimi ve sezon dönemleri", () => {
 
   test("koç takvimi doldurur, öğrenci haritasında okul işareti, K1'de okulun gerisinde", async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-chromium", "kurum geneli veri; masaüstü koç");
+  }) => {
     await login(page, accounts.coach.identifier);
     try {
       await page.goto("/coach/templates");
@@ -124,10 +124,7 @@ test.describe("müfredat takvimi ve sezon dönemleri", () => {
     }
   });
 
-  test("owner sezon dönemlerini önerir ve kaydeder; koç salt okunur", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-chromium", "kurum geneli ayar; masaüstü");
+  test("owner sezon dönemlerini önerir ve kaydeder; koç salt okunur", async ({ page }) => {
     await login(page, accounts.owner.identifier);
     await page.goto("/coach/settings");
     await page.waitForLoadState("networkidle");

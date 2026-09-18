@@ -48,7 +48,8 @@ export function strategyNoteFor(input: {
 }): string | undefined {
   const delay = input.targetDelayDays ?? 0;
   if (delay > 0) {
-    const text = delay >= 7 ? formatCount(Math.round(delay / 7), "hafta") : formatCount(delay, "gün");
+    const text =
+      delay >= 7 ? formatCount(Math.round(delay / 7), "hafta") : formatCount(delay, "gün");
     return `hedef tarihi ${text} geçti`;
   }
   if ((input.subjectGap ?? 0) >= SUBJECT_GAP_NOTE_MIN) return "bu derste soru hedefinin gerisinde";

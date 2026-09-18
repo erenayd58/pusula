@@ -73,5 +73,7 @@ export function priorityScore(input: {
   // Sınav yaklaştıkça zayıf ve bakım konuları öne, yeni konu geriye (karar B9).
   const direction = mixCategoryOf(input.kind) === "new_topic" ? -1 : 1;
   const proximity = clamp01(input.examProximity ?? 0);
-  return Math.round(Math.min(100, Math.max(0, base * (1 + PROXIMITY_SWING * proximity * direction))));
+  return Math.round(
+    Math.min(100, Math.max(0, base * (1 + PROXIMITY_SWING * proximity * direction))),
+  );
 }

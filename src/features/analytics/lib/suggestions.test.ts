@@ -4,12 +4,7 @@ import { NBSP } from "@/lib/format";
 import type { TopicAlertKind } from "@/types";
 import type { StudentStrategy, TopicAlert } from "../types";
 import { distributeTasks, type DistributeDay } from "./distribute";
-import {
-  DELAY_SATURATION_DAYS,
-  KIND_BASE_SCORE,
-  PROXIMITY_SWING,
-  priorityScore,
-} from "./priority";
+import { DELAY_SATURATION_DAYS, KIND_BASE_SCORE, PROXIMITY_SWING, priorityScore } from "./priority";
 import {
   alertToTask,
   buildSuggestions,
@@ -427,7 +422,11 @@ describe("buildSuggestions (strateji, Faz 5c)", () => {
       subjectGap: new Map([["mat", 0.5]]),
     });
     const out = build(
-      [alerts[0]!, alerts[1]!, alert({ studentId: "s2", topicId: "x", kind: "not_started", delayDays: 0 })],
+      [
+        alerts[0]!,
+        alerts[1]!,
+        alert({ studentId: "s2", topicId: "x", kind: "not_started", delayDays: 0 }),
+      ],
       { strategy: new Map([["s1", st]]) },
     );
     const n1 = out.find((s) => s.topicId === "n1")!;
