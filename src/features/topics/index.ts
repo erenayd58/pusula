@@ -17,4 +17,4 @@ export type {
   TemplateEditor as TemplateEditorData,
   TemplateOption,
 } from "./types";
-export { completionPercent, countDone, percentOf } from "./lib/completion";
+export { completionPercent, countDone, isDone, percentOf } from "./lib/completion";
