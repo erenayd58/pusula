@@ -78,6 +78,29 @@ export function formatCount(value: number, unit?: string): string {
 }
 
 /**
+ * Sayıya 3. tekil iyelik eki (ünlü uyumu son söylenen sayıya göre): `9'u`, `12'si`, `3'ü`,
+ * `54'ü`, `100'ü`, `1.000'i`. "54 konunun 9'u bitti" gibi cümleler için; binlik ayırıcı korunur.
+ */
+export function formatPossessive(value: number): string {
+  const n = Math.abs(Math.round(value));
+  const ones = n % 10;
+  const tens = Math.floor(n / 10) % 10;
+  let suffix: string;
+  if (ones !== 0) {
+    suffix = ["ı", "i", "si", "ü", "ü", "i", "sı", "si", "i", "u"][ones]!;
+  } else if (tens !== 0) {
+    suffix = ["", "u", "si", "u", "ı", "si", "ı", "i", "i", "ı"][tens]!;
+  } else if (n % 1000 !== 0) {
+    suffix = "ü"; // yüz
+  } else if (n % 1_000_000 !== 0) {
+    suffix = "i"; // bin
+  } else {
+    suffix = n === 0 ? "ı" : "u"; // sıfır / milyon
+  }
+  return `${formatCount(value)}'${suffix}`;
+}
+
+/**
  * Süre (dakika): `860` → `14 sa 20 dk`, `45` → `45 dk`, `120` → `2 sa`, `0` → `0 dk`.
  * Tüm boşluklar bölünmeyen boşluktur; süre tek satırda kalır.
  */

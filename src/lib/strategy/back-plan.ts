@@ -1,0 +1,66 @@
+import { TZDate } from "@date-fns/tz";
+import { addDays, differenceInCalendarDays } from "date-fns";
+import { TIME_ZONE, toDateKey } from "@/lib/dates";
+
+/**
+ * Geri planlama (09-faz5-strateji.md §2 Parça 2, karar B5): bitmemiş konular
+ * `[startsOn, finishBy]` aralığına gün çözünürlüğünde eşit yayılır. Sıra: okul tarihi dolu olanlar
+ * tarih sırasıyla önce, kalanlar dersler arası sıra-sıra (Türkçe 1, Mat 1, Fen 1, …, Türkçe 2, …).
+ * Okul tarihine kelepçe yok (koç programı okulun önünde gidebilir). Saf; `features/*` import etmez.
+ */
+
+export type BackPlanTopic = {
+  topicId: string;
+  subjectId: string;
+  subjectSortOrder: number;
+  topicSortOrder: number;
+  schoolFinishOn: string | null;
+  done: boolean;
+};
+
+export type TopicTargetDate = { topicId: string; targetOn: string };
+
+/** Ders sırası → konu sırası → kimlik (deterministik). */
+function bySubjectThenTopic(a: BackPlanTopic, b: BackPlanTopic): number {
+  return (
+    a.subjectSortOrder - b.subjectSortOrder ||
+    a.topicSortOrder - b.topicSortOrder ||
+    a.topicId.localeCompare(b.topicId)
+  );
+}
+
+/** Dersler arası sıra-sıra: her dersin 1. konusu, sonra 2. konuları, … */
+function roundRobin(topics: readonly BackPlanTopic[]): BackPlanTopic[] {
+  const bySubject = new Map<string, BackPlanTopic[]>();
+  for (const t of [...topics].sort(bySubjectThenTopic)) {
+    (bySubject.get(t.subjectId) ?? bySubject.set(t.subjectId, []).get(t.subjectId))!.push(t);
+  }
+  const queues = [...bySubject.values()];
+  const out: BackPlanTopic[] = [];
+  for (let i = 0; queues.some((q) => i < q.length); i++) {
+    for (const q of queues) if (i < q.length) out.push(q[i]!);
+  }
+  return out;
+}
+
+export function backPlanTopics(input: {
+  topics: readonly BackPlanTopic[];
+  startsOn: string;
+  finishBy: string;
+}): TopicTargetDate[] {
+  if (input.finishBy < input.startsOn) return [];
+  const pending = input.topics.filter((t) => !t.done);
+  const withSchool = pending
+    .filter((t) => t.schoolFinishOn !== null)
+    .sort((a, b) => a.schoolFinishOn!.localeCompare(b.schoolFinishOn!) || bySubjectThenTopic(a, b));
+  const ordered = [...withSchool, ...roundRobin(pending.filter((t) => t.schoolFinishOn === null))];
+  const n = ordered.length;
+  if (n === 0) return [];
+
+  const start = new TZDate(input.startsOn, TIME_ZONE);
+  const days = differenceInCalendarDays(new TZDate(input.finishBy, TIME_ZONE), start);
+  return ordered.map((t, i) => ({
+    topicId: t.topicId,
+    targetOn: toDateKey(addDays(start, Math.floor(((i + 1) * days) / n))),
+  }));
+}

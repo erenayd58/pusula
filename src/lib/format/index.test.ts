@@ -6,6 +6,7 @@ import {
   formatNet,
   formatPercent,
   formatSigned,
+  formatPossessive,
   formatWeekRange,
   withUnit,
 } from "./index";
@@ -107,6 +108,22 @@ describe("formatDateTr", () => {
     expect(formatDateTr(new Date("2026-09-15T21:30:00Z"), { year: true })).toBe(
       `16${NB}Eylül${NB}2026`,
     );
+  });
+});
+
+describe("formatPossessive", () => {
+  it("son söylenen sayıya göre iyelik eki", () => {
+    expect(formatPossessive(9)).toBe("9'u");
+    expect(formatPossessive(12)).toBe("12'si");
+    expect(formatPossessive(3)).toBe("3'ü");
+    expect(formatPossessive(54)).toBe("54'ü");
+    expect(formatPossessive(6)).toBe("6'sı");
+    expect(formatPossessive(10)).toBe("10'u");
+    expect(formatPossessive(20)).toBe("20'si");
+    expect(formatPossessive(40)).toBe("40'ı");
+    expect(formatPossessive(100)).toBe("100'ü");
+    expect(formatPossessive(1000)).toBe("1.000'i");
+    expect(formatPossessive(0)).toBe("0'ı");
   });
 });
 
