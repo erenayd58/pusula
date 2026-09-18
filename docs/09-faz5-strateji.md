@@ -124,7 +124,7 @@ student_topic_targets (
 
 | Fonksiyon | Tür | Ne yapar |
 |---|---|---|
-| `set_student_targets(p_student_id uuid, p_topics_finish_by date, p_starts_on date, p_subject_targets jsonb, p_topic_targets jsonb)` | security definer; ilk satır `is_coach_of` | Tek transaction: `students.topics_finish_by / target_starts_on` günceller; `student_subject_targets` satırlarını payload ile değiştirir (`[{subject_id, questions}]`; payload'da olmayan ders silinir); `student_topic_targets` upsert (`[{topic_id, target_on}]`) ve payload'da olmayan satırlar silinir (yeniden üretimde bitmiş konuların eski hedefi temizlenir). Konu/ders öğrencinin şablonunda değilse `invalid_target` hatası, hiçbir şey yazılmaz. Döner `{subjects int, topics int}` |
+| `set_student_targets(p_student_id uuid, p_topics_finish_by date, p_starts_on date, p_subject_targets jsonb, p_topic_targets jsonb)` | security definer; ilk satır `is_coach_of` | Tek transaction: `students.topics_finish_by / target_starts_on` günceller; `student_subject_targets` satırlarını payload ile değiştirir (`[{subject_id, questions}]`; payload'da olmayan ders silinir); `student_topic_targets` upsert (`[{topic_id, target_on}]`) ve payload'da olmayan satırlar silinir (yeniden üretimde bitmişler dahil tüm ünite konuları payload'dadır; şablondan kalkan konunun satırı temizlenir). Konu/ders öğrencinin şablonunda değilse `invalid_target` hatası, hiçbir şey yazılmaz. Döner `{subjects int, topics int}` |
 
 Tek konunun tarihini düzenlemek RPC gerektirmez: koç `student_topic_targets` satırını RLS ile günceller (`updateTopicTarget` eylemi, tek tablo). Haftalık hedef önerisi (karar B13) mevcut `goals` yoluyla yazılır (`setGoals`), otomatik değil.
 
@@ -209,13 +209,15 @@ export function schoolLagWeeks(schoolFinishOn: string, today: string): number;  
 // src/lib/strategy/back-plan.ts
 export function backPlanTopics(input: {
   topics: readonly { topicId: string; subjectId: string; subjectSortOrder: number; topicSortOrder: number;
-                     schoolFinishOn: string | null; done: boolean }[];
+                     schoolFinishOn: string | null; done: boolean; completedAt: string | null }[];
   startsOn: string; finishBy: string;
 }): { topicId: string; targetOn: string }[];
-// bitmemiş konular; sıra: schoolFinishOn dolu olanlar tarih sırasıyla önce, sonra dersler arası sıra-sıra
+// tüm ünite konuları (bitmişler dahil; Faz 5 kapanış düzeltmesi); sıra: schoolFinishOn dolu olanlar tarih sırasıyla önce, sonra dersler arası sıra-sıra
 // (Türkçe 1, Mat 1, Fen 1, …, Türkçe 2, …); [startsOn, finishBy] arasına eşit yayılım (i × gün / n, pazartesiye
 // yuvarlanmaz; gün çözünürlüğü); okul kelepçesi (karar B5, güncel): okul tarihi olan konunun hedefi
 // max(yayılım, okul tarihi), finishBy ile sınırlı — sıralama ve diğer konuların yayılımı değişmez, koç tek tek öne alabilir;
+// bitmiş konu sıradaki yuvasını alır (yayılım n = tüm konular); hedefi completedAt varsa o gün (aralığa kırpılır), yoksa yuva
+// tarihi → beklenen sayımına doğal girer, "Hedef yok" satırı kalmaz, ders tablosunda bugüne kadar hedeflenen ≥ bitti;
 // finishBy < startsOn → boş dizi (form zaten engeller)
 
 // src/lib/strategy/split.ts
@@ -253,7 +255,7 @@ export function paceSentence(p: TopicPace, hasTargets: boolean): string;
 export function paceLabel(p: Pick<TopicPace, "overdue" | "ahead">, hasTargets: boolean): string;   // K1: "−3 konu" · "+2 konu" · "Uyumlu" · "—"
 ```
 
-Testler: sıralama (okul tarihi önce, sıra-sıra), eşit yayılım uçları, bitmiş konu dışarıda; dağılımın toplamı ve kalan yöntemi; gerçekçilik sığıyor/sığmıyor ve hafta tabanı 1; gidişat: geride/ileride/uyumlu/hedefsiz, hız 0, pencere sınırı, sınav tarihi yok (shortfall 0, projected null).
+Testler: sıralama (okul tarihi önce, sıra-sıra), eşit yayılım uçları, bitmiş konu yuva alır ve completedAt günü / yuva tarihi (aralığa kırpma, İstanbul günü); dağılımın toplamı ve kalan yöntemi; gerçekçilik sığıyor/sığmıyor ve hafta tabanı 1; gidişat: geride/ileride/uyumlu/hedefsiz, hız 0, pencere sınırı, sınav tarihi yok (shortfall 0, projected null).
 
 **Kabul:** Koç hedefi kurunca 54 konu tarihi yazılır (pgTAP + e2e); gerçekçilik cümlesi program değişince değişir (e2e); öğrenci Bugün'de tek cümle + ince çubuk, uyarı rengi yok (e2e + ekran görüntüsü); K1 "Takvim" sütunu ve K2 tablo dolu (e2e); haftalık hedef önerisi düğmeyle uygulanır (e2e); saf fonksiyonların her dalı birim testli; `pnpm check` + `pnpm db:test` yeşil.
 
@@ -330,7 +332,7 @@ export type Placement = { dayOfWeek: number | null; date?: string; suggestion: S
 | `pace.ts` | `topicPace`, `subjectPace`, `paceSentence`, `paceLabel` | topics (Bugün kartı), core (K1 sütunu), goals/analytics (K2) |
 | `mix.ts` | `mixCategoryOf`, `allocateByMix` | analytics |
 
-Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/dates` ile (İstanbul, hafta pazartesi), metinler `lib/format` ile. Tanımlar tek yerde (net takvim konumu; 2026-09-18 düzeltmesi): **bitmiş** = `completed | mastered`; **beklenen** = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın; hedefsiz bitmiş konular takvimin önündedir, beklenene girmez); **geride** = max(0, beklenen − bitmiş); **ileride** = max(0, bitmiş − beklenen); **hız** = son `pace_window_days`'de biten konu × 7 / pencere. Konu bazlı "hedefi geçti" (hedefi bugün ya da öncesi ve bitmemiş) yalnızca Hedef sekmesindeki listede rozet ve ders özetindeki "N gecikmiş" sayısıdır; gidişat cümlesi, K1 sütunu ve K2 kutusu net konumu kullanır ("9 konu bitmiş ama 4 konu geride" gibi çelişkili durum yok).
+Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/dates` ile (İstanbul, hafta pazartesi), metinler `lib/format` ile. Tanımlar tek yerde (net takvim konumu; 2026-09-18 düzeltmesi): **bitmiş** = `completed | mastered`; **beklenen** = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın; geri planlama bitmişlere de hedef verdiği — `completed_at` günü — için yeniden üretimden sonra bitmişler beklenene girer; hedefinden önce bitirilen ya da hedefsiz bitmiş konu takvimin önündedir, beklenene girmez); **geride** = max(0, beklenen − bitmiş); **ileride** = max(0, bitmiş − beklenen); **hız** = son `pace_window_days`'de biten konu × 7 / pencere. Konu bazlı "hedefi geçti" (hedefi bugün ya da öncesi ve bitmemiş) yalnızca Hedef sekmesindeki listede rozet ve ders özetindeki "N gecikmiş" sayısıdır; gidişat cümlesi, K1 sütunu ve K2 kutusu net konumu kullanır ("9 konu bitmiş ama 4 konu geride" gibi çelişkili durum yok). K2 ders tablosu sütunu "Konu (bitti / bugüne kadar hedeflenen)": ikinci sayı beklenen; bitmişler hedefli olduğu için ≥ bitti. Faz 5 kapanış düzeltmesi (2026-09-18): önceki sürüm bitmiş konulara hedef vermiyordu → "4 / 0" satırları, listede "Hedef yok", her bitmiş konu ileride sayılıyordu ("takvimin 9 konu ilerisinde").
 
 ### 3.2 Yazım ve renk
 

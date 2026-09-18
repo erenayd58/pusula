@@ -1,14 +1,16 @@
 import { TZDate } from "@date-fns/tz";
 import { addDays, differenceInCalendarDays } from "date-fns";
-import { TIME_ZONE, toDateKey } from "@/lib/dates";
+import { TIME_ZONE, toDateKey, toIstanbul } from "@/lib/dates";
 
 /**
- * Geri planlama (09-faz5-strateji.md §2 Parça 2, karar B5): bitmemiş konular
+ * Geri planlama (09-faz5-strateji.md §2 Parça 2, karar B5): tüm ünite konuları (bitmişler dahil)
  * `[startsOn, finishBy]` aralığına gün çözünürlüğünde eşit yayılır. Sıra: okul tarihi dolu olanlar
  * tarih sırasıyla önce, kalanlar dersler arası sıra-sıra (Türkçe 1, Mat 1, Fen 1, …, Türkçe 2, …).
  * Okul kelepçesi: okul tarihi olan konunun hedefi okul tarihinden (haftasından) önce olamaz —
  * `max(yayılım, okul)`, `finishBy` ile sınırlı; sıralama ve diğer konuların yayılımı değişmez. Koç
- * tek tek düzenleyerek yine öne alabilir. Saf; `features/*` import etmez.
+ * tek tek düzenleyerek yine öne alabilir. Bitmiş konu sıradaki yerini (yuvasını) alır; hedefi
+ * `completedAt` varsa o gün (aralığa kırpılır: beklenen sayımına doğal girer, "Hedef yok" satırı
+ * kalmaz), yoksa yuvasının tarihi. Saf; `features/*` import etmez.
  */
 
 export type BackPlanTopic = {
@@ -18,6 +20,8 @@ export type BackPlanTopic = {
   topicSortOrder: number;
   schoolFinishOn: string | null;
   done: boolean;
+  /** Bitiş zaman damgası (ISO; `student_topic_progress.completed_at`); bitmemişse ya da yoksa null. */
+  completedAt: string | null;
 };
 
 export type TopicTargetDate = { topicId: string; targetOn: string };
@@ -51,23 +55,28 @@ export function backPlanTopics(input: {
   finishBy: string;
 }): TopicTargetDate[] {
   if (input.finishBy < input.startsOn) return [];
-  const pending = input.topics.filter((t) => !t.done);
-  const withSchool = pending
+  const withSchool = input.topics
     .filter((t) => t.schoolFinishOn !== null)
     .sort((a, b) => a.schoolFinishOn!.localeCompare(b.schoolFinishOn!) || bySubjectThenTopic(a, b));
-  const ordered = [...withSchool, ...roundRobin(pending.filter((t) => t.schoolFinishOn === null))];
+  const ordered = [
+    ...withSchool,
+    ...roundRobin(input.topics.filter((t) => t.schoolFinishOn === null)),
+  ];
   const n = ordered.length;
   if (n === 0) return [];
 
   const start = new TZDate(input.startsOn, TIME_ZONE);
   const days = differenceInCalendarDays(new TZDate(input.finishBy, TIME_ZONE), start);
+  const clampToRange = (date: string) =>
+    date < input.startsOn ? input.startsOn : date > input.finishBy ? input.finishBy : date;
   return ordered.map((t, i) => {
+    if (t.done && t.completedAt !== null) {
+      return { topicId: t.topicId, targetOn: clampToRange(toDateKey(toIstanbul(t.completedAt))) };
+    }
     const spread = toDateKey(addDays(start, Math.floor(((i + 1) * days) / n)));
     const clamped =
       t.schoolFinishOn !== null && t.schoolFinishOn > spread
-        ? t.schoolFinishOn < input.finishBy
-          ? t.schoolFinishOn
-          : input.finishBy
+        ? clampToRange(t.schoolFinishOn)
         : spread;
     return { topicId: t.topicId, targetOn: clamped };
   });

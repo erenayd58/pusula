@@ -6,7 +6,9 @@ import { formatCount, formatPossessive, formatSigned, withUnit } from "@/lib/for
 /**
  * Gidişat (09 §2 Parça 2, §3.1 tanımları; net takvim konumu): bitmiş = completed | mastered
  * (çağıran `done` verir); beklenen = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın;
- * hedefsiz bitmiş konular takvimin önündedir, beklenene girmez); geride = max(0, beklenen − bitmiş);
+ * geri planlama bitmiş konuya da hedef verir — `completedAt` günü — bu yüzden yeniden üretimden sonra
+ * bitmişler beklenene girer; hedefinden önce bitirilen ya da hedefsiz bitmiş konu takvimin önündedir,
+ * beklenene girmez); geride = max(0, beklenen − bitmiş);
  * ileride = max(0, bitmiş − beklenen); hız = son `windowDays` günde biten × 7 / pencere. Konu
  * bazlı "hedefi geçti" bilgisi listede ayrıca verilir. Saf; `features/*` import etmez.
  */

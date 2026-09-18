@@ -214,11 +214,13 @@ values
 update public.plan_items set url = 'https://www.youtube.com/' where kind = 'link' and plan_id = 'd0000000-0000-4000-8000-000000000001';
 
 -- Hedef ve konu takvimi (Faz 5b): koç Murat Ayşe'ye sınava kadar 9.000 soru (sınav soru sayısına
--- orantılı) ve konuları bitirme tarihi sınav − 8 hafta; başlangıç 20 gün önce. Bitmemiş ünite
--- konuları [başlangıç, bitiş] aralığına eşit yayılır; okul tarihi olan konunun hedefi okul
--- haftasından önce olamaz (backPlanTopics kelepçesi, karar B5). students.topics_finish_by /
--- target_starts_on seed'de doğrudan yazılır (uygulamada yalnızca set_student_targets RPC yazar).
--- Okul takvimi (aşağıda) hedeflerden önce yazılır ki kelepçe uygulanabilsin.
+-- orantılı) ve konuları bitirme tarihi sınav − 8 hafta; başlangıç 20 gün önce. Tüm ünite konuları
+-- (bitmişler dahil) [başlangıç, bitiş] aralığına eşit yayılır; okul tarihi olan konunun hedefi okul
+-- haftasından önce olamaz (backPlanTopics kelepçesi, karar B5); bitmiş konunun hedefi completed_at
+-- günü (başlangıca kırpılır) → beklenene girer, Ayşe takvimle uyumlu (ileride durumu, bir konu hedef
+-- tarihinden önce bitirilince kendiliğinden oluşur). students.topics_finish_by / target_starts_on
+-- seed'de doğrudan yazılır (uygulamada yalnızca set_student_targets RPC yazar). Okul takvimi
+-- (aşağıda) hedeflerden önce yazılır ki kelepçe uygulanabilsin.
 update public.students
 set topics_finish_by = date '2027-06-13' - 56,
     target_starts_on = (now() at time zone 'Europe/Istanbul')::date - 20
@@ -248,24 +250,26 @@ insert into public.student_topic_targets (student_id, topic_id, target_on, creat
 select
   'b0000000-0000-4000-8000-000000000011',
   r.id,
-  greatest(
-    ((now() at time zone 'Europe/Istanbul')::date - 20)
-      + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 20)) / r.n)::int,
-    coalesce(r.school_finish_on, date '1970-01-01')
-  ),
+  case
+    when r.completed_at is not null
+      then greatest((r.completed_at at time zone 'Europe/Istanbul')::date, (now() at time zone 'Europe/Istanbul')::date - 20)
+    else greatest(
+      ((now() at time zone 'Europe/Istanbul')::date - 20)
+        + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 20)) / r.n)::int,
+      coalesce(r.school_finish_on, date '1970-01-01')
+    )
+  end,
   'b0000000-0000-4000-8000-000000000002'
 from (
   select t.id, t.school_finish_on,
+         case when p.status in ('completed', 'mastered') then p.completed_at end as completed_at,
          row_number() over (order by s.sort_order, t.sort_order) as rn,
          count(*) over () as n
   from public.topics t
   join public.subjects s on s.id = t.subject_id
+  left join public.student_topic_progress p
+    on p.student_id = 'b0000000-0000-4000-8000-000000000011' and p.topic_id = t.id
   where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t.parent_id is null
-    and not exists (
-      select 1 from public.student_topic_progress p
-      where p.student_id = 'b0000000-0000-4000-8000-000000000011' and p.topic_id = t.id
-        and p.status in ('completed', 'mastered')
-    )
 ) as r;
 
 -- Mehmet: takvimin gerisinde örnek (Faz 5c seed düzeltmesi). Hedef 6 hafta önce kuruldu (6.000 soru,

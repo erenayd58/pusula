@@ -112,6 +112,7 @@ export function TargetForm({
         topicSortOrder: t.sortOrder,
         schoolFinishOn: t.schoolFinishOn,
         done: t.done,
+        completedAt: t.completedAt,
       })),
       startsOn: values.startsOn,
       finishBy: values.topicsFinishBy,

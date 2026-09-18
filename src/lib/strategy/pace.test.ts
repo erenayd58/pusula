@@ -38,8 +38,9 @@ describe("topicPace", () => {
     expect(paceLabel(p, true)).toBe(`${MINUS}3${NBSP}konu`);
   });
 
-  it("hedefsiz bitmiş konular takvimin önündedir: beklenene girmez, ileriye sayılır", () => {
+  it("hedefsiz bitmiş konular (ör. hedef kurulduktan sonra şablona eklenen) takvimin önündedir: beklenene girmez, ileriye sayılır", () => {
     // 9 bitmiş (hedefsiz), 4 hedefi geçmiş bitmemiş konu → net +5 (çelişkili "9 bitti, 4 geride" yok).
+    // Yeniden üretim bitmişlere completedAt günü hedef verdiği için olağan durumda bitmişler beklenene girer.
     const p = topicPace(
       [
         ...Array.from({ length: 9 }, (_, i) => t(`d${i}`, { done: true, completedAt: ago(50) })),

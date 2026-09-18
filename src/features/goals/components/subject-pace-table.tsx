@@ -38,7 +38,9 @@ export function SubjectPaceTable({ targets, pace }: { targets: StudentTargets; p
           <thead className="text-left text-micro-lg text-ink-500">
             <tr className="border-b border-line">
               <th className="py-2 pr-3 font-medium">Ders</th>
-              <th className="px-3 py-2 text-right font-medium">Konu (bitti / planlanan)</th>
+              <th className="px-3 py-2 text-right font-medium">
+                Konu (bitti / bugüne kadar hedeflenen)
+              </th>
               <th className="px-3 py-2 text-right font-medium">Soru (gerçekleşen / hedef)</th>
               <th className="py-2 pl-3 font-medium">Tahmini bitiş</th>
             </tr>
