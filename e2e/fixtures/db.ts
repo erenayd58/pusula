@@ -35,6 +35,16 @@ export async function deleteE2ETopics(name?: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
+export async function clearSchoolDates(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("topics")
+    .update({ school_finish_on: null }, { count: "exact" })
+    .not("school_finish_on", "is", null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /**
  * Testlerin bıraktığı öğrencileri (auth kullanıcısı → cascade ile profil, öğrenci ve verisi) siler.
  * Yalnızca e2e ön ekli sentetik e-postalar: `<prefix>.<zaman><rastgele>@…` (uniqueUsername).
