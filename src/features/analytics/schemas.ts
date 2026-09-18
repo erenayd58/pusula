@@ -8,6 +8,7 @@ export const topicAlertKindValues = [
   "stale",
   "not_started",
   "neglected_subject",
+  "behind_school",
 ] as const;
 
 /** "Şimdi değil": öneri anahtarı (öğrenci × ders × konu × tür); süreyi sunucu hesaplar. */

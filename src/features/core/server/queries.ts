@@ -28,6 +28,14 @@ export type StudentListRow = {
   planPercentWeek: number | null;
   /** Bugüne kadar: bugün ve öncesindeki günler + tamamlanmış hafta içi görevleri (0-100); yoksa null. */
   planToDatePercentWeek: number | null;
+  /** Faz 5b: konu takvimi (`students.topics_finish_by` dolu) ve net gidişat sayımları. */
+  hasTargets: boolean;
+  topicsTotal: number;
+  topicsDone: number;
+  /** max(0, beklenen − bitmiş) */
+  topicsBehind: number;
+  /** max(0, bitmiş − beklenen) */
+  topicsAhead: number;
 };
 
 /**
@@ -39,7 +47,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
   const { data, error } = await supabase
     .from("v_coach_student_overview")
     .select(
-      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_behind, topics_ahead",
     )
     .order("full_name");
   if (error) throw error;
@@ -72,6 +80,11 @@ export async function listStudents(): Promise<StudentListRow[]> {
             weekGoalPercent: row.week_goal_percent,
             planPercentWeek: row.plan_percent_week,
             planToDatePercentWeek: row.plan_to_date_percent_week,
+            hasTargets: row.has_targets ?? false,
+            topicsTotal: row.topics_total ?? 0,
+            topicsDone: row.topics_done ?? 0,
+            topicsBehind: row.topics_behind ?? 0,
+            topicsAhead: row.topics_ahead ?? 0,
           },
         ]
       : [],

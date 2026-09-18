@@ -30,8 +30,8 @@ Next.js 16 (App Router) · TypeScript strict · Tailwind v4 · shadcn/ui · Supa
 ```bash
 pnpm dev            # geliştirme sunucusu
 pnpm check          # lint + typecheck + unit test — her adımın sonunda çalıştır
-pnpm test:e2e       # Playwright (üretim derlemesi 3100'de; açıksa `pnpm e2e:server` yeniden kullanılır)
-pnpm screenshots    # docs/tasarim/uygulama-<faz>/ ekran görüntüleri (dev sunucusu açıkken; e2e dışı)
+pnpm test:e2e       # Playwright (üretim derlemesi 3100'de; açıksa `pnpm e2e:server` yeniden kullanılır). Kurum ayarı / şablon değiştiren spec'ler `e2e/shared/` altında seri ve önce koşar; tek dosya koşarken `--no-deps`
+pnpm screenshots    # docs/tasarim/uygulama-<faz>/ ekran görüntüleri (dev sunucusu açıkken; e2e dışı; `--only <faz>`, `--file <ad.png>`)
 pnpm db:start       # yerel Supabase
 pnpm db:reset       # migration'ları sıfırdan uygula + seed
 pnpm db:test        # pgTAP RLS testleri — her şema değişikliğinden sonra çalıştır

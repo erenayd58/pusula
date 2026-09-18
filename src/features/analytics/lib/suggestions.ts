@@ -1,7 +1,10 @@
 import type { OrgSettings } from "@/features/core";
+import { formatCount } from "@/lib/format";
 import { taskTitle, type TaskTargetUnit } from "@/lib/plan/task-title";
+import { allocateByMix, mixCategoryOf, type MixCategory } from "@/lib/strategy/mix";
+import { examProximity } from "@/lib/strategy/periods";
 import type { PlanItemKind, TopicAlertKind } from "@/types";
-import type { TopicAlert } from "../types";
+import type { StudentStrategy, TopicAlert } from "../types";
 import { alertReason } from "./alerts";
 import { priorityScore } from "./priority";
 
@@ -28,7 +31,30 @@ export type Suggestion = {
   task: SuggestionTask;
   /** 0–100 (`priorityScore`). */
   score: number;
+  /** Strateji notu (Faz 5c): "hedef tarihi 2 hafta geçti" · "bu derste soru hedefinin gerisinde". */
+  strategyNote?: string;
 };
+
+/** Ders soru açığı bu oranın altındaysa not yazılmaz (küçük sapmalar gürültü olmasın). */
+export const SUBJECT_GAP_NOTE_MIN = 0.2;
+
+/**
+ * Strateji notu: önce konu hedef gecikmesi ("hedef tarihi 2 hafta geçti", 7 günden azsa gün),
+ * yoksa ders soru açığı (`SUBJECT_GAP_NOTE_MIN` ve üstü). İkisi de yoksa undefined.
+ */
+export function strategyNoteFor(input: {
+  targetDelayDays: number | undefined;
+  subjectGap: number | undefined;
+}): string | undefined {
+  const delay = input.targetDelayDays ?? 0;
+  if (delay > 0) {
+    const text =
+      delay >= 7 ? formatCount(Math.round(delay / 7), "hafta") : formatCount(delay, "gün");
+    return `hedef tarihi ${text} geçti`;
+  }
+  if ((input.subjectGap ?? 0) >= SUBJECT_GAP_NOTE_MIN) return "bu derste soru hedefinin gerisinde";
+  return undefined;
+}
 
 /** Reddetme anahtarı: öğrenci × tür × ders × konu (ders düzeyinde konu boş). */
 export function dismissalKey(
@@ -49,6 +75,7 @@ export function plannedKey(studentId: string, id: string): string {
 const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
   knowledge_gap: "topic_study",
   not_started: "topic_study",
+  behind_school: "topic_study",
   low_accuracy: "questions",
   neglected_subject: "questions",
   review_due: "review",
@@ -89,8 +116,11 @@ export function alertToTask(alert: TopicAlert, planner: OrgSettings["planner"]):
 /**
  * Öneri motoru (08 §2 Parça 4; saf): uyarılar → bu hafta planlı ve reddedilmiş olanlar
  * elenir → önem puanı → öğrenci başına en fazla `suggestions.max_per_student`. Sıra puana göre
- * azalan; eşit puanda uyarı sırası (öncelik, gecikme, ders/konu) korunur. Faz 5 `strategy`
- * parametresini (sınava kalan gün, hedef ders dağılımı) bu imzaya ekler (08 §5).
+ * azalan; eşit puanda uyarı sırası (öncelik, gecikme, ders/konu) korunur. Faz 5c (09 §2 Parça 3):
+ * `strategy` verilirse puan sınav yakınlığı / hedef gecikmesi / ders açığıyla hesaplanır, dönem
+ * karışımı varsa öğrenci kotası `allocateByMix` ile kategori bazında puan sırasıyla dolar,
+ * dolmayan kota kalan en yüksek puanlılara açılır; satıra `strategyNote` eklenir. Verilmezse
+ * Faz 4 davranışı birebir.
  */
 export function buildSuggestions(input: {
   alerts: readonly TopicAlert[];
@@ -103,6 +133,8 @@ export function buildSuggestions(input: {
   settings: OrgSettings;
   maxExamQuestionCount: number;
   today: string;
+  /** Öğrenci → strateji bağlamı (`getStrategyContext`); yoksa Faz 4 davranışı. */
+  strategy?: ReadonlyMap<string, StudentStrategy>;
 }): Suggestion[] {
   const { alerts, settings, today } = input;
   const scored: Suggestion[] = [];
@@ -114,6 +146,11 @@ export function buildSuggestions(input: {
     if (planned) continue;
     const until = input.dismissed.get(dismissalKey(a.studentId, a.kind, a.subject.id, a.topicId));
     if (until && until >= today) continue;
+
+    const st = input.strategy?.get(a.studentId);
+    const targetDelayDays = st && a.topicId ? st.topicDelayDays.get(a.topicId) : undefined;
+    const subjectGap = st?.subjectGap.get(a.subject.id);
+    const strategyNote = st ? strategyNoteFor({ targetDelayDays, subjectGap }) : undefined;
 
     scored.push({
       studentId: a.studentId,
@@ -133,18 +170,51 @@ export function buildSuggestions(input: {
         kind: a.kind,
         accuracy: a.accuracy,
         threshold: a.threshold,
+        examProximity:
+          st && st.daysToExam !== null
+            ? examProximity(st.daysToExam, settings.strategy.proximity_days)
+            : 0,
+        targetDelayDays: targetDelayDays ?? 0,
+        subjectGap: subjectGap ?? 0,
       }),
+      ...(strategyNote ? { strategyNote } : {}),
     });
   }
 
   scored.sort((x, y) => y.score - x.score);
 
-  const perStudent = new Map<string, number>();
   const max = settings.suggestions.max_per_student;
-  return scored.filter((s) => {
-    const n = perStudent.get(s.studentId) ?? 0;
-    if (n >= max) return false;
-    perStudent.set(s.studentId, n + 1);
-    return true;
-  });
+  const chosen = new Set<Suggestion>();
+  const byStudent = new Map<string, Suggestion[]>();
+  for (const s of scored)
+    (byStudent.get(s.studentId) ?? byStudent.set(s.studentId, []).get(s.studentId))!.push(s);
+
+  for (const [studentId, list] of byStudent) {
+    const mix = input.strategy?.get(studentId)?.mix ?? null;
+    if (!mix) {
+      for (const s of list.slice(0, max)) chosen.add(s);
+      continue;
+    }
+    // Kategori kotası puan sırasıyla dolar; dolmayan kota kalan en yüksek puanlılara açılır.
+    const quota: Record<MixCategory, number> = allocateByMix(max, mix);
+    const leftovers: Suggestion[] = [];
+    let taken = 0;
+    for (const s of list) {
+      const category = mixCategoryOf(s.kind);
+      if (quota[category] > 0) {
+        quota[category]--;
+        chosen.add(s);
+        taken++;
+      } else {
+        leftovers.push(s);
+      }
+    }
+    for (const s of leftovers) {
+      if (taken >= max) break;
+      chosen.add(s);
+      taken++;
+    }
+  }
+
+  return scored.filter((s) => chosen.has(s));
 }

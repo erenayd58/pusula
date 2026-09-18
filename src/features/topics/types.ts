@@ -11,6 +11,10 @@ export type TopicMapCell = {
   questions: number;
   /** Başarı yüzdesi (0-100); soru yoksa null. */
   accuracy: number | null;
+  /** Okulda tahmini bitiş (`topics.school_finish_on`, YYYY-AA-GG); takvim doldurulmadıysa null. */
+  schoolFinishOn: string | null;
+  /** Koçun hedef tarihi (`student_topic_targets.target_on`); hedef kurulmadıysa null (Faz 5b). */
+  targetOn: string | null;
 };
 
 export type TopicMapSubject = {
@@ -35,6 +39,8 @@ export type TemplateTopic = {
   sortOrder: number;
   /** İlerleme satırı olan öğrenci sayısı (RLS'nin gösterdiği kadar); silme onayında yazılır. */
   progressStudents: number;
+  /** Okulda tahmini bitiş (YYYY-AA-GG); ünite düzeyinde dolu, alt konular üstünden okur. */
+  schoolFinishOn: string | null;
   children: TemplateTopic[];
 };
 

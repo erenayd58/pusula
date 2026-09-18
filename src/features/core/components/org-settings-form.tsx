@@ -2,14 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useForm, type Path, type UseFormReturn } from "react-hook-form";
+import { useFieldArray, useForm, type Path, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { FieldError } from "@/components/shared/field-error";
 import { FormError } from "@/components/shared/form-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { suggestSeasonPeriods } from "@/lib/strategy/periods";
 import type { OrgSettings } from "../lib/org-settings";
 import { orgSettingsFormSchema, type OrgSettingsFormInput } from "../schemas";
 import { updateOrgSettings } from "../server/org-settings-actions";
@@ -35,12 +38,23 @@ const asIntList = (v: unknown) =>
         .filter(Boolean)
         .map((s) => Number(s));
 
+const MAX_PERIODS = 6;
+
 /**
- * Kurum ayarları formu (flat, karar A5): dört bölüm, sayı alanları. Owner düzenler; koç salt
- * okunur görür. Aynı zod şeması eylemde de kullanılır; kaydedince uyarılar ve plan önerileri
- * yeni eşiklerle hesaplanır.
+ * Kurum ayarları formu (flat, karar A5): sayı alanlı bölümler + sezon dönemleri liste editörü
+ * (Faz 5a, karar B14). Owner düzenler; koç salt okunur görür. Aynı zod şeması eylemde de
+ * kullanılır; kaydedince uyarılar ve plan önerileri yeni eşiklerle hesaplanır. `examDate`:
+ * kurum şablonunun sınav tarihi ("Varsayılanları öner" bununla çalışır; yoksa düğme kapalı).
  */
-export function OrgSettingsForm({ initial, canEdit }: { initial: OrgSettings; canEdit: boolean }) {
+export function OrgSettingsForm({
+  initial,
+  canEdit,
+  examDate,
+}: {
+  initial: OrgSettings;
+  canEdit: boolean;
+  examDate: string | null;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string>();
@@ -181,6 +195,44 @@ export function OrgSettingsForm({ initial, canEdit }: { initial: OrgSettings; ca
         />
       </Section>
 
+      <PeriodsSection form={form} disabled={!canEdit} examDate={examDate} />
+
+      <Section
+        title="Strateji"
+        hint="Sınav yakınlığı, okul takvimi toleransı ve hedef hesaplarının parametreleri."
+      >
+        <NumberField
+          {...field}
+          name="strategy.proximity_days"
+          label="Sınav yakınlığı (gün)"
+          hint="Bu kadar gün kala öneriler sınav moduna kaymaya başlar"
+        />
+        <NumberField
+          {...field}
+          name="strategy.school_lag_weeks"
+          label="Okul toleransı (hafta)"
+          hint="Okul bitirdikten bu kadar hafta sonra hâlâ bitmemiş konu uyarı üretir"
+        />
+        <NumberField
+          {...field}
+          name="strategy.topic_minutes_default"
+          label="Konu başına dakika"
+          hint="Konunun tahmini süresi yoksa"
+        />
+        <NumberField
+          {...field}
+          name="strategy.pace_window_days"
+          label="Hız penceresi (gün)"
+          hint="Haftalık hız son bu kadar günden hesaplanır"
+        />
+        <NumberField
+          {...field}
+          name="strategy.topics_finish_weeks_before_exam"
+          label="Konu bitişi: sınavdan kaç hafta önce"
+          hint="Hedef formundaki bitirme tarihi varsayılanı"
+        />
+      </Section>
+
       <FormError message={formError} />
       {canEdit ? (
         <div className="flex flex-wrap gap-2">
@@ -221,6 +273,186 @@ function Section({
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </fieldset>
+  );
+}
+
+const PERIOD_GRID =
+  "md:grid-cols-[minmax(0,1.6fr)_repeat(2,minmax(0,1fr))_repeat(3,4.5rem)_2.25rem]";
+
+/**
+ * Sezon dönemleri (09 §1.2, karar B14): 0–6 satır; ad, tarih aralığı, üç yüzde (toplam 100).
+ * "Varsayılanları öner" `suggestSeasonPeriods(examDate)` ile listeyi doldurur, owner düzenler.
+ * Dönem yokken nötr not; K1'de uyarı gösterilmez.
+ */
+function PeriodsSection({
+  form,
+  disabled,
+  examDate,
+}: {
+  form: UseFormReturn<OrgSettingsFormInput>;
+  disabled: boolean;
+  examDate: string | null;
+}) {
+  const { fields, append, remove, replace } = useFieldArray({
+    control: form.control,
+    name: "strategy.periods",
+  });
+  const errors = form.formState.errors.strategy?.periods;
+  const listError = errors?.message ?? errors?.root?.message;
+
+  return (
+    <fieldset className="flex flex-col gap-4 rounded-sm border border-line bg-bg-paper p-4">
+      <legend className="sr-only">Sezon dönemleri</legend>
+      <div className="flex flex-col gap-0.5">
+        <h2 aria-hidden="true" className="text-heading font-semibold text-ink-900">
+          Sezon dönemleri
+        </h2>
+        <p className="text-small text-ink-500">
+          Sezonun dönemleri ve her dönemde önerilerin karışımı (yeni konu / zayıf konu / bakım,
+          yüzde). Aralıklar çakışamaz; boşluk olabilir.
+        </p>
+      </div>
+
+      {fields.length === 0 ? (
+        <p className="rounded-sm border border-line bg-bg-surface px-4 py-3 text-small text-ink-700">
+          Sezon dönemleri tanımlı değil; öneriler dönem karışımı olmadan çalışıyor.
+        </p>
+      ) : (
+        <ol className="flex flex-col gap-3" aria-label="Dönemler">
+          <li
+            aria-hidden="true"
+            className={cn("hidden text-micro-lg text-ink-500 md:grid md:gap-2", PERIOD_GRID)}
+          >
+            <span>Ad</span>
+            <span>Başlangıç</span>
+            <span>Bitiş</span>
+            <span>Yeni %</span>
+            <span>Zayıf %</span>
+            <span>Bakım %</span>
+            <span />
+          </li>
+          {fields.map((row, i) => (
+            <PeriodRow
+              key={row.id}
+              form={form}
+              index={i}
+              disabled={disabled}
+              onRemove={() => remove(i)}
+            />
+          ))}
+        </ol>
+      )}
+      <FieldError message={listError} />
+
+      {!disabled ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={fields.length >= MAX_PERIODS}
+            onClick={() =>
+              append({
+                name: "",
+                starts_on: "",
+                ends_on: "",
+                mix: { new_topic: 0, weak: 0, review: 0 },
+              })
+            }
+          >
+            <PlusIcon aria-hidden="true" />
+            Satır ekle
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!examDate}
+            onClick={() => {
+              if (examDate) replace(suggestSeasonPeriods(examDate));
+            }}
+          >
+            Varsayılanları öner
+          </Button>
+          {!examDate ? (
+            <span className="text-micro-lg text-ink-500">Şablonun sınav tarihi yok.</span>
+          ) : null}
+        </div>
+      ) : null}
+    </fieldset>
+  );
+}
+
+function PeriodRow({
+  form,
+  index,
+  disabled,
+  onRemove,
+}: {
+  form: UseFormReturn<OrgSettingsFormInput>;
+  index: number;
+  disabled: boolean;
+  onRemove: () => void;
+}) {
+  const e = form.formState.errors.strategy?.periods?.[index];
+  const n = index + 1;
+  const base = `strategy.periods.${index}` as const;
+  const cell = (
+    name: FieldPath,
+    label: string,
+    error: string | undefined,
+    props: React.ComponentProps<typeof Input>,
+  ) => (
+    <div className="flex flex-col">
+      <Input
+        aria-label={label}
+        disabled={disabled}
+        aria-invalid={!!error}
+        {...props}
+        {...form.register(name, props.type === "number" ? { setValueAs: asNumber } : undefined)}
+      />
+      <FieldError message={error} />
+    </div>
+  );
+  const pct = { type: "number", inputMode: "numeric", min: 0, max: 100 } as const;
+
+  return (
+    <li
+      className={cn(
+        "grid grid-cols-2 gap-2 rounded-sm border border-line p-2 md:items-start md:border-0 md:p-0",
+        PERIOD_GRID,
+      )}
+    >
+      <div className="col-span-2 md:col-span-1">
+        {cell(`${base}.name`, `${n}. dönem adı`, e?.name?.message, {
+          type: "text",
+          placeholder: "Dönem adı",
+        })}
+      </div>
+      {cell(`${base}.starts_on`, `${n}. dönem başlangıcı`, e?.starts_on?.message, {
+        type: "date",
+      })}
+      {cell(`${base}.ends_on`, `${n}. dönem bitişi`, e?.ends_on?.message, { type: "date" })}
+      {cell(
+        `${base}.mix.new_topic`,
+        `${n}. dönem yeni konu yüzdesi`,
+        e?.mix?.new_topic?.message,
+        pct,
+      )}
+      {cell(`${base}.mix.weak`, `${n}. dönem zayıf konu yüzdesi`, e?.mix?.weak?.message, pct)}
+      {cell(`${base}.mix.review`, `${n}. dönem bakım yüzdesi`, e?.mix?.review?.message, pct)}
+      {!disabled ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`${n}. dönemi sil`}
+          onClick={onRemove}
+        >
+          <Trash2Icon aria-hidden="true" />
+        </Button>
+      ) : (
+        <span />
+      )}
+    </li>
   );
 }
 

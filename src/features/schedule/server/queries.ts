@@ -3,10 +3,10 @@ import "server-only";
 import { TZDate } from "@date-fns/tz";
 import { addDays } from "date-fns";
 import { getOrgSettings } from "@/features/core";
-import { TIME_ZONE, toDateKey, todayInIstanbul } from "@/lib/dates";
+import { TIME_ZONE, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { availabilityForWeek, wakeInterval, type DayAvailability } from "../lib/availability";
-import type { BusySlotRow, ScheduleExceptionRow, WeekSchedule } from "../types";
+import type { BusySlotRow, ScheduleExceptionRow, WakeWindow, WeekSchedule } from "../types";
 
 /**
  * Haftalık program okuma sorguları. Oturumla çalışır (RLS: öğrenci kendisi, koç öğrencisi,
@@ -61,9 +61,25 @@ async function listExceptions(
   }));
 }
 
-async function wakeRange() {
-  const settings = await getOrgSettings();
-  return { start: settings.schedule.wake_start, end: settings.schedule.wake_end };
+/**
+ * Uyanık aralık (Faz 5b, karar B10): `students.wake_start / wake_end` doluysa öğrencininki,
+ * boşsa kurum ayarı `schedule.wake_*`. `availabilityForWeek({ wake })` çağrıları bunu geçirir.
+ */
+export async function getWakeWindow(studentId: string): Promise<WakeWindow> {
+  const supabase = await createClient();
+  const [settings, { data, error }] = await Promise.all([
+    getOrgSettings(),
+    supabase
+      .from("students")
+      .select("wake_start, wake_end")
+      .eq("profile_id", studentId)
+      .maybeSingle(),
+  ]);
+  if (error) throw error;
+  if (data?.wake_start && data.wake_end) {
+    return { start: hhmm(data.wake_start), end: hhmm(data.wake_end), isDefault: false };
+  }
+  return { start: settings.schedule.wake_start, end: settings.schedule.wake_end, isDefault: true };
 }
 
 /** Program düzenleyici: tüm sabit meşguliyetler + bugünden itibaren istisnalar. */
@@ -72,7 +88,7 @@ export async function getScheduleForEditor(studentId: string): Promise<WeekSched
   const [slots, exceptions, wake] = await Promise.all([
     listSlots(studentId),
     listExceptions(studentId, today),
-    wakeRange(),
+    getWakeWindow(studentId),
   ]);
   return { slots, exceptions, wake };
 }
@@ -83,9 +99,23 @@ export async function getWeekSchedule(studentId: string, weekStart: string): Pro
   const [slots, exceptions, wake] = await Promise.all([
     listSlots(studentId),
     listExceptions(studentId, weekStart, weekEndExclusive),
-    wakeRange(),
+    getWakeWindow(studentId),
   ]);
   return { slots, exceptions, wake };
+}
+
+/**
+ * İstisnasız tipik bir hafta (yalnızca sabit meşguliyetler; Faz 5b gerçekçilik hesabının müsait
+ * süresi). Hafta olarak İstanbul'a göre bu hafta kullanılır; tarihler yalnızca gün sırası içindir.
+ */
+export async function getTypicalWeekAvailability(studentId: string): Promise<DayAvailability[]> {
+  const [slots, wake] = await Promise.all([listSlots(studentId), getWakeWindow(studentId)]);
+  return availabilityForWeek({
+    weekStart: toDateKey(weekStart(todayInIstanbul())),
+    wake: wakeInterval({ wake_start: wake.start, wake_end: wake.end }),
+    slots,
+    exceptions: [],
+  });
 }
 
 /** Haftanın 7 günü için müsait süre (plan oluşturucu gün başlıkları bunu kullanır). */

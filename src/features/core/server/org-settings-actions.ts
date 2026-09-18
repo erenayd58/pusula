@@ -6,13 +6,20 @@ import { orgSettingsFormSchema } from "../schemas";
 /**
  * Kurum ayarları (08 §1.2, karar A5): yalnızca owner; `organizations` UPDATE politikası zaten
  * owner'da (RLS son savunma). Eşikler koda gömülü değildir, bu JSON'dan okunur. Ayar değişince
- * uyarı/plan ekranları yeniden hesaplanır (08 §4 revalidate listesi).
+ * uyarı/plan ekranları yeniden hesaplanır (08 §4, 09 §4 revalidate listesi: dönemler şablon
+ * takviminin varsayılan aralığıdır).
  */
 export const updateOrgSettings = createAction({
   name: "updateOrgSettings",
   schema: orgSettingsFormSchema,
   roles: ["owner"],
-  revalidate: ["/coach", "/coach/students", "/coach/settings", "/student/today"],
+  revalidate: [
+    "/coach",
+    "/coach/students",
+    "/coach/settings",
+    "/coach/templates",
+    "/student/today",
+  ],
   handler: async (input, ctx) => {
     const { data, error } = await ctx.supabase
       .from("organizations")

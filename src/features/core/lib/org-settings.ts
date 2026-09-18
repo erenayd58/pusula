@@ -1,11 +1,25 @@
 import { z } from "zod";
 
 /**
- * `organizations.settings` şeması (08-faz4-plan-sistemi.md §1.2). Değerler veritabanında durur
- * (migration `faz4a_org_settings` varsayılanları yazar); buradaki `.default()` yalnızca eksik
- * anahtar güvencesidir, eşikler koda gömülmez. Parça 3'te owner formu bu şemayla yazar.
+ * `organizations.settings` şeması (08-faz4-plan-sistemi.md §1.2, 09-faz5-strateji.md §1.2).
+ * Değerler veritabanında durur (migration `faz4a_org_settings` / `faz5a_strategy_settings`
+ * varsayılanları yazar); buradaki `.default()` yalnızca eksik anahtar güvencesidir, eşikler koda
+ * gömülmez. Owner formu (`orgSettingsFormSchema`) bu yapıyı yazar.
  */
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "SS:DD biçiminde saat gir.");
+const dateKey = z.iso.date();
+
+/** Sezon dönemi satırı (karar B2/B14): ad, tarih aralığı, üç yüzde (toplam 100). */
+const seasonPeriod = z.object({
+  name: z.string().trim().min(1).max(40),
+  starts_on: dateKey,
+  ends_on: dateKey,
+  mix: z.object({
+    new_topic: z.number().min(0).max(100),
+    weak: z.number().min(0).max(100),
+    review: z.number().min(0).max(100),
+  }),
+});
 
 const accuracyRule = (minQuestions: number, maxAccuracy: number) =>
   z
@@ -56,6 +70,17 @@ export const orgSettingsSchema = z.object({
     .object({
       max_per_student: z.number().int().min(1).default(5),
       dismiss_days: z.number().int().min(1).default(14),
+    })
+    .prefault({}),
+  strategy: z
+    .object({
+      /** Boş liste = Faz 4 davranışı (karışım kotası yok). */
+      periods: z.array(seasonPeriod).max(6).default([]),
+      proximity_days: z.number().int().min(1).default(120),
+      school_lag_weeks: z.number().int().min(0).default(2),
+      topic_minutes_default: z.number().int().min(1).default(90),
+      pace_window_days: z.number().int().min(7).default(28),
+      topics_finish_weeks_before_exam: z.number().int().min(0).default(8),
     })
     .prefault({}),
 });

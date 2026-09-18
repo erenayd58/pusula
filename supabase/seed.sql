@@ -18,6 +18,16 @@
 insert into public.organizations (id, name, slug)
 values ('a0000000-0000-4000-8000-000000000001', 'Demo Koçluk', 'demo');
 
+-- Sezon dönemleri (Faz 5a, karar B3): üretimde owner "Varsayılanları öner" ile doldurur; yerel
+-- demo kuruma LGS 2027 (13 Haz 2027) önerisi dolu yazılır (e2e ve ekran görüntüleri için).
+update public.organizations
+set settings = jsonb_set(settings, '{strategy,periods}', '[
+  {"name": "Yeni konu öğrenme",        "starts_on": "2026-09-14", "ends_on": "2027-03-20", "mix": {"new_topic": 50, "weak": 30, "review": 20}},
+  {"name": "İkinci tur ve pekiştirme", "starts_on": "2027-03-21", "ends_on": "2027-05-08", "mix": {"new_topic": 20, "weak": 40, "review": 40}},
+  {"name": "Deneme ve eksik kapatma",  "starts_on": "2027-05-09", "ends_on": "2027-06-13", "mix": {"new_topic": 0,  "weak": 50, "review": 50}}
+]'::jsonb)
+where id = 'a0000000-0000-4000-8000-000000000001';
+
 -- Auth kullanıcıları --------------------------------------------------------------
 
 with demo_users (id, email) as (
@@ -202,3 +212,108 @@ values
   ('d0000000-0000-4000-8000-000000000001', 6, 0, 'link',        'Paragraf kampı · bağlantı',     'c1000000-0000-4000-8000-000000000001', null, null, null, 15, null, null, null),
   ('d0000000-0000-4000-8000-000000000001', null, 0, 'custom',   'Kitap oku · 40 sayfa',          null, null, null, null, 30, null, null, null);
 update public.plan_items set url = 'https://www.youtube.com/' where kind = 'link' and plan_id = 'd0000000-0000-4000-8000-000000000001';
+
+-- Hedef ve konu takvimi (Faz 5b): koç Murat Ayşe'ye sınava kadar 9.000 soru (sınav soru sayısına
+-- orantılı) ve konuları bitirme tarihi sınav − 8 hafta; başlangıç 20 gün önce. Tüm ünite konuları
+-- (bitmişler dahil) [başlangıç, bitiş] aralığına eşit yayılır; okul tarihi olan konunun hedefi okul
+-- haftasından önce olamaz (backPlanTopics kelepçesi, karar B5); bitmiş konunun hedefi completed_at
+-- günü (başlangıca kırpılır) → beklenene girer, Ayşe takvimle uyumlu (ileride durumu, bir konu hedef
+-- tarihinden önce bitirilince kendiliğinden oluşur). students.topics_finish_by / target_starts_on
+-- seed'de doğrudan yazılır (uygulamada yalnızca set_student_targets RPC yazar). Okul takvimi
+-- (aşağıda) hedeflerden önce yazılır ki kelepçe uygulanabilsin.
+update public.students
+set topics_finish_by = date '2027-06-13' - 56,
+    target_starts_on = (now() at time zone 'Europe/Istanbul')::date - 20
+where profile_id = 'b0000000-0000-4000-8000-000000000011';
+
+insert into public.student_subject_targets (student_id, subject_id, questions) values
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000001', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000002', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000003', 2000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000004', 1000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000005', 1000),
+  ('b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000006', 1000);
+
+-- Okul takvimi (Faz 5a, şablon düzeyi): her dersin konuları bu haftadan itibaren haftada bir
+-- (gelecek tarihler; behind_school üretmez, hücre detayında "Okul bu konuya henüz gelmedi").
+update public.topics t
+set school_finish_on = (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date + (7 * r.rn)::int
+from (
+  select t2.id, row_number() over (partition by t2.subject_id order by t2.sort_order) as rn
+  from public.topics t2
+  join public.subjects s on s.id = t2.subject_id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t2.parent_id is null
+) as r
+where t.id = r.id;
+
+insert into public.student_topic_targets (student_id, topic_id, target_on, created_by)
+select
+  'b0000000-0000-4000-8000-000000000011',
+  r.id,
+  case
+    when r.completed_at is not null
+      then greatest((r.completed_at at time zone 'Europe/Istanbul')::date, (now() at time zone 'Europe/Istanbul')::date - 20)
+    else greatest(
+      ((now() at time zone 'Europe/Istanbul')::date - 20)
+        + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 20)) / r.n)::int,
+      coalesce(r.school_finish_on, date '1970-01-01')
+    )
+  end,
+  'b0000000-0000-4000-8000-000000000002'
+from (
+  select t.id, t.school_finish_on,
+         case when p.status in ('completed', 'mastered') then p.completed_at end as completed_at,
+         row_number() over (order by s.sort_order, t.sort_order) as rn,
+         count(*) over () as n
+  from public.topics t
+  join public.subjects s on s.id = t.subject_id
+  left join public.student_topic_progress p
+    on p.student_id = 'b0000000-0000-4000-8000-000000000011' and p.topic_id = t.id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t.parent_id is null
+) as r;
+
+-- Mehmet: takvimin gerisinde örnek (Faz 5c seed düzeltmesi). Hedef 6 hafta önce kuruldu (6.000 soru,
+-- bitirme tarihi sınav − 8 hafta); konu takvimi Ayşe'deki gibi okul kelepçeli yayılır. Koç Türkçe,
+-- Matematik ve Fen'in ilk iki konusunu tek tek öne aldı (dershane okuldan önde gidiyor; karar B5
+-- "koç tek tek düzenleyerek öne alabilir"); Mehmet hiçbirine başlamadı → 6 konu "Hedef geçti",
+-- K1 Takvim sütunu ve K2 gidişat "geride", öneri satırlarında "hedef tarihi N hafta geçti" notu.
+-- Soru kaydı olmadığı için her derste soru hedefinin gerisinde. Ayşe ilerideki örnek olarak kalır.
+update public.students
+set topics_finish_by = date '2027-06-13' - 56,
+    target_starts_on = (now() at time zone 'Europe/Istanbul')::date - 42
+where profile_id = 'b0000000-0000-4000-8000-000000000012';
+
+insert into public.student_subject_targets (student_id, subject_id, questions) values
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000001', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000002', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000003', 1500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000004', 500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000005', 500),
+  ('b0000000-0000-4000-8000-000000000012', 'c1000000-0000-4000-8000-000000000006', 500);
+
+insert into public.student_topic_targets (student_id, topic_id, target_on, created_by)
+select
+  'b0000000-0000-4000-8000-000000000012',
+  r.id,
+  case
+    -- Koçun öne aldığı konular: dersin 1. konusu 3 hafta, 2. konusu 1 hafta önce.
+    when r.subject_rn = 1 and r.subject_id in ('c1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000003')
+      then (now() at time zone 'Europe/Istanbul')::date - 21
+    when r.subject_rn = 2 and r.subject_id in ('c1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000003')
+      then (now() at time zone 'Europe/Istanbul')::date - 7
+    else greatest(
+      ((now() at time zone 'Europe/Istanbul')::date - 42)
+        + floor(r.rn * ((date '2027-06-13' - 56) - ((now() at time zone 'Europe/Istanbul')::date - 42)) / r.n)::int,
+      coalesce(r.school_finish_on, date '1970-01-01')
+    )
+  end,
+  'b0000000-0000-4000-8000-000000000002'
+from (
+  select t.id, t.subject_id, t.school_finish_on,
+         row_number() over (order by s.sort_order, t.sort_order) as rn,
+         row_number() over (partition by t.subject_id order by t.sort_order) as subject_rn,
+         count(*) over () as n
+  from public.topics t
+  join public.subjects s on s.id = t.subject_id
+  where s.template_id = 'c0000000-0000-4000-8000-000000000001' and t.parent_id is null
+) as r;

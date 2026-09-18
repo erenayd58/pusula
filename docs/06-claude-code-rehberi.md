@@ -11,7 +11,7 @@ Bu rehber, projeyi VS Code içinde Claude Code ile faz faz nasıl inşa edeceği
 | GitHub | Kod deposu, CI, yedekleme | Depo **özel (private)** olmalı |
 | Vercel | Uygulama barındırma | GitHub ile giriş yapın |
 | Supabase | Veritabanı, giriş, depolama | İki proje açın: `pusula-staging` ve `pusula-prod`, ikisi de **Frankfurt (eu-central-1)** bölgesinde |
-| Google Cloud | YouTube Data API anahtarı | Faz 5'te gerekir; anahtarı sadece YouTube Data API v3 ile sınırlandırın |
+| Google Cloud | YouTube Data API anahtarı | Faz 7'de gerekir; anahtarı sadece YouTube Data API v3 ile sınırlandırın |
 
 ### 1.2 Bilgisayarınıza kurulacaklar
 
@@ -251,12 +251,24 @@ Faz 4'ü planla:
 - features/announcements: koç oluşturur, hedef kitle seçer; öğrenci/veli görür.
 ```
 
-### Faz 5: Kaynaklar ve Videolar
+### Faz 5: Strateji Katmanı
+
+Üç parça, üç dal (`faz-5a-takvim`, `faz-5b-hedef`, `faz-5c-oneri`); tasarım ve kararlar `docs/09-faz5-strateji.md`.
+
+```
+CLAUDE.md ve docs/09-faz5-strateji.md belgelerini oku.
+
+Parça N'yi (…) uygula. Belgedeki kapsam ve kabul ölçütü dışına çıkma; diğer parçalara
+ait hiçbir şeye başlama. Adım adım ilerle, her adım sonunda pnpm check (şema değiştiyse
+pnpm db:test) çalıştır ve commit at. Bitince kısa özet ver ve dur.
+```
+
+### Faz 7: Kaynaklar ve Videolar
 
 ```
 CLAUDE.md ve docs/03-veri-modeli.md (Bölüm 4.5) belgelerini oku.
 
-Faz 5'i planla:
+Faz 7'yi planla:
 - Kaynak ve video tabloları + RLS + testler; question_logs.section_id FK'sı;
   v_student_resource_progress, v_student_playlist_progress.
 - features/resources:
@@ -273,7 +285,7 @@ Faz 5'i planla:
 - copy_curriculum_template fonksiyonuna katalog kopyalamayı ekle.
 ```
 
-### Faz 6: Denemeler, Yanlış Defteri, Tekrar, Konu Haritası
+### Faz 6: Denemeler ve Yanlış Defteri (tekrar sistemi, konu haritası)
 
 ```
 CLAUDE.md, docs/03-veri-modeli.md (Bölüm 4.6, 6, 8) ve docs/04-tasarim-sistemi.md
@@ -295,14 +307,14 @@ D) Konu haritası: v_topic_mastery, TopicMasteryCell (5 durum + seçili; doluluk
    + sağ yan panel + ok tuşlarıyla gezinme, koç için sade sürüm, zayıf konular listesi.
 ```
 
-### Faz 7: Veli Paneli, Bildirimler, Uyarılar
+### Faz 8: Veli Paneli ve Bildirimler
 
 ```
 CLAUDE.md, docs/01-proje-plani.md (Bölüm 5, 7), docs/03-veri-modeli.md (Bölüm 4.7, 7)
 ve docs/04-tasarim-sistemi.md (Bölüm 8.3, 8.4 K1) belgelerini oku. Görsel referans:
 veli-telefon.png (V1). Tasarımdaki "Mesajlar" sekmesi "Notlar" olarak uygulanır.
 
-Faz 7'yi planla:
+Faz 8'i planla:
 - notifications tablosu + RLS; üst barda bildirim zili ve okundu işaretleme.
 - Olay bazlı bildirimler: plan yayınlandı, not eklendi, duyuru.
 - private.detect_alerts ve pg_cron işi; v_coach_student_overview.alerts alanını
@@ -316,7 +328,7 @@ Faz 7'yi planla:
 - (İsteğe bağlı) Resend ile haftalık özet e-postası.
 ```
 
-### Faz 8: Deneyimi Zenginleştirme
+### Faz 9: Deneyimi Zenginleştirme
 
 Her modülü ayrı oturumda yapın.
 
@@ -333,7 +345,7 @@ study-timer → checkins → reading → achievements → target-schools → sch
 yazdırılabilir veli görüşmesi raporu → web push.
 ```
 
-### Faz 9: Sağlamlaştırma
+### Faz 10: Sağlamlaştırma
 
 ```
 Tüm docs/ belgelerini oku ve projeyi denetle:

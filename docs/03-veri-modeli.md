@@ -60,8 +60,8 @@ create type question_source      as enum ('resource', 'plan', 'school', 'online'
 create type goal_metric          as enum ('questions');           -- Faz 3 sade (02 karar #32); ileride add value
 create type goal_period          as enum ('daily', 'weekly');     -- Faz 3 sade; 'monthly', 'custom' gerekince eklenir
 create type plan_status          as enum ('draft', 'published');
-create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 5: add value 'section', 'video'
-create type topic_alert_kind     as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk', 'stale', 'not_started', 'neglected_subject');   -- Faz 4c; 4d suggestion_dismissals.kind
+create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 7: add value 'section', 'video'
+create type topic_alert_kind     as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk', 'stale', 'not_started', 'neglected_subject', 'behind_school');   -- Faz 4c; 4d suggestion_dismissals.kind; Faz 5a add value 'behind_school'
 create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');
 create type mistake_status       as enum ('open', 'reviewing', 'solved');
 create type note_visibility      as enum ('coach_only', 'student', 'parent', 'student_and_parent');
@@ -105,6 +105,9 @@ students (
   exam_date date,                         -- LGS tarihi (geri sayım)
   target_percentile numeric(5,2),
   status student_status not null default 'active',
+  topics_finish_by date,                  -- Faz 5b: konuları bitirme hedef tarihi (yalnızca set_student_targets yazar)
+  target_starts_on date,                  -- Faz 5b: hedef başlangıcı; gerçekleşen soru bu günden sayılır
+  wake_start time, wake_end time,         -- Faz 5b: öğrenci uyanık aralığı (boşsa kurum ayarı; check: birlikte boş/dolu, end > start; koç yazar)
   created_at, updated_at
 )
 
@@ -152,7 +155,7 @@ student_modules (
 )
 ```
 
-Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm). Faz 4a: `faz4a_org_settings` (ayar varsayılanları), `faz4a_schedule` (`busy_slot_kind`, `busy_slots`, `schedule_exceptions`, grant + politikalar). Faz 4b: `faz4b_weekly_plans` (2 enum, 2 tablo, `question_logs.plan_item_id`, `private.plan_student/can_read_plan/can_write_plan`, grant + politikalar), `faz4b_plan_rpcs` (`private.can_act_on_plan` + 7 RPC), `faz4b_plan_views` (3 görünüm + `v_coach_student_overview` plan kolonları). Faz 4c: `faz4c_topic_alert_facts` (`topic_alert_kind` enum + `v_topic_alert_facts` görünümü; tablo yok). Faz 4d: `faz4d_suggestion_dismissals` (tablo, grant + politikalar). Faz 4 kapanışı: `faz4e_setup_facts_to_date` (`v_plan_completion` + `to_date_*` kolonları, `v_coach_student_overview` + `plan_to_date_percent_week`, `v_student_setup_facts` görünümü, kurum ayarı `alerts.setup_account_days`).
+Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm). Faz 4a: `faz4a_org_settings` (ayar varsayılanları), `faz4a_schedule` (`busy_slot_kind`, `busy_slots`, `schedule_exceptions`, grant + politikalar). Faz 4b: `faz4b_weekly_plans` (2 enum, 2 tablo, `question_logs.plan_item_id`, `private.plan_student/can_read_plan/can_write_plan`, grant + politikalar), `faz4b_plan_rpcs` (`private.can_act_on_plan` + 7 RPC), `faz4b_plan_views` (3 görünüm + `v_coach_student_overview` plan kolonları). Faz 4c: `faz4c_topic_alert_facts` (`topic_alert_kind` enum + `v_topic_alert_facts` görünümü; tablo yok). Faz 4d: `faz4d_suggestion_dismissals` (tablo, grant + politikalar). Faz 4 kapanışı: `faz4e_setup_facts_to_date` (`v_plan_completion` + `to_date_*` kolonları, `v_coach_student_overview` + `plan_to_date_percent_week`, `v_student_setup_facts` görünümü, kurum ayarı `alerts.setup_account_days`). Faz 5a: `faz5a_strategy_settings` (kurum ayarı `strategy`), `faz5a_topic_school_dates` (`topics.school_finish_on`, enum `behind_school`, `set_topic_school_dates` RPC, `v_topic_alert_facts.school_finish_on`). Faz 5b: `faz5b_student_targets` (`students` hedef ve uyanık aralık kolonları + `wake_*` kolon grant'ı, `student_subject_targets`, `student_topic_targets`, grant + politikalar), `faz5b_target_rpcs` (`set_student_targets`), `faz5b_pace_views` (`v_student_pace_facts`, `v_student_subject_targets`, `v_coach_student_overview` gidişat kolonları, `v_topic_alert_facts.target_on`), `faz5b_pace_net` (iki görünüm drop + create: net konum kolonları `topics_expected / topics_behind / topics_ahead`).
 
 **Onay tamlığı (Faz 1c, 02 karar #23):** bir öğrencinin onayı, `consents` içinde `privacy_notice` ve `explicit_consent` türlerinin her biri için geri çekilmemiş (`revoked_at is null`) en az bir satır varsa tamdır; satırın veli dijital onayı (`given_by`) ya da koçun işlediği kâğıt onayı (`recorded_by`, `given_by` boş) olması fark etmez. Veli paneli kapısı ve koç ekranındaki rozet bu tanımı kullanır. `student_modules` için satır yoksa manifestteki `defaultEnabled` geçerlidir; seed satır içermez.
 
@@ -199,6 +202,7 @@ topics (
   estimated_minutes int,
   external_code text,                     -- MEB kazanım kodu (varsa)
   sort_order smallint not null,
+  school_finish_on date,                  -- Faz 5a: okulda tahmini bitiş (ünite düzeyinde dolu; karar B1/B17)
   created_at, updated_at
 )
 
@@ -220,6 +224,8 @@ student_topic_progress (
 
 **Erişim (Faz 2, karar #28):** `organization_id null` sistem şablonudur; şablon/ders/konu okuma = sistem ya da kendi kurumu (`private.can_read_template`), yazma = koç/owner ve aynı koşul (`private.can_edit_template`). Konu sırası `move_topic` RPC'si ile değişir (kardeşler `(sort_order, created_at, id)` sırasıyla 1..n yeniden numaralanır, sonra komşuyla takas). LGS 2027 şablonu `faz2_lgs_2027_template` migration'ında sabit kimliklerle gelir (karar #27).
 
+**Okul takvimi (Faz 5a, `09-faz5-strateji.md` §1.3):** `topics.school_finish_on` şablon düzeyinde tek takvimdir (aynı şablonu kullanan tüm öğrenciler paylaşır; farklı okullar için yaklaşıklık, `strategy.school_lag_weeks` toleransı bunun içindir; öğrenci bazlı kaydırma Faz 6+). Tarih tutulur, arayüz haftayı gösterir (karar B1); toplu doldurma (`/coach/templates?view=calendar`, "Sıradan dağıt") `lib/strategy/school-calendar.ts: distributeEvenly` ile pazartesi yazar. Yazma `set_topic_school_dates(p_rows jsonb)` RPC'si ile (§7). RLS/grant değişmez; indeks gerekmez.
+
 Konu `completed` işaretlendiğinde `next_review_at = bugün + aralık[0]` atanır (Faz 6, tekrar modülü; Faz 2'de yazılmaz). Tekrar yapıldıkça `review_stage` artar. Aralıklar `organizations.settings.review_intervals` (varsayılan `[1, 3, 7, 15, 30]`).
 
 ### 4.3 Soru Takibi ve Hedefler (Faz 3)
@@ -231,7 +237,7 @@ question_logs (
   log_date date not null default (now() at time zone 'Europe/Istanbul')::date,
   subject_id uuid not null references subjects(id),
   topic_id uuid references topics(id),
-  -- section_id uuid references resource_sections(id)                  -- Faz 5'te eklenir (kolon yok)
+  -- section_id uuid references resource_sections(id)                  -- Faz 7'de eklenir (kolon yok)
   plan_item_id uuid references plan_items(id) on delete set null,      -- Faz 4b; dolu kayıtta source = 'plan'
   source question_source not null default 'free',
   total_count int not null check (total_count > 0 and total_count <= 500),
@@ -267,7 +273,7 @@ Uygulama `total_count = correct + wrong + blank` yazar (üçü zorunlu); `log_da
 
 ### 4.4a Haftalık Program ve Kurum Ayarları (Faz 4a) ✅
 
-Tasarım: `08-faz4-plan-sistemi.md` §1.2–1.3. `organizations.settings` varsayılanları migration `faz4a_org_settings` ile yazılır (`private.default_org_settings()`, kolon varsayılanı; anahtarlar `schedule`, `planner`, `alerts`, `suggestions`; `faz4e` `alerts.setup_account_days` = 7 ekledi); uygulama `features/core/lib/org-settings.ts` zod şemasıyla okur (`getOrgSettings()`). Eşikler koda gömülmez.
+Tasarım: `08-faz4-plan-sistemi.md` §1.2–1.3. `organizations.settings` varsayılanları migration `faz4a_org_settings` ile yazılır (`private.default_org_settings()`, kolon varsayılanı; anahtarlar `schedule`, `planner`, `alerts`, `suggestions`; `faz4e` `alerts.setup_account_days` = 7 ekledi; Faz 5a `faz5a_strategy_settings` `strategy` anahtarını ekledi: `periods` (sezon dönemleri, 0–6 satır `{name, starts_on, ends_on, mix{new_topic, weak, review}}`, boş liste = dönem karışımı yok; varsayılan dönemler migration'a gömülmez, `lib/strategy/periods.ts: suggestSeasonPeriods(examDate)` ayar formunda önerir, yerel seed demo kuruma dolu yazar — karar B2/B3), `proximity_days` 120, `school_lag_weeks` 2, `topic_minutes_default` 90, `pace_window_days` 28, `topics_finish_weeks_before_exam` 8; `09-faz5-strateji.md` §1.2); uygulama `features/core/lib/org-settings.ts` zod şemasıyla okur (`getOrgSettings()`). Eşikler koda gömülmez.
 
 ```sql
 busy_slots (
@@ -320,7 +326,7 @@ plan_items (
   plan_id uuid not null references weekly_plans(id) on delete cascade,
   day_of_week smallint check (day_of_week between 1 and 7),   -- NULL = "bu hafta içinde"
   sort_order smallint not null default 0,
-  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom (Faz 5: section, video)
+  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom (Faz 7: section, video)
   title text not null,                    -- 1–120; boşsa uygulama `taskTitle` ile üretir
   subject_id uuid references subjects(id) on delete set null,
   topic_id uuid references topics(id) on delete set null,
@@ -342,7 +348,7 @@ question_logs.plan_item_id uuid references plan_items(id) on delete set null   -
 
 ### 4.4b Konu Uyarı Olguları (Faz 4c) ✅
 
-Tasarım: `08-faz4-plan-sistemi.md` §1.5, karar A2. Tablo yok; `v_topic_alert_facts` görünümü (§6) öğrenci × ünite düzeyi konu başına **olguları** verir, karar vermez. Kurallar `features/analytics/lib/alerts.ts` (saf, birim testli), eşikler `organizations.settings.alerts`'ten parametre; `alerts.lookback_days` görünümün soru penceresidir. 08'deki kolon listesine ek `student_first_log_date` (derste hiç kayıt yoksa ihmal süresi öğrencinin ilk kaydından sayılır). Analiz modülü kapatılan öğrenciler (`student_modules`) sorgu katmanında dışarıda bırakılır. Kurum ayarı formu `/coach/settings` (owner; `organizations` UPDATE politikası).
+Tasarım: `08-faz4-plan-sistemi.md` §1.5, karar A2. Tablo yok; `v_topic_alert_facts` görünümü (§6) öğrenci × ünite düzeyi konu başına **olguları** verir, karar vermez. Kurallar `features/analytics/lib/alerts.ts` (saf, birim testli), eşikler `organizations.settings.alerts`'ten parametre (Faz 5a: + `strategy.school_lag_weeks`, `alertThresholds(settings)`); `alerts.lookback_days` görünümün soru penceresidir. Faz 5a `behind_school` kuralı: `school_finish_on` dolu, konu bitmemiş (`studying` dahil, karar B8) ve `schoolLagWeeks(school_finish_on, bugün) >= school_lag_weeks`; sıra `knowledge_gap → low_accuracy → behind_school → stale → …`; K1 dikkat listesi ve K2 "Okulun gerisinde" listesinde görünür, öğrenci Bugün kartında gösterilmez. 08'deki kolon listesine ek `student_first_log_date` (derste hiç kayıt yoksa ihmal süresi öğrencinin ilk kaydından sayılır). Analiz modülü kapatılan öğrenciler (`student_modules`) sorgu katmanında dışarıda bırakılır. Kurum ayarı formu `/coach/settings` (owner; `organizations` UPDATE politikası).
 
 ### 4.4d Öneri Reddetme Hafızası (Faz 4d) ✅
 
@@ -364,6 +370,33 @@ suggestion_dismissals (
 ```
 
 RLS: koç S I U D (`is_coach_of`; insert/update `dismissed_by` kendisi), owner tümü (`is_coach_of` owner'ı kapsar), öğrenci ve veli hiçbir şey. Tablo yetkisi `authenticated` S I U D. 08'den fark: `dismissed_by` `on delete cascade` (08'de belirtilmemişti; `not null` FK profil silmeyi engellemesin).
+
+### 4.4e Öğrenci Hedefi ve Konu Takvimi (Faz 5b) ✅
+
+Tasarım: `09-faz5-strateji.md` §1.4, kararlar B4, B10, B13. Koç sınava kadar ders başına soru hedefi ve konuları bitirme tarihini kurar; bitmemiş konular `[target_starts_on, topics_finish_by]` aralığına geri planlanır (`lib/strategy/back-plan.ts`, istemcide) ve **saklanır** (her açılışta yeniden hesaplansaydı öğrenci hiç "takvimin gerisinde" olmazdı); koç tek tek düzenler (`updateTopicTarget`, RLS), yeniden üretim onaylı. Toplam soru hedefi saklanmaz (`sum(student_subject_targets.questions)`). Haftalık hedef önerisi otomatik değil: koç "Uygula" der, mevcut `goals` yoluyla yazılır.
+
+```sql
+student_subject_targets (
+  student_id uuid not null references students(profile_id) on delete cascade,
+  subject_id uuid not null references subjects(id) on delete cascade,
+  questions int not null check (questions > 0),   -- sınava kadar bu derste çözülecek soru
+  created_at, updated_at,
+  primary key (student_id, subject_id)
+)
+-- index (subject_id)
+
+student_topic_targets (
+  student_id uuid not null references students(profile_id) on delete cascade,
+  topic_id uuid not null references topics(id) on delete cascade,
+  target_on date not null,                          -- bu konunun bitirilmesi hedeflenen gün
+  created_by uuid references profiles(id) on delete set null,
+  created_at, updated_at,
+  primary key (student_id, topic_id)
+)
+-- index (topic_id), (created_by)
+```
+
+RLS: standart öğrenci verisi kalıbı (§5.2): öğrenci S, koç S I U D (`is_coach_of`; `student_topic_targets.created_by` kendisi), veli S, owner tümü; tablo yetkisi `authenticated` S I U D. `students.topics_finish_by / target_starts_on` kolon grant'ı yok → yalnızca `set_student_targets` (security definer) yazar (§5.3 seçenek (a)); `wake_start / wake_end` kolon grant'ı var (koç Program sekmesinden, `setWakeWindow`). Gidişat tanımları (`lib/strategy/pace.ts`, net takvim konumu): bitmiş = `completed | mastered`; beklenen = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın); geride = max(0, beklenen − bitmiş); ileride = max(0, bitmiş − beklenen); hız = son `strategy.pace_window_days`'de biten × 7 / pencere. Geri planlama bitmiş konulara da hedef yazar (sıradaki yuvasını alır; hedef `completed_at` günü, yoksa yuva tarihi; 2026-09-18 Faz 5 kapanış düzeltmesi), bu yüzden yeniden üretimden sonra bitmişler beklenene girer, ders tablosunda "bugüne kadar hedeflenen" ≥ bitti olur ve listede "Hedef yok" satırı kalmaz; hedefinden önce bitirilen konu hedef tarihi gelene kadar ileridedir. Geri planlama (`lib/strategy/back-plan.ts`) okul tarihi olan konunun hedefini okul tarihinden önceye koymaz (karar B5, kelepçe; bitiş tarihiyle sınırlı). Görünümler `faz5b_pace_net` ile bu tanıma geçti.
 
 ### 4.4c Notlar, Duyurular (taslak; ayrı planlanacak)
 
@@ -390,7 +423,7 @@ announcements (
 )
 ```
 
-### 4.5 Kaynaklar ve Videolar (Faz 5)
+### 4.5 Kaynaklar ve Videolar (Faz 7)
 
 ```sql
 resources (
@@ -546,7 +579,7 @@ LGS puanı standart sapmaya dayalı olarak ÖSYM/MEB tarafından hesaplandığı
 
 Deneme sonucu kaydı (sonuç + ders sonuçları + konu yanlışları) `public.save_mock_exam_result(payload jsonb)` fonksiyonuyla tek transaction'da yapılır.
 
-### 4.7 Bildirimler (Faz 7)
+### 4.7 Bildirimler (Faz 8)
 
 ```sql
 notifications (
@@ -563,7 +596,7 @@ notifications (
 )
 -- index (recipient_id, read_at, created_at desc)
 
-push_subscriptions (                      -- Faz 8
+push_subscriptions (                      -- Faz 9
   id uuid pk,
   profile_id uuid not null references profiles(id) on delete cascade,
   endpoint text unique not null,
@@ -572,7 +605,7 @@ push_subscriptions (                      -- Faz 8
 )
 ```
 
-### 4.8 Zenginleştirme Modülleri (Faz 8)
+### 4.8 Zenginleştirme Modülleri (Faz 9)
 
 ```sql
 study_sessions (
@@ -767,6 +800,8 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | weekly_plans | S (sadece published); reflection RPC ile | S I U D (`is_coach_of`; `created_by` kendisi) | S (published) | Tümü |
 | plan_items | S (`can_read_plan`); tamamlama/not/erteleme RPC ile | S I U D (`can_write_plan`) | S (`can_read_plan`) | Tümü |
 | suggestion_dismissals (Faz 4d) | – | S I U D (`is_coach_of`; `dismissed_by` kendisi) | – | Tümü |
+| student_subject_targets (Faz 5b) | S | S I U D (`is_coach_of`) | S | Tümü |
+| student_topic_targets (Faz 5b) | S | S I U D (`is_coach_of`; `created_by` kendisi) | S | Tümü |
 | coach_notes | S (visibility ∈ student, student_and_parent) | S I U D | S (visibility ∈ parent, student_and_parent) | Tümü |
 | announcements | S (hedef kitlede ise) | S I (kendi) | S (hedef kitlede ise) | Tümü |
 | resources, resource_sections, video_playlists, videos, mock_exams, schools | S (kurum) | S I U | – | Tümü |
@@ -792,7 +827,7 @@ Her tablo için en az şu testler yazılır:
 
 Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `authenticated`'ın tam olarak beklenen yetkilere (matris; kolon düzeyi dahil) ve `service_role`'ün tam yetkiye sahip olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır; matriste tanımsız tablo testi düşürür).
 
-Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. Faz 5a: `200_strategy_settings` (`strategy` varsayılanları, `periods` boş, `defaults || settings` ile mevcut değer kazanır, owner dönem yazar/koç okur), `205_topic_school_dates` (koç sistem şablonunda `school_finish_on` yazar ve RPC ile toplu yazar/temizler, atomiklik: başka kurumun konusu payload'da → 42501 ve hiçbir satır yazılmaz, dizi olmayan payload 22023, görünümde `school_finish_on` dolu, öğrenci/veli/başka kurum koçu RPC 42501 ve doğrudan 0 satır, anon 42501). Faz 5b: `210_student_targets` (iki tablo 5 senaryo; RPC: koç kurar, yeniden üretimde payload dışı satırlar silinir, geçersiz konu `invalid_target` ve atomik, `invalid_dates`, başka koç / öğrenci 42501; `topics_finish_by` doğrudan UPDATE 42501, `wake_*` koç yazar, check kısıtı), `215_pace_views` (pace facts durum/hedef/okul, hedefsiz öğrencide null; ders hedefi sayımları `target_starts_on`'dan; overview `topics_expected / topics_behind / topics_ahead` net konum; `v_topic_alert_facts.target_on`; RLS koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501); `090` (`students` kolon listesi + `wake_start`, `wake_end`), `110` (hedef satırları öğrenciyle silinir, `created_by` koç silinince `set null`). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 
@@ -814,8 +849,10 @@ Tüm görünümler `with (security_invoker = true)` ile oluşturulur, böylece a
 | `v_student_setup_facts` ✅ | student_id, organization_id, coach_id, status, created_at, has_schedule (busy_slots ya da schedule_exceptions var), has_active_goal, has_published_plan_week (İstanbul haftası), question_log_count | Kurulum uyarıları (yalnızca koç; karar `features/analytics/lib/alerts.ts: evaluateSetupAlerts`, eşik `alerts.setup_account_days`) |
 | `v_student_subject_pace` ✅ | student_id, subject_id, questions, minutes, minutes_per_question (son `alerts.lookback_days`, süresi girilmiş kayıtlar) | Görev formunda tahmini süre önerisi |
 | `v_week_plan_topics` ✅ | student_id, week_start, subject_id, topic_id | Öneri motoru "bu hafta zaten planlı" (Faz 4d) |
-| `v_topic_alert_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), topic_* (id, name, sort_order), status (satır yoksa `not_started`), status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window (son `alerts.lookback_days`), last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic | Konu uyarıları (Faz 4c; karar TS'te), görev havuzu kategorileri, öğrenci Bugün kartı |
-| `v_coach_student_overview` ✅ | student_id, coach_id, organization_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_items_week, plan_done_week, plan_percent_last_week, plan_to_date_percent_week (last_net, net_delta, overdue_reviews, alerts ilgili fazlarda eklenir) | **Koç ana ekranı** (tek sorgu) |
+| `v_topic_alert_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), topic_* (id, name, sort_order), status (satır yoksa `not_started`), status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window (son `alerts.lookback_days`), last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on (Faz 5a), target_on (Faz 5b; ikisi de sona eklendi) | Konu uyarıları (Faz 4c; karar TS'te), görev havuzu kategorileri, öğrenci Bugün kartı |
+| `v_student_pace_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order), topic_* (id, name, sort_order), status (satır yoksa `not_started`), completed_at, target_on, school_finish_on | Gidişat hesabı (Faz 5b; `topicPace` saf): öğrenci Bugün kartı, K2 tablo, "Hedef" sekmesi, strateji bağlamı |
+| `v_student_subject_targets` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), questions_target (hedef yoksa null), questions_done (`question_logs`, `log_date >= target_starts_on`), topics_total, topics_done, topics_expected (`target_on <= bugün`) | K2 "Ders bazlı gidişat", strateji ders açığı (Faz 5b; şablonun her dersi için satır) |
+| `v_coach_student_overview` ✅ | student_id, coach_id, organization_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_items_week, plan_done_week, plan_percent_last_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_expected, topics_behind, topics_ahead (Faz 5b, net konum; last_net, net_delta, overdue_reviews, alerts ilgili fazlarda eklenir) | **Koç ana ekranı** (tek sorgu; K1 "Takvim" sütunu) |
 
 `mastery_score` (0-100) başlangıç formülü, kurum ayarlarından ağırlıklandırılabilir:
 
@@ -836,6 +873,8 @@ mastery_score = 0.4 * durum_puanı          (not_started 0, studying 30, complet
 | `public.postpone_plan_item(p_item_id)` ✅ | security definer | Bir kez; hedef `greatest(gün+1, bugün)` (bu haftaysa), 7'yi aşarsa null; gün yoksa/tamamlanmışsa `cannot_postpone` |
 | `public.set_plan_item_note(p_item_id, p_note)`, `public.set_plan_reflection(p_plan_id, p_text)` ✅ | security definer | Öğrenci notu (≤ 200); değerlendirme, hafta kapanınca `week_closed` (karar A9) |
 | `public.move_plan_item(p_item_id, p_day, p_index)` ✅ | security invoker (RLS) | Güne/"bu hafta içinde"ye taşır, hedef günü 0..n yeniden numaralar |
+| `public.set_student_targets(p_student_id, p_topics_finish_by, p_starts_on, p_subject_targets jsonb, p_topic_targets jsonb)` ✅ | security definer; ilk satır `is_coach_of` | Faz 5b: tek transaction — `students.topics_finish_by / target_starts_on`; `student_subject_targets` payload ile değiştirilir (`[{subject_id, questions}]`, payload dışı ders silinir); `student_topic_targets` upsert (`[{topic_id, target_on}]`, payload dışı satır silinir; `created_by` çağıran). Ders/konu öğrencinin şablonunda değilse `invalid_target` (22023), bitiş < başlangıç `invalid_dates`; hiçbir şey yazılmaz. Döner `{subjects, topics}` |
+| `public.set_topic_school_dates(p_rows jsonb)` ✅ | security invoker (RLS; `move_topic` kalıbı) | Faz 5a: `[{topic_id, on}]` (on null temizler) → tek UPDATE (`jsonb_to_recordset`), atomik; güncellenen satır payload'daki konu sayısından azsa (RLS filtresi: öğrenci/veli ya da başka kurumun şablonu) `not_allowed` 42501 ve hiçbir satır yazılmaz; dizi değilse 22023; güncellenen sayıyı döner |
 | `public.copy_weekly_plan(p_source_plan_id, p_target_student_ids uuid[], p_week_start, p_only_incomplete)` ✅ | security definer + her hedef için `is_coach_of` | Hedefte plan yoksa taslak açar, varsa sona ekler (karar A3); tamamlama/not/erteleme sıfırlanır; `{copied:[{student_id, plan_id, existing_items, added_items}]}` |
 | `public.copy_curriculum_template(template_id, new_name, new_season, include_catalogs boolean)` | security definer + owner kontrolü | Şablonu (ve isteğe bağlı kaynak/video kataloglarını) kopyalar |
 | `public.mark_reviewed(item_type, item_id, result)` | security definer | Tekrar aşamasını ilerletir, sonraki tarihi hesaplar |
@@ -873,5 +912,5 @@ Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevril
 
 ## 9. Seed Verisi
 
-- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
+- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); demo kurumun sezon dönemleri dolu (Faz 5a ✅); Ayşe'nin sınava kadar hedefi kurulu (9.000 soru derslere orantılı, konuları bitirme tarihi sınav − 8 hafta, başlangıç 20 gün önce, tüm ünite konuları okul kelepçesiyle eşit yayılmış, bitmişlerin hedefi `completed_at` günü → takvimle uyumlu) ve sistem şablonunda okul takvimi bu haftadan itibaren haftada bir konu (gelecek tarihler, `behind_school` üretmez; Faz 5b ✅); Mehmet takvimin gerisinde örnek: hedef 6 hafta önce kurulu (6.000 soru), Türkçe/Matematik/Fen'in ilk iki konusu koçça öne alınmış (3 ve 1 hafta önce) ve başlanmamış → 6 konu "Hedef geçti", K1/K2 geride, soru kaydı yok → her derste soru hedefinin gerisinde (Faz 5c ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
 - `supabase/seeds/lgs-2027-template.sql`: Üretimde bir kez çalıştırılan sistem şablonu (`05-lgs-2027-sablonu.md` içeriği).

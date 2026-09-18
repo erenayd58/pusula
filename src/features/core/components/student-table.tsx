@@ -3,12 +3,14 @@ import { ProgressBar } from "@/components/shared/progress-bar";
 import { studentStatusLabels } from "@/content/labels";
 import { daysUntil } from "@/lib/dates";
 import { formatCount, formatDateTr, formatPercent } from "@/lib/format";
+import { paceLabel } from "@/lib/strategy/pace";
 import type { StudentListRow } from "../server/queries";
 import { StudentRowActions } from "./student-row-actions";
 
 /**
  * K1 öğrenci listesi (flat): ≥ md tablo, telefonda kart listesi (aynı veri, aynı eylemler).
- * Kolonlar: öğrenci, son kayıt, bu hafta soru, haftalık hedef (ince çubuk + %), durum, (koç).
+ * Kolonlar: öğrenci, son kayıt, bu hafta soru, haftalık hedef (ince çubuk + %), plan uyumu, takvim
+ * (Faz 5b: `paceLabel` "−3 konu" / "+2 konu" / "Uyumlu" / "—"), durum, (koç).
  * Satır ve kart `data-testid="student-row"` taşır (e2e her iki yerleşimde aynı seçiciyi kullanır).
  */
 export function StudentTable({
@@ -75,6 +77,10 @@ export function StudentTable({
               <dd className="text-ink-900">
                 <PlanCompliance row={s} />
               </dd>
+              <dt className="text-ink-500">Takvim</dt>
+              <dd className="text-ink-900">
+                <Pace row={s} />
+              </dd>
             </dl>
             <StudentRowActions
               student={{ profileId: s.profileId, fullName: s.fullName, coachId: s.coachId }}
@@ -94,6 +100,7 @@ export function StudentTable({
               <th className="px-4 py-3 text-right font-medium">Bu hafta</th>
               <th className="px-4 py-3 font-medium">Haftalık hedef</th>
               <th className="px-4 py-3 text-right font-medium">Plan uyumu</th>
+              <th className="px-4 py-3 text-right font-medium">Takvim</th>
               <th className="px-4 py-3 font-medium">Durum</th>
               {viewerRole === "owner" ? <th className="px-4 py-3 font-medium">Koç</th> : null}
               <th className="px-4 py-3 text-right font-medium">Eylemler</th>
@@ -128,6 +135,9 @@ export function StudentTable({
                 </td>
                 <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
                   <PlanCompliance row={s} />
+                </td>
+                <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
+                  <Pace row={s} />
                 </td>
                 <td className="px-4 py-3 text-ink-700">{studentStatusLabels[s.status]}</td>
                 {viewerRole === "owner" ? (
@@ -171,6 +181,24 @@ function WeekGoal({ row }: { row: StudentListRow }) {
       />
       <span className="text-ink-900">{formatPercent(row.weekGoalPercent)}</span>
     </div>
+  );
+}
+
+/** Konu takvimi (Faz 5b): gecikmiş/ileride konu sayısı; hedef yoksa "—". Ders rengi yok. */
+function Pace({ row }: { row: StudentListRow }) {
+  const label = paceLabel({ overdue: row.topicsBehind, ahead: row.topicsAhead }, row.hasTargets);
+  return (
+    <span
+      data-testid="pace-label"
+      className={row.hasTargets ? "text-ink-900" : "text-ink-500"}
+      title={
+        row.hasTargets
+          ? `${formatCount(row.topicsTotal, "konunun")} ${row.topicsDone}'si bitti`
+          : "Hedef kurulmadı"
+      }
+    >
+      {label}
+    </span>
   );
 }
 

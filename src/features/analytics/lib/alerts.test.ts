@@ -21,6 +21,7 @@ const t: AlertThresholds = {
   stale_days: 45,
   neglected_subject_days: 10,
   setup_account_days: 7,
+  school_lag_weeks: 2,
 };
 
 /** Bugünden n gün önce (İstanbul öğle saati; gün hesapları takvim günüdür). */
@@ -55,6 +56,7 @@ function fact(over: Partial<TopicAlertFacts> = {}): TopicAlertFacts {
     subjectLastLogDate: dateAgo(1),
     studentFirstLogDate: dateAgo(30),
     isNextTopic: false,
+    schoolFinishOn: null,
     ...over,
   };
 }
@@ -172,6 +174,74 @@ describe("evaluateTopicAlerts", () => {
     expect(alertReason(alerts[0]!)).toBe("Sıradaki konu");
   });
 
+  describe("behind_school (Faz 5a, karar B8)", () => {
+    // Bugün cuma 18 Eyl 2026 (hafta 14 Eyl). Tolerans 2 hafta: okul 31 Ağu haftasında bitirdiyse
+    // tam eşikte (2 hafta), 7 Eyl haftasında 1 hafta (üretilmez).
+    it("tam tolerans sınırında üretilir; sebep hafta sayısıyla", () => {
+      const [a] = evaluateTopicAlerts([fact({ schoolFinishOn: "2026-09-02" })], t, TODAY);
+      expect(a?.kind).toBe("behind_school");
+      expect(a?.delayDays).toBe(0);
+      expect(a?.idleDays).toBe(14);
+      expect(a?.threshold).toBeNull();
+      expect(alertReason(a!)).toBe(`Okul bu konuyu 2${NBSP}hafta önce bitirdi`);
+    });
+
+    it("toleransın altında, tarih boşken ya da bitmiş konuda üretilmez", () => {
+      expect(evaluateTopicAlerts([fact({ schoolFinishOn: "2026-09-09" })], t, TODAY)).toEqual([]);
+      expect(evaluateTopicAlerts([fact({ schoolFinishOn: "2026-10-05" })], t, TODAY)).toEqual([]);
+      expect(evaluateTopicAlerts([fact({ schoolFinishOn: null })], t, TODAY)).toEqual([]);
+      const done = evaluateTopicAlerts(
+        [
+          fact({
+            schoolFinishOn: "2026-08-03",
+            status: "completed",
+            completedAt: ago(2),
+            lastTopicLogDate: dateAgo(1),
+          }),
+        ],
+        t,
+        TODAY,
+      );
+      expect(done.map((a) => a.kind)).not.toContain("behind_school");
+    });
+
+    it("çalışılıyor durumunda da üretilir; gecikme toleransı aşan hafta × 7", () => {
+      const [a] = evaluateTopicAlerts(
+        [fact({ schoolFinishOn: "2026-08-10", status: "studying", statusChangedAt: ago(10) })],
+        t,
+        TODAY,
+      );
+      expect(a?.kind).toBe("behind_school");
+      expect(a?.delayDays).toBe(21); // 5 hafta − 2 tolerans = 3 hafta
+      expect(alertReason(a!)).toBe(`Okul bu konuyu 5${NBSP}hafta önce bitirdi`);
+    });
+
+    it("öncelik: başarı kuralı varsa o kazanır; okul kuralı soğumuş konunun önünde", () => {
+      const [weak] = evaluateTopicAlerts(
+        [fact({ schoolFinishOn: "2026-08-10", questionsWindow: 40, correctWindow: 10 })],
+        t,
+        TODAY,
+      );
+      expect(weak?.kind).toBe("knowledge_gap");
+      const [stale] = evaluateTopicAlerts(
+        [fact({ schoolFinishOn: "2026-08-10", status: "studying", statusChangedAt: ago(60) })],
+        t,
+        TODAY,
+      );
+      expect(stale?.kind).toBe("behind_school");
+    });
+
+    it("tolerans parametredir: 0 hafta ile bu hafta bitenler de üretilir", () => {
+      const [a] = evaluateTopicAlerts(
+        [fact({ schoolFinishOn: "2026-09-16" })],
+        { ...t, school_lag_weeks: 0 },
+        TODAY,
+      );
+      expect(a?.kind).toBe("behind_school");
+      expect(alertReason(a!)).toBe("Okul bu konuyu bitirdi");
+    });
+  });
+
   it("konu başına en fazla bir uyarı; öncelik başarı kuralında", () => {
     const alerts = evaluateTopicAlerts(
       [
@@ -276,12 +346,13 @@ describe("evaluateTopicAlerts", () => {
 });
 
 describe("groupAlerts", () => {
-  it("türleri dört gruba ayırır", () => {
+  it("türleri dört gruba ayırır; başlanmamış gruplanmaz", () => {
     const alerts = evaluateTopicAlerts(
       [
         fact({ topicId: "a", questionsWindow: 40, correctWindow: 10 }),
         fact({ topicId: "b", topicSortOrder: 2, status: "studying", statusChangedAt: ago(50) }),
         fact({ topicId: "c", topicSortOrder: 3, isNextTopic: true }),
+        fact({ topicId: "d", topicSortOrder: 4, schoolFinishOn: "2026-08-24" }),
         fact({
           subjectId: "fen",
           subjectName: "Fen",
@@ -296,7 +367,8 @@ describe("groupAlerts", () => {
     const g = groupAlerts(alerts);
     expect(g.weak.map((a) => a.topicId)).toEqual(["a"]);
     expect(g.maintenance.map((a) => a.topicId)).toEqual(["b"]);
-    expect(g.notStarted.map((a) => a.topicId)).toEqual(["c"]);
+    expect(g.behind.map((a) => a.topicId)).toEqual(["d"]);
+    expect(alerts.some((a) => a.kind === "not_started")).toBe(true);
     expect(g.subjects.map((a) => a.subject.id)).toEqual(["fen"]);
   });
 });
@@ -331,6 +403,12 @@ describe("pickStudentNudge / nudgeText", () => {
       title: "Sırada Olasılık var.",
       body: "İstersen bugün başla.",
     });
+  });
+
+  it("okulun gerisinde uyarısı öğrenci kartında gösterilmez (karar B8)", () => {
+    const alerts = evaluateTopicAlerts([fact({ schoolFinishOn: "2026-08-10" })], t, TODAY);
+    expect(alerts[0]?.kind).toBe("behind_school");
+    expect(pickStudentNudge(alerts)).toBeNull();
   });
 });
 

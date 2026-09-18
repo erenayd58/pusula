@@ -11,7 +11,7 @@
 --   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans ve faz4d_suggestion_dismissals ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals ve faz5b_student_targets ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -33,7 +33,8 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('students',        'select', true,  null),
   ('students',        'insert', false, null),
   ('students',        'update', true,  array['curriculum_template_id', 'season', 'grade', 'school_name',
-                                             'class_section', 'exam_date', 'target_percentile', 'status']),
+                                             'class_section', 'exam_date', 'target_percentile', 'status',
+                                             'wake_start', 'wake_end']),
   ('students',        'delete', false, null),
   ('student_parents', 'select', true,  null),
   ('student_parents', 'insert', true,  null),
@@ -94,7 +95,15 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('suggestion_dismissals',  'select', true,  null),
   ('suggestion_dismissals',  'insert', true,  null),
   ('suggestion_dismissals',  'update', true,  null),
-  ('suggestion_dismissals',  'delete', true,  null);
+  ('suggestion_dismissals',  'delete', true,  null),
+  ('student_subject_targets', 'select', true,  null),
+  ('student_subject_targets', 'insert', true,  null),
+  ('student_subject_targets', 'update', true,  null),
+  ('student_subject_targets', 'delete', true,  null),
+  ('student_topic_targets',  'select', true,  null),
+  ('student_topic_targets',  'insert', true,  null),
+  ('student_topic_targets',  'update', true,  null),
+  ('student_topic_targets',  'delete', true,  null);
 
 select plan((
     (select count(*) from pg_class c

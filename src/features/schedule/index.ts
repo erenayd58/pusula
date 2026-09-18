@@ -5,13 +5,22 @@
 export { scheduleModule } from "./module";
 export { ScheduleEditor } from "./components/schedule-editor";
 export { AvailabilitySummary } from "./components/availability-summary";
-export { getScheduleForEditor, getWeekSchedule, getWeekAvailability } from "./server/queries";
+export {
+  getScheduleForEditor,
+  getWeekSchedule,
+  getWeekAvailability,
+  getWakeWindow,
+  getTypicalWeekAvailability,
+} from "./server/queries";
+export { WakeWindowForm } from "./components/wake-window-form";
 export {
   upsertBusySlot,
   deleteBusySlot,
   upsertScheduleException,
   deleteScheduleException,
+  setWakeWindow,
 } from "./server/actions";
+export { setWakeWindowSchema, type SetWakeWindowInput } from "./schemas";
 export {
   availabilityForWeek,
   availableMinutes,
@@ -21,4 +30,4 @@ export {
   type DayAvailability,
   type Interval,
 } from "./lib/availability";
-export type { BusySlotRow, ScheduleExceptionRow, WeekSchedule } from "./types";
+export type { BusySlotRow, ScheduleExceptionRow, WakeWindow, WeekSchedule } from "./types";

@@ -2,15 +2,17 @@ import type { ReactNode } from "react";
 import { LightbulbIcon } from "lucide-react";
 import { SubjectBadge } from "@/components/shared/subject-badge";
 import { planItemKindLabels, topicAlertKindLabels } from "@/content/labels";
-import { formatCount, formatDuration } from "@/lib/format";
+import { formatCount, formatDuration, formatPercent } from "@/lib/format";
+import type { SeasonPeriod } from "@/lib/strategy/periods";
 import type { Suggestion } from "../lib/suggestions";
 import { DismissSuggestionButton } from "./dismiss-suggestion-button";
 
 /**
  * Öneri listesi (K1 "Öneriler" ve K2 kartı; flat, nötr renk): `studentNames` verilirse öğrenciye
  * göre gruplu (öğrenci başlığı + öneriler), verilmezse düz liste. Satır: ders rozeti, konu/ders,
- * sebep, tür; sağda `action` yuvası (planner "Plana ekle") ve "Şimdi değil". Sıra puana göre
- * (`buildSuggestions`), puan gösterilmez.
+ * sebep, strateji notu (Faz 5c, ink-500), tür; sağda `action` yuvası (planner "Plana ekle") ve
+ * "Şimdi değil". Sıra puana göre (`buildSuggestions`), puan gösterilmez. `period` verilirse başlık
+ * altında dönem adı ve karışımı; dönem yoksa satır yok.
  */
 export function SuggestionList({
   suggestions,
@@ -22,6 +24,7 @@ export function SuggestionList({
   headingLevel = 2,
   visiblePerGroup,
   description,
+  period,
 }: {
   suggestions: Suggestion[];
   studentNames?: ReadonlyMap<string, string>;
@@ -35,6 +38,8 @@ export function SuggestionList({
   visiblePerGroup?: number;
   /** Başlık altında tek satır açıklama. */
   description?: string;
+  /** Bugünü kapsayan sezon dönemi (`periodFor`); varsa "Dönem: … · karışım …" satırı. */
+  period?: SeasonPeriod | null;
 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const groups = studentNames
@@ -57,6 +62,12 @@ export function SuggestionList({
         ) : null}
       </div>
       {description ? <p className="-mt-1 text-small text-ink-500">{description}</p> : null}
+      {period ? (
+        <p data-testid="suggestion-period" className="-mt-1 text-small text-ink-700">
+          Dönem: {period.name} · karışım yeni {formatPercent(period.mix.new_topic)} / zayıf{" "}
+          {formatPercent(period.mix.weak)} / bakım {formatPercent(period.mix.review)}
+        </p>
+      ) : null}
 
       {suggestions.length === 0 ? (
         <p className="flex items-center gap-2 rounded-sm border border-line bg-bg-paper px-4 py-3 text-small text-ink-700">
@@ -133,6 +144,11 @@ function SuggestionRow({
         <SubjectBadge color={s.subjectColor} shortName={s.subjectShortName} />
         <span className="text-small font-medium text-ink-900">{s.topicName ?? s.subjectName}</span>
         <span className="text-small text-ink-700">{s.reason}</span>
+        {s.strategyNote ? (
+          <span data-testid="suggestion-strategy-note" className="text-small text-ink-500">
+            {s.strategyNote}
+          </span>
+        ) : null}
         <span className="text-micro-lg text-ink-500">
           {topicAlertKindLabels[s.kind]} · {planItemKindLabels[s.task.kind]} ·{" "}
           {formatDuration(s.task.estimatedMinutes)}

@@ -15,8 +15,8 @@ export function AvailabilitySummary({
   className,
 }: {
   days: DayAvailability[];
-  /** Kurum uyanık aralığı (SS:DD); açıklama satırında gösterilir. */
-  wake: { start: string; end: string };
+  /** Uyanık aralık (SS:DD); açıklama satırında gösterilir, kurum varsayılanıysa söylenir. */
+  wake: { start: string; end: string; isDefault?: boolean };
   className?: string;
 }) {
   const total = days.reduce((sum, d) => sum + d.availableMinutes, 0);
@@ -30,7 +30,7 @@ export function AvailabilitySummary({
           Bu hafta müsait süre
         </h2>
         <p className="text-small text-ink-500">
-          {`Toplam ${formatDuration(total)} · uyanık aralık ${wake.start} – ${wake.end}`}
+          {`Toplam ${formatDuration(total)} · uyanık aralık ${wake.start} – ${wake.end}${wake.isDefault ? " (kurum varsayılanı)" : ""}`}
         </p>
       </div>
       <ul className="grid gap-2 md:grid-cols-7">

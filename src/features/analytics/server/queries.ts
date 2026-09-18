@@ -2,11 +2,18 @@ import "server-only";
 
 import { cache } from "react";
 import { getOrgSettings } from "@/features/core";
-import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { daysSince, daysUntil, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { periodFor } from "@/lib/strategy/periods";
 import { createClient } from "@/lib/supabase/server";
-import { evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
+import { alertThresholds, evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
 import { buildSuggestions, dismissalKey, plannedKey, type Suggestion } from "../lib/suggestions";
-import type { SetupAlert, SetupFacts, TopicAlert, TopicAlertFacts } from "../types";
+import type {
+  SetupAlert,
+  SetupFacts,
+  StudentStrategy,
+  TopicAlert,
+  TopicAlertFacts,
+} from "../types";
 
 /**
  * Uyarı okuma sorguları. `v_topic_alert_facts` security_invoker: koç kendi öğrencilerini, owner
@@ -15,7 +22,7 @@ import type { SetupAlert, SetupFacts, TopicAlert, TopicAlertFacts } from "../typ
  */
 
 const FACT_SELECT =
-  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic" as const;
+  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on" as const;
 
 /** Görünen öğrencilerin kapalı modülleri (student_modules.enabled = false): öğrenci → modül kümesi. */
 const listDisabledModules = cache(async (): Promise<Map<string, Set<string>>> => {
@@ -91,6 +98,7 @@ const fetchTopicAlertFacts = cache(async (key: string): Promise<TopicAlertFacts[
             subjectLastLogDate: r.subject_last_log_date,
             studentFirstLogDate: r.student_first_log_date,
             isNextTopic: r.is_next_topic ?? false,
+            schoolFinishOn: r.school_finish_on,
           },
         ]
       : [],
@@ -106,13 +114,101 @@ export async function getTopicAlertFacts(studentIds?: string[]): Promise<TopicAl
 export async function getTopicAlerts(studentIds?: string | string[]): Promise<TopicAlert[]> {
   const ids = typeof studentIds === "string" ? [studentIds] : studentIds;
   const [facts, settings] = await Promise.all([getTopicAlertFacts(ids), getOrgSettings()]);
-  return evaluateTopicAlerts(facts, settings.alerts, toDateKey(todayInIstanbul()));
+  return evaluateTopicAlerts(facts, alertThresholds(settings), toDateKey(todayInIstanbul()));
+}
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+/**
+ * Strateji bağlamı (09 §2 Parça 3): kurum dönemleri (`periodFor` → karışım) + `students.exam_date`
+ * (sınava kalan gün) + `v_student_pace_facts` (hedef tarihi geçmiş bitmemiş konular → gecikme günü)
+ * + `v_student_subject_targets` (ders soru açığı: (bugüne kadar beklenen − gerçekleşen) / beklenen;
+ * beklenen = hedef × geçen gün / toplam gün, `target_starts_on` → `exam_date`). Görünümler
+ * security_invoker; hedefi olmayan öğrencide boş Map'ler. `getSuggestions` çağıran her yerde
+ * (K1, K2, plan havuzu, "Önerilen planı hazırla") aynı bağlam; aynı istekte tek sorgu (React `cache`).
+ */
+const fetchStrategyContext = cache(async (key: string): Promise<Map<string, StudentStrategy>> => {
+  const studentIds = key === "*" ? undefined : key.split(",");
+  const supabase = await createClient();
+  const today = toDateKey(todayInIstanbul());
+
+  let studentQuery = supabase
+    .from("students")
+    .select("profile_id, exam_date, target_starts_on")
+    .eq("status", "active");
+  if (studentIds) studentQuery = studentQuery.in("profile_id", studentIds);
+  let paceQuery = supabase
+    .from("v_student_pace_facts")
+    .select("student_id, topic_id, status, target_on")
+    .lt("target_on", today)
+    .not("status", "in", "(completed,mastered)");
+  if (studentIds) paceQuery = paceQuery.in("student_id", studentIds);
+  let subjectQuery = supabase
+    .from("v_student_subject_targets")
+    .select("student_id, subject_id, questions_target, questions_done")
+    .not("questions_target", "is", null);
+  if (studentIds) subjectQuery = subjectQuery.in("student_id", studentIds);
+
+  const [settings, students, pace, subjects] = await Promise.all([
+    getOrgSettings(),
+    studentQuery,
+    paceQuery,
+    subjectQuery,
+  ]);
+  if (students.error) throw students.error;
+  if (pace.error) throw pace.error;
+  if (subjects.error) throw subjects.error;
+
+  const mix = periodFor(settings.strategy.periods, today)?.mix ?? null;
+  const topicDelay = new Map<string, Map<string, number>>();
+  const subjectGap = new Map<string, Map<string, number>>();
+  const bucket = (store: Map<string, Map<string, number>>, studentId: string) =>
+    store.get(studentId) ?? store.set(studentId, new Map()).get(studentId)!;
+
+  for (const r of pace.data) {
+    if (!r.student_id || !r.topic_id || !r.target_on) continue;
+    const delay = daysSince(r.target_on, today);
+    if (delay > 0) bucket(topicDelay, r.student_id).set(r.topic_id, delay);
+  }
+  const byId = new Map(students.data.map((r) => [r.profile_id, r]));
+  for (const r of subjects.data) {
+    if (!r.student_id || !r.subject_id || r.questions_target === null) continue;
+    const student = byId.get(r.student_id);
+    if (!student?.target_starts_on || !student.exam_date) continue;
+    const totalDays = daysSince(student.target_starts_on, student.exam_date);
+    const elapsedDays = daysSince(student.target_starts_on, today);
+    if (totalDays <= 0 || elapsedDays <= 0) continue;
+    const expected = (r.questions_target * Math.min(elapsedDays, totalDays)) / totalDays;
+    bucket(subjectGap, r.student_id).set(
+      r.subject_id,
+      clamp01((expected - (r.questions_done ?? 0)) / expected),
+    );
+  }
+
+  const out = new Map<string, StudentStrategy>();
+  for (const r of students.data) {
+    out.set(r.profile_id, {
+      daysToExam: r.exam_date ? daysUntil(r.exam_date) : null,
+      mix,
+      topicDelayDays: topicDelay.get(r.profile_id) ?? new Map(),
+      subjectGap: subjectGap.get(r.profile_id) ?? new Map(),
+    });
+  }
+  return out;
+});
+
+export async function getStrategyContext(
+  studentIds?: string[],
+): Promise<ReadonlyMap<string, StudentStrategy>> {
+  if (studentIds && studentIds.length === 0) return new Map();
+  return fetchStrategyContext(studentIds ? [...studentIds].sort().join(",") : "*");
 }
 
 /**
  * Öneriler (08 §2 Parça 4): uyarılar + haftada planlı konular (`v_week_plan_topics`) + süresi
- * geçmemiş reddetmeler → `buildSuggestions`. `week` verilmezse İstanbul'a göre bu hafta (K1, K2
- * ve "Plana ekle" bu haftaya yazar); plan oluşturucu görüntülenen haftayı geçirir.
+ * geçmemiş reddetmeler + strateji bağlamı (Faz 5c) → `buildSuggestions`. `week` verilmezse
+ * İstanbul'a göre bu hafta (K1, K2 ve "Plana ekle" bu haftaya yazar); plan oluşturucu
+ * görüntülenen haftayı geçirir.
  */
 export async function getSuggestions(
   studentIds?: string | string[],
@@ -135,11 +231,12 @@ export async function getSuggestions(
     .gte("dismissed_until", today);
   if (ids) dismissedQuery = dismissedQuery.in("student_id", ids);
 
-  const [alerts, settings, planned, dismissed] = await Promise.all([
+  const [alerts, settings, planned, dismissed, strategy] = await Promise.all([
     getTopicAlerts(ids),
     getOrgSettings(),
     plannedQuery,
     dismissedQuery,
+    getStrategyContext(ids),
   ]);
   if (planned.error) throw planned.error;
   if (dismissed.error) throw dismissed.error;
@@ -167,6 +264,7 @@ export async function getSuggestions(
     settings,
     maxExamQuestionCount,
     today,
+    strategy,
   });
 }
 

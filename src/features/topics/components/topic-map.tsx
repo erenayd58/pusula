@@ -4,9 +4,11 @@ import * as React from "react";
 import { useCallback, useRef, useState } from "react";
 import { subjectVars } from "@/components/shared/subject-scope";
 import { topicStatusLabels } from "@/content/labels";
+import { toDateKey, todayInIstanbul } from "@/lib/dates";
 import { formatPercent } from "@/lib/format";
+import { schoolLagWeeks } from "@/lib/strategy/school-calendar";
 import { cn } from "@/lib/utils";
-import { completionPercent } from "../lib/completion";
+import { completionPercent, isDone } from "../lib/completion";
 import { topicStatusValues } from "../schemas";
 import type { TopicMap as TopicMapData, TopicMapCell } from "../types";
 import { TopicCell, TopicSwatch } from "./topic-cell";
@@ -31,6 +33,7 @@ export function TopicMap({
 }) {
   const [subjects, setSubjects] = useState(map.subjects);
   const [selected, setSelected] = useState<Pos | null>(null);
+  const [today] = useState(() => toDateKey(todayInIstanbul()));
   const [focused, setFocused] = useState<Pos>({ si: 0, ti: 0 });
   const cellRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -159,6 +162,7 @@ export function TopicMap({
                       }}
                       name={cell.name}
                       status={cell.status}
+                      schoolPassed={isSchoolPassed(cell, today)}
                       selected={selected?.si === si && selected?.ti === ti}
                       tabIndex={isFocusStop ? 0 : -1}
                       onFocus={() => setFocused(pos)}
@@ -186,6 +190,18 @@ export function TopicMap({
         onSaved={onSaved}
       />
     </>
+  );
+}
+
+/** Okul konuyu geçen haftalarda bitirdi (hafta çözünürlüğü) ve öğrenci bitirmedi (Faz 5a). */
+export function isSchoolPassed(
+  cell: Pick<TopicMapCell, "status" | "schoolFinishOn">,
+  today: string,
+): boolean {
+  return (
+    cell.schoolFinishOn !== null &&
+    !isDone(cell.status) &&
+    schoolLagWeeks(cell.schoolFinishOn, today) > 0
   );
 }
 

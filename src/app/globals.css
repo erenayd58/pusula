@@ -313,6 +313,18 @@
     outline: 2px solid var(--ink-900);
     outline-offset: 2px;
   }
+  /* Okul işareti (Faz 5a): okul konuyu bitirdi, öğrenci bitirmedi. Üst sağ köşede küçük üçgen
+     çentik; mürekkep tonu (ders rengi değil), bilgi aria-label ile de verilir. */
+  .topic-cell--school-passed::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-style: solid;
+    border-width: 0 9px 9px 0;
+    border-color: transparent var(--ink-700) transparent transparent;
+    pointer-events: none;
+  }
   [data-surface^="clay"] .topic-cell[data-selected="true"] {
     box-shadow: var(--clay-pressed);
     transform: scale(0.97);

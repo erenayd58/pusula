@@ -2,6 +2,7 @@ import type { OrgSettings } from "@/features/core";
 import { daysSince } from "@/lib/dates";
 import { accuracyPercent } from "@/lib/exam/net";
 import { formatCount, formatPercent } from "@/lib/format";
+import { schoolLagWeeks } from "@/lib/strategy/school-calendar";
 import type { TopicAlertKind, TopicStatus } from "@/types";
 import type {
   AlertGroup,
@@ -12,18 +13,27 @@ import type {
   TopicAlertFacts,
 } from "../types";
 
-/** Kurum ayarındaki `alerts` anahtarı; eşikler koda gömülmez, parametre gelir. */
-export type AlertThresholds = OrgSettings["alerts"];
+/**
+ * Kurum ayarındaki `alerts` anahtarı + `strategy.school_lag_weeks` (Faz 5a `behind_school`
+ * toleransı); eşikler koda gömülmez, parametre gelir. Sorgu katmanı `alertThresholds` ile kurar.
+ */
+export type AlertThresholds = OrgSettings["alerts"] &
+  Pick<OrgSettings["strategy"], "school_lag_weeks">;
 
-/** Listeleme sırası: önce zayıflık, sonra ihmal, bakım, en sonda başlanmamış. */
+export function alertThresholds(settings: OrgSettings): AlertThresholds {
+  return { ...settings.alerts, school_lag_weeks: settings.strategy.school_lag_weeks };
+}
+
+/** Listeleme sırası: önce zayıflık, okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
 const KIND_PRIORITY: Record<TopicAlertKind, number> = {
   knowledge_gap: 0,
   low_accuracy: 1,
-  neglected_subject: 2,
-  forgetting_risk: 3,
-  review_due: 4,
-  stale: 5,
-  not_started: 6,
+  behind_school: 2,
+  neglected_subject: 3,
+  forgetting_risk: 4,
+  review_due: 5,
+  stale: 6,
+  not_started: 7,
 };
 
 const DONE: readonly TopicStatus[] = ["completed", "mastered"];
@@ -78,6 +88,19 @@ function evaluateTopic(f: TopicAlertFacts, t: AlertThresholds, today: string): R
       delayDays: 0,
     };
   }
+  // Okulun gerisinde (karar B8): bitmemiş konuların hepsi (`studying` dahil); okul bitişinden
+  // `school_lag_weeks` hafta geçtiyse. idleDays = okulun bitirmesinden bu yana gün (sebep metni).
+  if (f.schoolFinishOn !== null && !DONE.includes(f.status)) {
+    const lagWeeks = schoolLagWeeks(f.schoolFinishOn, today);
+    if (lagWeeks >= t.school_lag_weeks) {
+      return {
+        kind: "behind_school",
+        threshold: null,
+        idleDays: lagWeeks * 7,
+        delayDays: (lagWeeks - t.school_lag_weeks) * 7,
+      };
+    }
+  }
   if (IN_PROGRESS.includes(f.status) && f.statusChangedAt) {
     const days = daysSince(f.statusChangedAt, today);
     if (days >= t.stale_days) {
@@ -129,10 +152,10 @@ function compareAlerts(a: TopicAlert, b: TopicAlert): number {
 }
 
 /**
- * Uyarı kuralları (08 §2 Parça 3; saf, eşikler parametre). Konu başına en fazla bir uyarı,
- * öncelik sırası: knowledge_gap → low_accuracy → stale → forgetting_risk → review_due →
- * not_started. Ders düzeyi (topicId null): neglected_subject. `today` İstanbul günü (YYYY-MM-DD).
- * Sonuç öncelik, gecikme ve ders/konu sırasına göre sıralıdır.
+ * Uyarı kuralları (08 §2 Parça 3, 09 §2 Parça 1; saf, eşikler parametre). Konu başına en fazla
+ * bir uyarı, öncelik sırası: knowledge_gap → low_accuracy → behind_school → stale →
+ * forgetting_risk → review_due → not_started. Ders düzeyi (topicId null): neglected_subject.
+ * `today` İstanbul günü (YYYY-MM-DD). Sonuç öncelik, gecikme ve ders/konu sırasına göre sıralıdır.
  */
 export function evaluateTopicAlerts(
   facts: TopicAlertFacts[],
@@ -185,25 +208,30 @@ export function evaluateTopicAlerts(
   return out.sort(compareAlerts);
 }
 
-/** Ekran grupları: weak = başarı kuralları, maintenance = bakım, notStarted, subjects = ders düzeyi. */
+/**
+ * Ekran grupları: weak = başarı kuralları, behind = okulun gerisinde, maintenance = bakım,
+ * subjects = ders düzeyi. `not_started` gruplanmaz (dikkat gerektirmez).
+ */
 export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
-  const g: AlertGroup = { weak: [], maintenance: [], notStarted: [], subjects: [] };
+  const g: AlertGroup = { weak: [], behind: [], maintenance: [], subjects: [] };
   for (const a of alerts) {
     switch (a.kind) {
       case "knowledge_gap":
       case "low_accuracy":
         g.weak.push(a);
         break;
+      case "behind_school":
+        g.behind.push(a);
+        break;
       case "review_due":
       case "forgetting_risk":
       case "stale":
         g.maintenance.push(a);
         break;
-      case "not_started":
-        g.notStarted.push(a);
-        break;
       case "neglected_subject":
         g.subjects.push(a);
+        break;
+      case "not_started":
         break;
     }
   }
@@ -258,6 +286,12 @@ export function alertReason(a: TopicAlert): string {
       return days ? `${days}dür tekrar edilmedi` : "Tekrar zamanı geldi";
     case "not_started":
       return "Sıradaki konu";
+    case "behind_school": {
+      const weeks = Math.floor((a.idleDays ?? 0) / 7);
+      return weeks > 0
+        ? `Okul bu konuyu ${formatCount(weeks, "hafta")} önce bitirdi`
+        : "Okul bu konuyu bitirdi";
+    }
     case "neglected_subject":
       return days ? `${days}dür bu derste kayıt yok` : "Bu derste kayıt yok";
   }

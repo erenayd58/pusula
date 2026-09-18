@@ -126,4 +126,5 @@ export const topicAlertKindLabels = {
   stale: "Soğumuş konu",
   not_started: "Başlanmamış",
   neglected_subject: "İhmal edilen ders",
+  behind_school: "Okulun gerisinde",
 } as const;
