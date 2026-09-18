@@ -2,7 +2,7 @@
 
 > Faz 5'in üç parçasının (takvim ve dönemler, hedef ve geri planlama, strateji farkındalığı) ortak tasarım belgesi. Faz 5 yeni bir sekme değildir: mevcut ekranların (plan oluşturucu, öneri motoru, Bugün, konu haritası, koç listesi) içine giren bir strateji katmanıdır; tek yeni ekran koçun bir kez dolduracağı ayar ve hedef sayfalarıdır. 08 §5'teki Faz 5 kancalarını **imza değiştirmeden** genişletir. Veri modeli bölümü onaylandığında `03-veri-modeli.md`'ye işlenir; parça oturumları bu belgeyi okuyarak başlar. Belge ile kod çelişirse dur ve sor. Ölçek kuralı: tek koç, birkaç öğrenci; RLS tavizsiz, gerisi en basit çalışan çözüm.
 >
-> **Durum:** tasarım onaylandı (2026-09-18, kararlar §6). **Parça 1 uygulandı** (2026-09-18, dal `faz-5a-takvim`; 03 §3/§4.2/§4.4a/§4.4b/§6/§7/§5.4 ve 02 karar #44 güncellendi). Uygulama notları: `mixOf` ayrı fonksiyon olarak yazılmadı (`periodFor(...)?.mix` yeter); `behind_school.idleDays` okulun bitirmesinden bu yana gün tutar (sebep metni "N hafta önce" bunu okur; §2'de null yazıyordu); "Sıradan dağıt" k. konuya k. payın son haftasını yazar (`ceil(k × n / count)`); hücre işareti okul haftası geçmişse (lag ≥ 1) görünür, hücre detayı "bu hafta" ve "henüz gelmedi" hallerini de yazar. **Parça 2 uygulandı** (2026-09-18, aynı dal; 03 §4.1 students kolonları, §4.4e, §5.3, §6, §7, §5.4 ve 02 karar #45 güncellendi). Uygulama notları: `v_student_subject_targets` şablonun her dersi için satır verir (`questions_target` hedef yoksa null; Parça 3 null'ları eler); `FeasibilityInput` tipi `lib/strategy/feasibility.ts`'te, goals `FeasibilityBase` (formda canlı hesap için sabit girdiler) tanımlar; `updateOrgSettings` revalidate listesine `[studentId]/target` eklenmedi (`createAction` yalnızca statik yol alır; sayfalar dinamik render); e2e `targets.spec` tek masaüstü testinde koç akışını ve öğrenci Bugün'ü doğrular (mobil proje ayrı koşmaz). Parça 3 başlamadı. 01 yol haritası bu belgeyle birlikte yeniden numaralandı (Faz 5 strateji, 6 denemeler ve yanlış defteri, 7 kaynaklar ve videolar, 8 veli paneli ve bildirimler, 9 ekstralar, 10 sağlamlaştırma); 03 §4.5 ve 08'deki "Faz 5: `section`, `video`" notları artık Faz 7'yi anlatır, o fazın oturumunda düzeltilir.
+> **Durum:** tasarım onaylandı (2026-09-18, kararlar §6). **Parça 1 uygulandı** (2026-09-18, dal `faz-5a-takvim`; 03 §3/§4.2/§4.4a/§4.4b/§6/§7/§5.4 ve 02 karar #44 güncellendi). Uygulama notları: `mixOf` ayrı fonksiyon olarak yazılmadı (`periodFor(...)?.mix` yeter); `behind_school.idleDays` okulun bitirmesinden bu yana gün tutar (sebep metni "N hafta önce" bunu okur; §2'de null yazıyordu); "Sıradan dağıt" k. konuya k. payın son haftasını yazar (`ceil(k × n / count)`); hücre işareti okul haftası geçmişse (lag ≥ 1) görünür, hücre detayı "bu hafta" ve "henüz gelmedi" hallerini de yazar. **Parça 2 uygulandı** (2026-09-18, aynı dal; 03 §4.1 students kolonları, §4.4e, §5.3, §6, §7, §5.4 ve 02 karar #45 güncellendi). Uygulama notları: `v_student_subject_targets` şablonun her dersi için satır verir (`questions_target` hedef yoksa null; Parça 3 null'ları eler); `FeasibilityInput` tipi `lib/strategy/feasibility.ts`'te, goals `FeasibilityBase` (formda canlı hesap için sabit girdiler) tanımlar; `updateOrgSettings` revalidate listesine `[studentId]/target` eklenmedi (`createAction` yalnızca statik yol alır; sayfalar dinamik render); e2e `targets.spec` tek masaüstü testinde koç akışını ve öğrenci Bugün'ü doğrular (mobil proje ayrı koşmaz). Parça 2 görüntü incelemesi sonrası düzeltmeler (2026-09-18): Hedef sekmesi konu listesi ders bazında katlanabilir (`details`, özet "Türkçe · 13 konu · 4 gecikmiş · 3 bitti", gecikmişi olan ders açık); gidişat net takvim konumu (§3.1 güncel tanım; görünümler `faz5b_pace_net` ile `topics_expected / topics_behind / topics_ahead`); geri planlamada okul kelepçesi (B5 güncel). Parça 3 başlamadı. 01 yol haritası bu belgeyle birlikte yeniden numaralandı (Faz 5 strateji, 6 denemeler ve yanlış defteri, 7 kaynaklar ve videolar, 8 veli paneli ve bildirimler, 9 ekstralar, 10 sağlamlaştırma); 03 §4.5 ve 08'deki "Faz 5: `section`, `video`" notları artık Faz 7'yi anlatır, o fazın oturumunda düzeltilir.
 
 ## 0. Özet ve parça sırası
 
@@ -133,8 +133,8 @@ Tek konunun tarihini düzenlemek RPC gerektirmez: koç `student_topic_targets` s
 | Görünüm | Kolonlar | Kullanım |
 |---|---|---|
 | `v_student_pace_facts` | student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, topic_id, topic_name, topic_sort_order, status (satır yoksa `not_started`), completed_at, target_on, school_finish_on | Gidişat hesabı (`topicPace`, saf): topics Bugün kartı, K2 ders tablosu, "Hedef" sekmesi konu listesi, strateji bağlamı |
-| `v_student_subject_targets` | student_id, subject_id, questions_target, questions_done (`question_logs`, `log_date >= target_starts_on`), topics_total, topics_done, topics_overdue (`target_on <= bugün` ve bitmemiş) | K2 "Ders bazlı gidişat" tablosu; strateji ders açığı |
-| `v_coach_student_overview` (replace, sona ekle) | + `has_targets` (`topics_finish_by` dolu), `topics_total`, `topics_done`, `topics_overdue`, `topics_ahead` (bitmiş ve `target_on > bugün`) | K1 "Takvim" sütunu tek sorguda |
+| `v_student_subject_targets` | student_id, subject_id, questions_target, questions_done (`question_logs`, `log_date >= target_starts_on`), topics_total, topics_done, topics_expected (`target_on <= bugün`, bitmiş olsun olmasın) | K2 "Ders bazlı gidişat" tablosu; strateji ders açığı |
+| `v_coach_student_overview` (replace, sona ekle) | + `has_targets` (`topics_finish_by` dolu), `topics_total`, `topics_done`, `topics_expected`, `topics_behind` = greatest(0, expected − done), `topics_ahead` = greatest(0, done − expected) | K1 "Takvim" sütunu tek sorguda |
 
 "Bitmiş" her yerde `status in ('completed','mastered')` (topics `isDone` ile aynı). Öğrenci satırı yoksa `not_started`. Hafta/gün hesapları `(now() at time zone 'Europe/Istanbul')::date` (karar #36).
 
@@ -214,7 +214,8 @@ export function backPlanTopics(input: {
 }): { topicId: string; targetOn: string }[];
 // bitmemiş konular; sıra: schoolFinishOn dolu olanlar tarih sırasıyla önce, sonra dersler arası sıra-sıra
 // (Türkçe 1, Mat 1, Fen 1, …, Türkçe 2, …); [startsOn, finishBy] arasına eşit yayılım (i × gün / n, pazartesiye
-// yuvarlanmaz; gün çözünürlüğü); okul tarihine kelepçe yok (karar B5: koç programı okulun önünde gidebilir);
+// yuvarlanmaz; gün çözünürlüğü); okul kelepçesi (karar B5, güncel): okul tarihi olan konunun hedefi
+// max(yayılım, okul tarihi), finishBy ile sınırlı — sıralama ve diğer konuların yayılımı değişmez, koç tek tek öne alabilir;
 // finishBy < startsOn → boş dizi (form zaten engeller)
 
 // src/lib/strategy/split.ts
@@ -237,9 +238,9 @@ export function feasibilityText(f: ReturnType<typeof feasibility>): string;
 // src/lib/strategy/pace.ts
 export type PaceTopic = { topicId: string; subjectId: string; done: boolean; completedAt: string | null; targetOn: string | null };
 export type TopicPace = {
-  total: number; done: number; expectedByToday: number;   // hedefi bugün ya da öncesi olan + hedefsiz bitmiş
-  overdue: number;                                        // hedefi geçmiş ve bitmemiş
-  ahead: number;                                          // bitmiş ve hedefi gelecekte
+  total: number; done: number; expectedByToday: number;   // hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın)
+  overdue: number;                                        // net geride: max(0, beklenen − bitmiş)
+  ahead: number;                                          // net ileride: max(0, bitmiş − beklenen)
   velocityPerWeek: number;                                // son pace_window_days'de biten × 7 / pencere
   projectedDoneByExam: number; shortfall: number;         // max(0, kalan − hız × kalan hafta)
   projectedFinishOn: string | null;                       // bugün + kalan / günlük hız; hız 0 → null
@@ -248,7 +249,7 @@ export function topicPace(topics: readonly PaceTopic[], input: { today: string; 
 export function subjectPace(topics: readonly PaceTopic[], subjectId: string, input): TopicPace;   // aynı hesap, ders alt kümesi
 export function paceSentence(p: TopicPace, hasTargets: boolean): string;
 // "54 konunun 9'u bitti · takvimin 3 konu gerisindesin" | "… · takvimin 2 konu ilerisindesin" | "… · takvimle uyumlusun"
-// hedef yoksa "54 konunun 9'u bitti"; overdue > 0 ise geride (ahead gösterilmez), değilse ahead > 0 ise ileride
+// hedef yoksa "54 konunun 9'u bitti"; overdue > 0 ise geride, ahead > 0 ise ileride, ikisi de 0 ise uyumlu (net; ikisi aynı anda > 0 olamaz)
 export function paceLabel(p: Pick<TopicPace, "overdue" | "ahead">, hasTargets: boolean): string;   // K1: "−3 konu" · "+2 konu" · "Uyumlu" · "—"
 ```
 
@@ -329,7 +330,7 @@ export type Placement = { dayOfWeek: number | null; date?: string; suggestion: S
 | `pace.ts` | `topicPace`, `subjectPace`, `paceSentence`, `paceLabel` | topics (Bugün kartı), core (K1 sütunu), goals/analytics (K2) |
 | `mix.ts` | `mixCategoryOf`, `allocateByMix` | analytics |
 
-Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/dates` ile (İstanbul, hafta pazartesi), metinler `lib/format` ile. Tanımlar tek yerde: **bitmiş** = `completed | mastered`; **gecikmiş konu** = hedefi bugün ya da öncesi ve bitmemiş; **ileride** = bitmiş ve hedefi gelecekte; **beklenen** = hedefi bugün ya da öncesi olan konular + hedefsiz bitmiş konular; **hız** = son `pace_window_days`'de biten konu × 7 / pencere.
+Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/dates` ile (İstanbul, hafta pazartesi), metinler `lib/format` ile. Tanımlar tek yerde (net takvim konumu; 2026-09-18 düzeltmesi): **bitmiş** = `completed | mastered`; **beklenen** = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın; hedefsiz bitmiş konular takvimin önündedir, beklenene girmez); **geride** = max(0, beklenen − bitmiş); **ileride** = max(0, bitmiş − beklenen); **hız** = son `pace_window_days`'de biten konu × 7 / pencere. Konu bazlı "hedefi geçti" (hedefi bugün ya da öncesi ve bitmemiş) yalnızca Hedef sekmesindeki listede rozet ve ders özetindeki "N gecikmiş" sayısıdır; gidişat cümlesi, K1 sütunu ve K2 kutusu net konumu kullanır ("9 konu bitmiş ama 4 konu geride" gibi çelişkili durum yok).
 
 ### 3.2 Yazım ve renk
 
@@ -365,7 +366,7 @@ Parça oturumları bu kararları verili kabul eder; faz sonunda 02 karar kaydın
 | B2 | Sezon dönemleri | `organizations.settings.strategy.periods` (JSON, mevcut ayar formunda liste editörü) | `season_periods` tablosu (RLS + pgTAP + şablona bağ) |
 | B3 | Varsayılan dönemler | Migration `periods: []`; `suggestSeasonPeriods(examDate)` saf önerisi ayar formunda "Varsayılanları öner"; seed yerel kuruma dolu yazar | Migration'a sabit LGS 2027 tarihleri |
 | B4 | Konu hedef tarihleri | `student_topic_targets` tablosunda saklı; koç tek tek düzenler; yeniden üretim onaylı | Her açılışta hesaplamak (öğrenci hep "uyumlu" görünür) |
-| B5 | Geri planlama sırası | Okul tarihi dolu konular tarih sırasıyla önce, kalanlar dersler arası sıra-sıra; okul tarihine kelepçe yok | Ders ders blok; `max(hedef, okul)` kelepçesi |
+| B5 | Geri planlama sırası | Okul tarihi dolu konular tarih sırasıyla önce, kalanlar dersler arası sıra-sıra; **okul kelepçesi** (2026-09-18 güncellemesi): okul tarihi olan konunun hedefi okul tarihinden önce olamaz (`max(yayılım, okul)`, bitiş tarihiyle sınırlı); koç tek tek düzenleyerek öne alabilir | Ders ders blok; kelepçesiz yayılım (ilk sürüm: hedef 31 Ağustos, okul 19 Ekim gibi tutarsız çiftler üretiyordu) |
 | B6 | "Hedef" sekmesi | `goals` modülünün `coachStudentTabs` girdisi (`target`, order 35); yeni modül kimliği yok | `strategy` modülü (ayrı aç/kapat) |
 | B7 | Öğrenci gidişat | topics Bugün kartı genişler (cümle + ince çubuk + takvim çentiği); hedef yoksa mevcut kart | Ayrı analytics/goals kartı |
 | B8 | `behind_school` kapsamı | Bitmemiş konuların hepsi (`studying` dahil), tolerans `school_lag_weeks` = 2; öğrenci Bugün kartında gösterilmez | Yalnızca `not_started` |

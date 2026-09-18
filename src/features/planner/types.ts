@@ -53,12 +53,7 @@ export type PlanSubjectOption = {
 export type SubjectPace = { subjectId: string; minutesPerQuestion: number };
 
 export type TaskPoolCategoryId =
-  | "suggestions"
-  | "behind"
-  | "weak"
-  | "not_started"
-  | "review_due"
-  | "frequent";
+  "suggestions" | "behind" | "weak" | "not_started" | "review_due" | "frequent";
 // Faz 7: "resources" | "videos"
 
 /** Ön dolu görev (havuz öğesi, öneri "Plana ekle"): `addPlanItems` alanları. */

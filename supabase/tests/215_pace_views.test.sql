@@ -1,6 +1,6 @@
 -- v_student_pace_facts / v_student_subject_targets / v_coach_student_overview gidişat kolonları
 -- (faz5b_pace_views; 09 §1.4). RLS: koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501;
--- sayımlar target_starts_on'dan itibaren; overview topics_overdue / topics_ahead bugüne göre.
+-- sayımlar target_starts_on'dan itibaren; overview net takvim konumu (topics_expected / behind / ahead) bugüne göre.
 begin;
 select plan(15);
 select tests.seed_fixture();
@@ -45,11 +45,11 @@ select is(
 
 -- 2. v_student_subject_targets: soru sayımı başlangıçtan itibaren, konu sayıları.
 select is(
-  (select (questions_target, questions_done, topics_total, topics_done, topics_overdue)
+  (select (questions_target, questions_done, topics_total, topics_done, topics_expected)
     from public.v_student_subject_targets
     where student_id = tests.id('student_a') and subject_id = tests.id('subj_org_a')),
   (1000, 45, 2, 1, 1),
-  'ders hedefi: 1000 hedef, 45 gerçekleşen (başlangıç öncesi 30 sayılmaz), 2 konu / 1 bitti / 1 gecikmiş'
+  'ders hedefi: 1000 hedef, 45 gerçekleşen (başlangıç öncesi 30 sayılmaz), 2 konu / 1 bitti / 1 bugüne kadar beklenen'
 );
 select is(
   (select (questions_target, questions_done) from public.v_student_subject_targets
@@ -60,15 +60,15 @@ select is(
 
 -- 3. v_coach_student_overview: gidişat kolonları.
 select is(
-  (select (has_targets, topics_total, topics_done, topics_overdue, topics_ahead)
+  (select (has_targets, topics_total, topics_done, topics_expected, topics_behind, topics_ahead)
     from public.v_coach_student_overview where student_id = tests.id('student_a')),
-  (true, 2, 1, 1, 1),
-  'overview: hedef var, 2 konu, 1 bitti, 1 gecikmiş, 1 ileride'
+  (true, 2, 1, 1, 0, 0),
+  'overview: hedef var, 2 konu, 1 bitti, 1 beklenen → net uyumlu (konu 1 gecikmiş, konu 2 erken bitmiş)'
 );
 select is(
-  (select (has_targets, topics_overdue, topics_ahead)
+  (select (has_targets, topics_expected, topics_behind, topics_ahead)
     from public.v_coach_student_overview where student_id = tests.id('student_c')),
-  (false, 0, 0),
+  (false, 0, 0, 0),
   'overview: hedefsiz öğrencide sayımlar 0'
 );
 
@@ -87,7 +87,7 @@ select is((select count(*) from public.v_student_subject_targets where student_i
 select tests.authenticate_as('student_a');
 select is((select count(*) from public.v_student_pace_facts), 2::bigint, 'öğrenci A yalnızca kendi satırlarını görür');
 select is(
-  (select topics_overdue from public.v_student_subject_targets where student_id = tests.id('student_a')),
+  (select topics_expected from public.v_student_subject_targets where student_id = tests.id('student_a')),
   1,
   'öğrenci A ders gidişatını okur'
 );

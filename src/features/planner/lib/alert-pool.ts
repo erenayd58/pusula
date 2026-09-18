@@ -11,7 +11,10 @@ import { taskTitle } from "@/lib/plan/task-title";
  * (`task-pool.tsx`) `pool.ts`'i kullanır, bu dosyaya dokunmaz.
  */
 
-type AlertCategoryId = Extract<TaskPoolCategoryId, "behind" | "weak" | "not_started" | "review_due">;
+type AlertCategoryId = Extract<
+  TaskPoolCategoryId,
+  "behind" | "weak" | "not_started" | "review_due"
+>;
 export type AlertPool = Record<AlertCategoryId, TaskPoolItem[]>;
 
 /** Uyarı türü → görev türü ve havuz kategorisi (08 §2 Parça 4 ile aynı eşleme). */

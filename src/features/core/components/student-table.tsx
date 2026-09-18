@@ -186,7 +186,7 @@ function WeekGoal({ row }: { row: StudentListRow }) {
 
 /** Konu takvimi (Faz 5b): gecikmiş/ileride konu sayısı; hedef yoksa "—". Ders rengi yok. */
 function Pace({ row }: { row: StudentListRow }) {
-  const label = paceLabel({ overdue: row.topicsOverdue, ahead: row.topicsAhead }, row.hasTargets);
+  const label = paceLabel({ overdue: row.topicsBehind, ahead: row.topicsAhead }, row.hasTargets);
   return (
     <span
       data-testid="pace-label"

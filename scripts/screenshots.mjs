@@ -295,6 +295,10 @@ const SHOTS = [
     as: "coach",
     width: 1440,
     path: `/coach/students/${SEED.ayse}/target`,
+    before: async (page) => {
+      // Ders bölümleri katlı (gecikmiş konu yoksa); ilk ders açılır ki konu satırları görünsün.
+      await page.getByTestId("topic-target-subject").first().locator("summary").click();
+    },
   },
   {
     dir: "uygulama-5",

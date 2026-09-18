@@ -20,22 +20,38 @@ const t = (id: string, over: Partial<PaceTopic> = {}): PaceTopic => ({
 const input = { today: TODAY, examOn: "2027-06-13", windowDays: 28 };
 
 describe("topicPace", () => {
-  it("geride: gecikmiş konular sayılır, beklenen = hedefi geçenler + hedefsiz bitmişler", () => {
+  it("geride: beklenen = hedefi bugün ya da öncesi olanlar; net = bitmiş − beklenen", () => {
     const p = topicPace(
       [
         t("a", { done: true, completedAt: ago(3), targetOn: "2026-09-10" }),
         t("b", { targetOn: "2026-09-15" }),
-        t("c", { targetOn: "2026-09-18" }), // bugün → gecikmiş sayılır (hedefi bugün ya da öncesi)
+        t("c", { targetOn: "2026-09-18" }), // bugün → beklenen (hedefi bugün ya da öncesi)
         t("d", { targetOn: "2026-10-01" }),
-        t("e", { done: true, completedAt: ago(40) }), // hedefsiz bitmiş → beklenen
+        t("e", { targetOn: "2026-09-16" }),
       ],
       input,
     );
-    expect(p).toMatchObject({ total: 5, done: 2, expectedByToday: 4, overdue: 2, ahead: 0 });
+    expect(p).toMatchObject({ total: 5, done: 1, expectedByToday: 4, overdue: 3, ahead: 0 });
     expect(paceSentence(p, true)).toBe(
-      `5${NBSP}konunun 2'si bitti · takvimin 2${NBSP}konu gerisindesin`,
+      `5${NBSP}konunun 1'i bitti · takvimin 3${NBSP}konu gerisindesin`,
     );
-    expect(paceLabel(p, true)).toBe(`${MINUS}2${NBSP}konu`);
+    expect(paceLabel(p, true)).toBe(`${MINUS}3${NBSP}konu`);
+  });
+
+  it("hedefsiz bitmiş konular takvimin önündedir: beklenene girmez, ileriye sayılır", () => {
+    // 9 bitmiş (hedefsiz), 4 hedefi geçmiş bitmemiş konu → net +5 (çelişkili "9 bitti, 4 geride" yok).
+    const p = topicPace(
+      [
+        ...Array.from({ length: 9 }, (_, i) => t(`d${i}`, { done: true, completedAt: ago(50) })),
+        ...Array.from({ length: 4 }, (_, i) => t(`o${i}`, { targetOn: "2026-09-10" })),
+        t("f", { targetOn: "2026-10-05" }),
+      ],
+      input,
+    );
+    expect(p).toMatchObject({ total: 14, done: 9, expectedByToday: 4, overdue: 0, ahead: 5 });
+    expect(paceSentence(p, true)).toBe(
+      `14${NBSP}konunun 9'u bitti · takvimin 5${NBSP}konu ilerisindesin`,
+    );
   });
 
   it("ileride: bitmiş ve hedefi gelecekte; uyumlu: ikisi de 0", () => {
@@ -104,9 +120,11 @@ describe("topicPace", () => {
     expect(subjectPace(topics, "mat", input)).toMatchObject({
       total: 2,
       done: 1,
-      overdue: 1,
-      ahead: 1,
+      expectedByToday: 1,
+      overdue: 0,
+      ahead: 0,
     });
+    expect(subjectPace(topics, "tr", input)).toMatchObject({ total: 1, done: 0, overdue: 1 });
     expect(subjectPace(topics, "fen", input)).toMatchObject({ total: 0, done: 0 });
   });
 });

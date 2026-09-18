@@ -24,11 +24,7 @@ export default async function SettingsPage() {
           Kurum geneli eşikler ve varsayılanlar; koda gömülü değer yok.
         </p>
       </header>
-      <OrgSettingsForm
-        initial={settings}
-        canEdit={profile.role === "owner"}
-        examDate={examDate}
-      />
+      <OrgSettingsForm initial={settings} canEdit={profile.role === "owner"} examDate={examDate} />
     </>
   );
 }

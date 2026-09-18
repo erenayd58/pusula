@@ -14,7 +14,8 @@ export type SubjectTargetRow = {
   questionsDone: number;
   topicsTotal: number;
   topicsDone: number;
-  topicsOverdue: number;
+  /** Hedefi bugün ya da öncesi olan konu (takvime göre bugüne kadar beklenen). */
+  topicsExpected: number;
 };
 
 /** Konu satırı (`v_student_pace_facts`): durum, hedef ve okul tarihi. */

@@ -6,7 +6,9 @@ import { TIME_ZONE, toDateKey } from "@/lib/dates";
  * Geri planlama (09-faz5-strateji.md §2 Parça 2, karar B5): bitmemiş konular
  * `[startsOn, finishBy]` aralığına gün çözünürlüğünde eşit yayılır. Sıra: okul tarihi dolu olanlar
  * tarih sırasıyla önce, kalanlar dersler arası sıra-sıra (Türkçe 1, Mat 1, Fen 1, …, Türkçe 2, …).
- * Okul tarihine kelepçe yok (koç programı okulun önünde gidebilir). Saf; `features/*` import etmez.
+ * Okul kelepçesi: okul tarihi olan konunun hedefi okul tarihinden (haftasından) önce olamaz —
+ * `max(yayılım, okul)`, `finishBy` ile sınırlı; sıralama ve diğer konuların yayılımı değişmez. Koç
+ * tek tek düzenleyerek yine öne alabilir. Saf; `features/*` import etmez.
  */
 
 export type BackPlanTopic = {
@@ -59,8 +61,14 @@ export function backPlanTopics(input: {
 
   const start = new TZDate(input.startsOn, TIME_ZONE);
   const days = differenceInCalendarDays(new TZDate(input.finishBy, TIME_ZONE), start);
-  return ordered.map((t, i) => ({
-    topicId: t.topicId,
-    targetOn: toDateKey(addDays(start, Math.floor(((i + 1) * days) / n))),
-  }));
+  return ordered.map((t, i) => {
+    const spread = toDateKey(addDays(start, Math.floor(((i + 1) * days) / n)));
+    const clamped =
+      t.schoolFinishOn !== null && t.schoolFinishOn > spread
+        ? t.schoolFinishOn < input.finishBy
+          ? t.schoolFinishOn
+          : input.finishBy
+        : spread;
+    return { topicId: t.topicId, targetOn: clamped };
+  });
 }

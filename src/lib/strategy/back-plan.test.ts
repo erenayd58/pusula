@@ -41,15 +41,34 @@ describe("backPlanTopics", () => {
     const out = backPlanTopics({
       topics: [
         t("t1", "tr", 1, 1),
-        t("m1", "mat", 2, 1, { schoolFinishOn: "2026-11-02" }),
-        t("f1", "fen", 3, 1, { schoolFinishOn: "2026-10-05" }),
+        t("m1", "mat", 2, 1, { schoolFinishOn: "2026-09-10" }),
+        t("f1", "fen", 3, 1, { schoolFinishOn: "2026-09-07" }),
         t("t2", "tr", 1, 2, { done: true }),
       ],
       startsOn: "2026-09-14",
-      finishBy: "2026-09-17", // 3 gün, 3 konu → 1, 2, 3. gün
+      finishBy: "2026-09-17", // 3 gün, 3 konu → 1, 2, 3. gün (okul tarihleri geçmiş, kelepçe yok)
     });
     expect(out.map((o) => o.topicId)).toEqual(["f1", "m1", "t1"]);
     expect(out.map((o) => o.targetOn)).toEqual(["2026-09-15", "2026-09-16", "2026-09-17"]);
+  });
+
+  it("okul kelepçesi: hedef okul tarihinden önce olamaz; finishBy ile sınırlı; diğerleri değişmez", () => {
+    const out = backPlanTopics({
+      topics: [
+        t("f1", "fen", 3, 1, { schoolFinishOn: "2026-10-05" }),
+        t("m1", "mat", 2, 1, { schoolFinishOn: "2026-12-07" }),
+        t("t1", "tr", 1, 1),
+        t("t2", "tr", 1, 2),
+      ],
+      startsOn: "2026-09-14",
+      finishBy: "2026-11-09", // 56 gün, 4 konu → 14, 28, 42, 56. gün
+    });
+    expect(out).toEqual([
+      { topicId: "f1", targetOn: "2026-10-05" }, // yayılım 28 Eyl → okul haftasına itildi
+      { topicId: "m1", targetOn: "2026-11-09" }, // okul bitişten sonra → finishBy
+      { topicId: "t1", targetOn: "2026-10-26" },
+      { topicId: "t2", targetOn: "2026-11-09" },
+    ]);
   });
 
   it("eşit yayılım uçları: son konu bitiş günü; tek konu bitişe; 0 günlük aralıkta hepsi aynı gün", () => {

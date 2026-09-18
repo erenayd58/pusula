@@ -77,7 +77,7 @@ export async function getStudentTargets(studentId: string): Promise<StudentTarge
     supabase
       .from("v_student_subject_targets")
       .select(
-        "subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, questions_target, questions_done, topics_total, topics_done, topics_overdue",
+        "subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, questions_target, questions_done, topics_total, topics_done, topics_expected",
       )
       .eq("student_id", studentId)
       .order("subject_sort_order")
@@ -153,7 +153,7 @@ export async function getStudentTargets(studentId: string): Promise<StudentTarge
               questionsDone: r.questions_done ?? 0,
               topicsTotal: r.topics_total ?? 0,
               topicsDone: r.topics_done ?? 0,
-              topicsOverdue: r.topics_overdue ?? 0,
+              topicsExpected: r.topics_expected ?? 0,
             },
           ]
         : [],

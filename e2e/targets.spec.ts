@@ -65,6 +65,13 @@ test.describe("hedef ve geri planlama", () => {
         els.map((el) => (el as HTMLInputElement).value),
       );
       expect(values.filter(Boolean)).toHaveLength(topicCount);
+      // Ders bölümleri katlı (gecikmiş konu yok); özet satırı ve açınca konu satırları.
+      const firstSubject = page.getByTestId("topic-target-subject").first();
+      await expect(firstSubject).not.toHaveAttribute("open", "");
+      await expect(firstSubject.locator("summary")).toContainText(
+        /Türkçe\s*· \d+\s+konu · 0\s+bitti/,
+      );
+      await firstSubject.locator("summary").click();
       await expect(page.getByText(/^Hedef: /).first()).toBeVisible();
       await expect(
         page.getByRole("button", { name: "Takvimi yeniden oluştur ve kaydet" }),

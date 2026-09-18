@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ChevronRightIcon } from "lucide-react";
 import { toast } from "sonner";
 import { FormError } from "@/components/shared/form-error";
 import { SubjectBadge } from "@/components/shared/subject-badge";
@@ -11,14 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { topicStatusLabels } from "@/content/labels";
 import { weekStart } from "@/lib/dates";
-import { formatWeekRange } from "@/lib/format";
+import { formatCount, formatWeekRange } from "@/lib/format";
 import { updateTopicTarget } from "../server/actions";
 import type { StudentTargets } from "../types";
 
 /**
- * Konu hedef listesi (Faz 5b): ders başına konu satırı — ad, durum, hedef hafta (`input
- * type="date"`, tek satır `updateTopicTarget`), okul haftası (varsa), gecikmişse nötr rozet
- * "Hedef geçti". Hedef kurulmadıysa boş metin.
+ * Konu hedef listesi (Faz 5b): ders başına katlanabilir bölüm (`details`; özet "Türkçe · 13 konu ·
+ * 4 gecikmiş · 3 bitti"; gecikmiş konusu olan ders varsayılan açık) — konu satırı: ad, durum,
+ * hedef hafta (`input type="date"`, tek satır `updateTopicTarget`), okul haftası (varsa),
+ * gecikmişse nötr rozet "Hedef geçti". Hedef kurulmadıysa boş metin.
  */
 export function TopicTargetList({ targets, today }: { targets: StudentTargets; today: string }) {
   const router = useRouter();
@@ -55,25 +57,40 @@ export function TopicTargetList({ targets, today }: { targets: StudentTargets; t
       <FormError message={error} />
       {targets.subjects.map((subject) => {
         const rows = targets.topics.filter((t) => t.subjectId === subject.subjectId);
-        const headingId = `topic-targets-${subject.subjectId}`;
+        const isOverdue = (topicId: string, done: boolean) => {
+          const value = dates[topicId];
+          return !done && !!value && value <= today;
+        };
+        const overdueCount = rows.filter((t) => isOverdue(t.topicId, t.done)).length;
+        const doneCount = rows.filter((t) => t.done).length;
+        const summary = [
+          formatCount(rows.length, "konu"),
+          overdueCount > 0 ? formatCount(overdueCount, "gecikmiş") : null,
+          formatCount(doneCount, "bitti"),
+        ]
+          .filter((s): s is string => s !== null)
+          .join(" · ");
         return (
-          <section
+          <details
             key={subject.subjectId}
-            aria-labelledby={headingId}
+            open={overdueCount > 0}
+            data-testid="topic-target-subject"
             style={subjectVars(subject.color)}
-            className="rounded-sm border border-line bg-bg-paper"
+            className="group rounded-sm border border-line bg-bg-paper"
           >
-            <h3
-              id={headingId}
-              className="flex items-center gap-3 border-b border-line px-4 py-2 text-small font-semibold text-ink-900"
-            >
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 py-2 text-small text-ink-900 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden">
+              <ChevronRightIcon
+                aria-hidden="true"
+                className="size-4 shrink-0 text-ink-500 transition-transform group-open:rotate-90"
+              />
               <SubjectBadge color={subject.color} shortName={subject.shortName} />
-              {subject.name}
-            </h3>
+              <span className="font-semibold">{subject.name}</span>
+              <span className="text-ink-500">{`· ${summary}`}</span>
+            </summary>
             <ol className="divide-y divide-line">
               {rows.map((t) => {
                 const value = dates[t.topicId] ?? "";
-                const overdue = !t.done && value !== "" && value <= today;
+                const overdue = isOverdue(t.topicId, t.done);
                 const id = `topic-target-${t.topicId}`;
                 return (
                   <li
@@ -112,7 +129,7 @@ export function TopicTargetList({ targets, today }: { targets: StudentTargets; t
                 );
               })}
             </ol>
-          </section>
+          </details>
         );
       })}
     </div>

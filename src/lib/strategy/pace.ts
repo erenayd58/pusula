@@ -4,10 +4,11 @@ import { TIME_ZONE, daysSince, toDateKey } from "@/lib/dates";
 import { formatCount, formatPossessive, formatSigned, withUnit } from "@/lib/format";
 
 /**
- * Gidişat (09 §2 Parça 2, §3.1 tanımları): bitmiş = completed | mastered (çağıran `done` verir);
- * gecikmiş = hedefi bugün ya da öncesi ve bitmemiş; ileride = bitmiş ve hedefi gelecekte;
- * beklenen = hedefi bugün ya da öncesi olan konular + hedefsiz bitmiş konular; hız = son
- * `windowDays` günde biten × 7 / pencere. Saf; `features/*` import etmez.
+ * Gidişat (09 §2 Parça 2, §3.1 tanımları; net takvim konumu): bitmiş = completed | mastered
+ * (çağıran `done` verir); beklenen = hedefi bugün ya da öncesi olan konular (bitmiş olsun olmasın;
+ * hedefsiz bitmiş konular takvimin önündedir, beklenene girmez); geride = max(0, beklenen − bitmiş);
+ * ileride = max(0, bitmiş − beklenen); hız = son `windowDays` günde biten × 7 / pencere. Konu
+ * bazlı "hedefi geçti" bilgisi listede ayrıca verilir. Saf; `features/*` import etmez.
  */
 export type PaceTopic = {
   topicId: string;
@@ -20,8 +21,11 @@ export type PaceTopic = {
 export type TopicPace = {
   total: number;
   done: number;
+  /** Hedefi bugün ya da öncesi olan konu sayısı (takvime göre bugüne kadar bitmesi beklenen). */
   expectedByToday: number;
+  /** Net geride: max(0, beklenen − bitmiş). */
   overdue: number;
+  /** Net ileride: max(0, bitmiş − beklenen). */
   ahead: number;
   velocityPerWeek: number;
   projectedDoneByExam: number;
@@ -36,15 +40,10 @@ export function topicPace(topics: readonly PaceTopic[], input: PaceInput): Topic
   const windowDays = Math.max(1, input.windowDays);
   let done = 0;
   let expectedByToday = 0;
-  let overdue = 0;
-  let ahead = 0;
   let doneInWindow = 0;
   for (const t of topics) {
-    const due = t.targetOn !== null && t.targetOn <= today;
     if (t.done) done++;
-    if (due || (t.done && t.targetOn === null)) expectedByToday++;
-    if (!t.done && due) overdue++;
-    if (t.done && t.targetOn !== null && t.targetOn > today) ahead++;
+    if (t.targetOn !== null && t.targetOn <= today) expectedByToday++;
     if (t.done && t.completedAt !== null) {
       const since = daysSince(t.completedAt, today);
       if (since >= 0 && since < windowDays) doneInWindow++;
@@ -52,6 +51,8 @@ export function topicPace(topics: readonly PaceTopic[], input: PaceInput): Topic
   }
   const total = topics.length;
   const remaining = total - done;
+  const overdue = Math.max(0, expectedByToday - done);
+  const ahead = Math.max(0, done - expectedByToday);
   const velocityPerWeek = (doneInWindow * 7) / windowDays;
 
   let projectedDoneByExam = done;

@@ -1852,8 +1852,9 @@ export type Database = {
           status: Database["public"]["Enums"]["student_status"] | null
           student_id: string | null
           topics_ahead: number | null
+          topics_behind: number | null
           topics_done: number | null
-          topics_overdue: number | null
+          topics_expected: number | null
           topics_total: number | null
           username: string | null
           week_goal_percent: number | null
@@ -2171,7 +2172,7 @@ export type Database = {
           subject_short_name: string | null
           subject_sort_order: number | null
           topics_done: number | null
-          topics_overdue: number | null
+          topics_expected: number | null
           topics_total: number | null
         }
         Relationships: [
