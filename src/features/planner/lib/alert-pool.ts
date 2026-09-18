@@ -81,7 +81,8 @@ export function alertsToPoolItems(
 
 /**
  * Önerileri havuzun `suggestions` kategorisine çevirir (Parça 4): görev alanları öneri
- * motorundan hazır gelir (`alertToTask`), sebep `Suggestion.reason`. Sıra puana göre.
+ * motorundan hazır gelir (`alertToTask`), sebep `Suggestion.reason` (+ strateji notu, Faz 5c).
+ * Sıra puana göre.
  */
 export function suggestionsToPoolItems(suggestions: readonly Suggestion[]): TaskPoolItem[] {
   return suggestions.map((s) => ({
@@ -94,6 +95,6 @@ export function suggestionsToPoolItems(suggestions: readonly Suggestion[]): Task
     targetValue: s.task.targetValue,
     targetUnit: s.task.targetUnit,
     estimatedMinutes: s.task.estimatedMinutes,
-    reason: s.reason,
+    reason: s.strategyNote ? `${s.reason} · ${s.strategyNote}` : s.reason,
   }));
 }

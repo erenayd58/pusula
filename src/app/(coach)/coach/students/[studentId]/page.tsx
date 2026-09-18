@@ -18,6 +18,7 @@ import {
 import { CoachOverview } from "@/features/question-log";
 import { requireRole } from "@/lib/auth";
 import { shiftWeek, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { periodFor } from "@/lib/strategy/periods";
 import { getEnabledModules } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Genel bakış" };
@@ -96,6 +97,7 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
           suggestions={suggestions}
           dismissDays={settings.suggestions.dismiss_days}
           emptyText="Şu an bu öğrenci için yeni öneri yok."
+          period={periodFor(settings.strategy.periods, pace.today)}
           action={
             plannerOn
               ? (s) => (

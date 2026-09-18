@@ -16,6 +16,7 @@ import { AddSuggestionButton } from "@/features/planner";
 import { requireRole } from "@/lib/auth";
 import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { formatDateTr } from "@/lib/format";
+import { periodFor } from "@/lib/strategy/periods";
 
 export const metadata: Metadata = { title: "Öğrenciler" };
 
@@ -51,6 +52,7 @@ export default async function StudentsPage() {
   );
   const studentNames = new Map(students.map((s) => [s.profileId, s.fullName]));
   const week = toDateKey(weekStart(todayInIstanbul()));
+  const period = periodFor(settings.strategy.periods, toDateKey(todayInIstanbul()));
 
   return (
     <>
@@ -97,6 +99,7 @@ export default async function StudentsPage() {
             studentNames={studentNames}
             dismissDays={settings.suggestions.dismiss_days}
             description="Bu hafta plana eklenebilecek konular; dikkat listesindekiler burada tekrar etmez."
+            period={period}
             visiblePerGroup={3}
             action={(s) => (
               <AddSuggestionButton

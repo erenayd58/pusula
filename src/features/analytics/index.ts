@@ -48,6 +48,7 @@ export {
   getTopicAlertFacts,
   getTopicAlerts,
   getSuggestions,
+  getStrategyContext,
   getSetupFacts,
   getSetupAlerts,
 } from "./server/queries";
