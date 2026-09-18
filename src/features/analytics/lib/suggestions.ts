@@ -49,6 +49,7 @@ export function plannedKey(studentId: string, id: string): string {
 const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
   knowledge_gap: "topic_study",
   not_started: "topic_study",
+  behind_school: "topic_study",
   low_accuracy: "questions",
   neglected_subject: "questions",
   review_due: "review",

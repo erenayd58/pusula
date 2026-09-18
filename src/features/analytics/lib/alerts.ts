@@ -15,15 +15,16 @@ import type {
 /** Kurum ayarındaki `alerts` anahtarı; eşikler koda gömülmez, parametre gelir. */
 export type AlertThresholds = OrgSettings["alerts"];
 
-/** Listeleme sırası: önce zayıflık, sonra ihmal, bakım, en sonda başlanmamış. */
+/** Listeleme sırası: önce zayıflık, okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
 const KIND_PRIORITY: Record<TopicAlertKind, number> = {
   knowledge_gap: 0,
   low_accuracy: 1,
-  neglected_subject: 2,
-  forgetting_risk: 3,
-  review_due: 4,
-  stale: 5,
-  not_started: 6,
+  behind_school: 2,
+  neglected_subject: 3,
+  forgetting_risk: 4,
+  review_due: 5,
+  stale: 6,
+  not_started: 7,
 };
 
 const DONE: readonly TopicStatus[] = ["completed", "mastered"];
@@ -258,6 +259,8 @@ export function alertReason(a: TopicAlert): string {
       return days ? `${days}dür tekrar edilmedi` : "Tekrar zamanı geldi";
     case "not_started":
       return "Sıradaki konu";
+    case "behind_school":
+      return "Okul bu konuyu bitirdi";
     case "neglected_subject":
       return days ? `${days}dür bu derste kayıt yok` : "Bu derste kayıt yok";
   }

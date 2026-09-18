@@ -18,6 +18,16 @@
 insert into public.organizations (id, name, slug)
 values ('a0000000-0000-4000-8000-000000000001', 'Demo Koçluk', 'demo');
 
+-- Sezon dönemleri (Faz 5a, karar B3): üretimde owner "Varsayılanları öner" ile doldurur; yerel
+-- demo kuruma LGS 2027 (13 Haz 2027) önerisi dolu yazılır (e2e ve ekran görüntüleri için).
+update public.organizations
+set settings = jsonb_set(settings, '{strategy,periods}', '[
+  {"name": "Yeni konu öğrenme",        "starts_on": "2026-09-14", "ends_on": "2027-03-20", "mix": {"new_topic": 50, "weak": 30, "review": 20}},
+  {"name": "İkinci tur ve pekiştirme", "starts_on": "2027-03-21", "ends_on": "2027-05-08", "mix": {"new_topic": 20, "weak": 40, "review": 40}},
+  {"name": "Deneme ve eksik kapatma",  "starts_on": "2027-05-09", "ends_on": "2027-06-13", "mix": {"new_topic": 0,  "weak": 50, "review": 50}}
+]'::jsonb)
+where id = 'a0000000-0000-4000-8000-000000000001';
+
 -- Auth kullanıcıları --------------------------------------------------------------
 
 with demo_users (id, email) as (

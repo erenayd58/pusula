@@ -1230,6 +1230,7 @@ export type Database = {
           importance: number
           name: string
           parent_id: string | null
+          school_finish_on: string | null
           semester: number | null
           sort_order: number
           subject_id: string
@@ -1243,6 +1244,7 @@ export type Database = {
           importance?: number
           name: string
           parent_id?: string | null
+          school_finish_on?: string | null
           semester?: number | null
           sort_order: number
           subject_id: string
@@ -1256,6 +1258,7 @@ export type Database = {
           importance?: number
           name?: string
           parent_id?: string | null
+          school_finish_on?: string | null
           semester?: number | null
           sort_order?: number
           subject_id?: string
@@ -1652,6 +1655,7 @@ export type Database = {
           last_topic_log_date: string | null
           organization_id: string | null
           questions_window: number | null
+          school_finish_on: string | null
           status: Database["public"]["Enums"]["topic_status"] | null
           status_changed_at: string | null
           student_first_log_date: string | null
@@ -1868,6 +1872,7 @@ export type Database = {
         Args: { p_plan_id: string; p_text: string }
         Returns: undefined
       }
+      set_topic_school_dates: { Args: { p_rows: Json }; Returns: number }
       uncomplete_plan_item: { Args: { p_item_id: string }; Returns: Json }
     }
     Enums: {
@@ -1893,6 +1898,7 @@ export type Database = {
         | "stale"
         | "not_started"
         | "neglected_subject"
+        | "behind_school"
       topic_status:
         | "not_started"
         | "studying"
@@ -2053,6 +2059,7 @@ export const Constants = {
         "stale",
         "not_started",
         "neglected_subject",
+        "behind_school",
       ],
       topic_status: [
         "not_started",

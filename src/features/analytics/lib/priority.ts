@@ -19,6 +19,7 @@ export const KIND_BASE_SCORE: Record<TopicAlertKind, number> = {
   stale: 0.6,
   review_due: 0.6,
   neglected_subject: 0.5,
+  behind_school: 0.75,
   not_started: 0.4,
 };
 
