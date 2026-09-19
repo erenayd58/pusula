@@ -1,7 +1,9 @@
 import {
   deleteE2EMockExams,
+  deleteE2EPlaylists,
   deleteE2EResources,
   deleteE2EStudents,
+  deleteE2ETemplates,
   deleteE2ETopics,
 } from "./fixtures/db";
 
@@ -19,4 +21,8 @@ export default async function globalTeardown() {
   if (exams > 0) console.log(`globalTeardown: ${exams} artık "E2E Deneme" silindi.`);
   const resources = await deleteE2EResources();
   if (resources > 0) console.log(`globalTeardown: ${resources} artık "E2E Kaynak" silindi.`);
+  const playlists = await deleteE2EPlaylists();
+  if (playlists > 0) console.log(`globalTeardown: ${playlists} artık "E2E Liste" silindi.`);
+  const templates = await deleteE2ETemplates();
+  if (templates > 0) console.log(`globalTeardown: ${templates} artık "E2E Şablon" silindi.`);
 }

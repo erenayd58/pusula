@@ -459,3 +459,34 @@ where l.student_id = 'b0000000-0000-4000-8000-000000000011'
   and l.subject_id = 'c1000000-0000-4000-8000-000000000002'
   and l.topic_id = m.topic_id::uuid
   and l.log_date = (now() at time zone 'Europe/Istanbul')::date - m.days_ago;
+
+-- Videolar (Faz 7b): elle kurulan "Demo Matematik Video Dersleri" (6 video; ilk üçü ilk üç Mat konusuna
+-- eşli; kimlikler YER TUTUCU — yerelde oynatıcı "video kullanılamıyor" gösterir, owner gerçek liste içe
+-- aktarır; karar D16), Ayşe ve Mehmet'e atanmış; Ayşe 2 video izlemiş (biri notlu).
+insert into public.video_playlists (id, organization_id, template_id, subject_id, title, channel_name, created_by)
+values ('f2000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001',
+        'c1000000-0000-4000-8000-000000000002', 'Demo Matematik Video Dersleri', 'Demo Kanal', 'b0000000-0000-4000-8000-000000000002');
+
+insert into public.videos (id, playlist_id, topic_id, youtube_video_id, title, duration_seconds, sort_order)
+select
+  ('f3000000-0000-4000-8000-0000000000' || lpad(g::text, 2, '0'))::uuid,
+  'f2000000-0000-4000-8000-000000000001',
+  case
+    when g = 1 then 'c2000000-0000-4000-8000-000000002001'
+    when g = 2 then 'c2000000-0000-4000-8000-000000002002'
+    when g = 3 then 'c2000000-0000-4000-8000-000000002003'
+    else null
+  end::uuid,
+  'demo000000' || g,
+  'Matematik Ders ' || g,
+  540 + g * 60,
+  g - 1
+from generate_series(1, 6) g;
+
+insert into public.student_playlists (student_id, playlist_id, assigned_by) values
+  ('b0000000-0000-4000-8000-000000000011', 'f2000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002'),
+  ('b0000000-0000-4000-8000-000000000012', 'f2000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002');
+
+insert into public.student_video_progress (student_id, video_id, watched_at, note) values
+  ('b0000000-0000-4000-8000-000000000011', 'f3000000-0000-4000-8000-000000000001', now() - interval '5 days', 'Üslü sayılarda negatif üs kısmını tekrar izle'),
+  ('b0000000-0000-4000-8000-000000000011', 'f3000000-0000-4000-8000-000000000002', now() - interval '2 days', null);

@@ -8,7 +8,7 @@
 -- görevi tamamlanır, taslak dokunulmaz, geri alma planı geri almaz, koç öğrencisi için çağırır,
 -- başka koç 42501), complete_plan_item video → watched_at; görünümler RLS + percent.
 begin;
-select plan(48);
+select plan(49);
 select tests.seed_fixture();
 select tests.seed_templates();
 
@@ -58,6 +58,13 @@ select throws_ok(
   '23514', null,
   'youtube_video_id 11 karakter olmalı'
 );
+select lives_ok(
+  $$insert into public.video_playlists (organization_id, template_id, title, created_by)
+    values (tests.id('org_a'), tests.id('tpl_org_a'), 'Elle 1', tests.id('coach_x')),
+           (tests.id('org_a'), tests.id('tpl_org_a'), 'Elle 2', tests.id('coach_x'))$$,
+  'elle kurulan listeler (YouTube kimliği yok) aynı kapsamda birden fazla olabilir'
+);
+delete from public.video_playlists where title in ('Elle 1', 'Elle 2');
 
 -- 2. import_playlist_videos: yenileme konuyu korur, çıkan kalır, yeni eklenir. ---------------------
 select results_eq(
