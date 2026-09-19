@@ -418,13 +418,13 @@ Genişletilebilir kalması gereken noktalar; Faz 5 bunları **imza değiştirmed
 | Yapı | Faz 4 | Faz 5 eki |
 |---|---|---|
 | `availabilityForWeek({ wake, slots, exceptions })` | Kurum uyanık aralığı | `wake` öğrenci başına; `exceptions` MEB takvimi/tatiller (`schedule_exceptions.source: 'manual' \| 'calendar'` kolonu, kurum düzeyi tatil tablosu) |
-| `plan_item_kind`, `plan_items` | 5 tür | `section`, `video` değerleri; `section_id`, `video_id` kolonları; `kinds.ts`'e iki satır; havuz `resources`/`videos` |
+| `plan_item_kind`, `plan_items` | 5 tür | ✅ Faz 7 (11): `section`, `video` değerleri; `section_id`, `video_id` kolonları; `kinds.ts`'e iki satır (`completeMode: "watch"`); havuz `resources`/`videos` (`lib/media-pool`) |
 | `buildSuggestions({ alerts, … })` | Uyarı tabanlı | `strategy` parametresi (sınava kalan gün, hedef ders dağılımı) ve deneme yanlışları (`v_topic_mastery`) uyarı olgusu olarak |
 | `priorityScore(...)` | ders × zayıflık × gecikme | `examProximity` çarpanı; ağırlıklar kurum ayarına taşınabilir |
 | `distributeTasks({ days, … })` | 1 hafta | `days` çok haftalık dizi; geri planlama (sınava kadar) aynı fonksiyonun ufuk parametresi |
 | `copy_weekly_plan` | Öğrenciler arası kopya | Şablon (`plan_templates`) kaynağı için ikinci giriş noktası, aynı kopyalama çekirdeği |
 | `v_topic_alert_facts` | Soru + durum olguları | Deneme yanlışı kolonları (`mock_wrong_total`); tekrar modülü gelince `review_due` → `v_review_queue` |
-| `TaskPoolCategoryId` | 5 kategori | `resources`, `videos`; `buildTaskPool` sırası sabit |
+| `TaskPoolCategoryId` | 5 kategori | ✅ Faz 7: `resources`, `videos` (tekrar zamanı ile sık kullanılan arasında); `buildTaskPool` sırası sabit |
 
 ## 6. Kararlar (2026-09-17, onaylandı)
 

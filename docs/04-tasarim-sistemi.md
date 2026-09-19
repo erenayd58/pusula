@@ -330,6 +330,9 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 | `BottomSheet` / `Dialog` | `components/ui` | < 768 px alt panel, ≥ 768 px diyalog; aynı API (`ResponsiveSheet`) |
 | `StatTile` | `components/shared` | Büyük sayı + kısa açıklama (+ isteğe bağlı karşılaştırma satırı) |
 | `MistakeForm`, `MistakeList`, `MistakeDetail`, `ReasonDistribution` | `features/mistakes` | Faz 6b: fotoğraf alanı en üstte (kamera/galeri, canvas sıkıştırma, önizleme + Kaldır), fotoğrafsızken not alanı ipuçlu, fotoğrafla "Not ekle" katlanır; ders/neden çipleri `radiogroup`; liste kartı küçük görsel / ders ikonu, nötr neden rozeti (`Badge`), çözülen kayıtta fosforlu "Çözüldü" (tamamlanan görev kuralı); filtre çipleri URL bağlantısı (`aria-pressed`), neden çipleri "Nedene göre" katlanır; koç dağılımı `ink-900` yatay çubuklar (ders rengi yok) |
+| `StudentPicker` | `components/shared` | Faz 7: kaynak/liste atama paneli (`ResponsiveSheet`, onay kutuları; atanmışlar işaretli + devre dışı; "N öğrenciye ata") |
+| `ResourceForm`, `SectionEditor`, `StudentResourceList/Detail` | `features/resources` | Faz 7a: ad alanında benzer ad önerisi ("Bunu mu demek istedin?"), tür/ders çipleri (`radiogroup`), test partisi ("Test 1–40, her biri 20 soru", canlı önizleme); editörde çoklu seçim → "Konuya eşle", ↑↓; öğrenci kartlarında `ProgressBar` (`ink-900`, ders rengi ve fosforlu yok), test satırı dokununca hızlı kayıt `section` ön dolgusu (Boş otomatik) |
+| `PlaylistForm`, `VideoEditor`, `StudentPlaylistPlayer` | `features/videos` | Faz 7b: "YouTube listesi" / "Elle liste kur" çipleri (anahtar yoksa nötr not); editörde konuya eşle, video ekle, Listeyi yenile (küçük resim yok, D15); oynatıcı `youtube-nocookie` iframe 16:9, "İzledim" `aria-pressed`, not, sonraki video; izlenen satır nötr onay ikonu (fosforlu yalnızca plan kartında) |
 | `LineChart` | `components/shared/line-chart` | Faz 6a (karar C1): saf SVG çizgi grafiği; `viewBox` genişliği kabın ölçülen genişliği (`ResizeObserver`; metin telefonda küçülmez), x eşit aralıklı (etiket sayısı genişliğe göre 3–6), y `niceCeil`; seri çipleri (`checkbox`, en az biri açık; toplam `ink-900` 3 px, dersler `var(--s)` 1,5 px), `secondaryToggle` ile `defaultOn` olmayan seriler < md "Dersleri göster" arkasında (grafik ilk ekranda), nokta seçimi dokunma/←→/Home/End, `aria-live` detay kutusu, `<figure aria-label={özet}>` + sr-only tablo; hareket yok. Dört noktadan azsa çağıran kart listesi çizer |
 
 ## 11. Hareket
@@ -377,8 +380,8 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 ## 14. Sonraki Tasarım Turu İçin Açık Konular
 
 - [ ] Koyu tema (clay gölgelerinin koyu zeminde karşılığı dahil)
-- [ ] Öğrenci: Denemeler, Yanlış defteri, Kaynaklar, Videolar, Ben ekranları
-- [ ] Koç: Şablon editörü, Kaynak ve video katalogları, Deneme kataloğu ve karşılaştırma, Ayarlar
+- [ ] Öğrenci: Denemeler, Yanlış defteri, Kaynaklar, Videolar, Ben ekranları (Faz 6–7 uygulama görüntüleri `docs/tasarim/uygulama-6/`, `uygulama-7/`)
+- [ ] Koç: Şablon editörü, Kaynak ve video katalogları, Deneme kataloğu ve karşılaştırma, Ayarlar (Faz 7 uygulama görüntüleri `docs/tasarim/uygulama-7/`)
 - [ ] Giriş, davet ve KVKK onay ekranları
 - [ ] Veli: Denemeler ve Notlar sekmeleri
 - [ ] Boş durum illüstrasyonları (özgün SVG)

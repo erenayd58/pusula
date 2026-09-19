@@ -16,12 +16,22 @@ export {
   getTodayPlanItems,
   getPlanOptions,
   getFrequentTasks,
+  getResourcePoolRows,
+  getVideoPoolRows,
   getPlanCompletion,
   listCoachPlans,
   getExistingItemCounts,
 } from "./server/queries";
 export { buildTaskPool } from "./lib/pool";
 export { alertsToPoolItems, suggestionsToPoolItems } from "./lib/alert-pool";
+export {
+  alertPriorityByTopic,
+  sectionsToPoolItems,
+  videosToPoolItems,
+  videoMinutes,
+  type SectionPoolRow,
+  type VideoPoolRow,
+} from "./lib/media-pool";
 export { completionPercent, weekTotals } from "./lib/plan-summary";
 export type {
   PlanItem,

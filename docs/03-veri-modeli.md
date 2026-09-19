@@ -55,12 +55,12 @@ create type parent_relation      as enum ('mother', 'father', 'guardian', 'other
 create type consent_type         as enum ('privacy_notice', 'explicit_consent', 'photo_upload');
 create type topic_status         as enum ('not_started', 'studying', 'completed', 'needs_review', 'mastered');
 create type busy_slot_kind       as enum ('school', 'tutoring_center', 'private_lesson', 'course', 'other');   -- Faz 4a
-create type resource_type        as enum ('lecture_book', 'question_bank', 'worksheet', 'mock_book', 'booklet', 'other');
+create type resource_type        as enum ('lecture_book', 'question_bank', 'worksheet', 'booklet', 'mock_book', 'other');   -- Faz 7a ✅ (faz7a_enums)
 create type question_source      as enum ('resource', 'plan', 'school', 'online', 'free');
 create type goal_metric          as enum ('questions');           -- Faz 3 sade (02 karar #32); ileride add value
 create type goal_period          as enum ('daily', 'weekly');     -- Faz 3 sade; 'monthly', 'custom' gerekince eklenir
 create type plan_status          as enum ('draft', 'published');
-create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 7: add value 'section', 'video'
+create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom', 'section', 'video');   -- Faz 4b (karar A13); Faz 7a add value 'section', 'video' ✅
 create type topic_alert_kind     as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk', 'stale', 'not_started', 'neglected_subject', 'behind_school');   -- Faz 4c; 4d suggestion_dismissals.kind; Faz 5a add value 'behind_school'
 create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');   -- Faz 6b ✅
 -- topic_alert_kind: Faz 6b add value 'mock_weak' ✅ (10 §1.1; faz6b_mistakes)
@@ -156,7 +156,7 @@ student_modules (
 )
 ```
 
-Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm). Faz 4a: `faz4a_org_settings` (ayar varsayılanları), `faz4a_schedule` (`busy_slot_kind`, `busy_slots`, `schedule_exceptions`, grant + politikalar). Faz 4b: `faz4b_weekly_plans` (2 enum, 2 tablo, `question_logs.plan_item_id`, `private.plan_student/can_read_plan/can_write_plan`, grant + politikalar), `faz4b_plan_rpcs` (`private.can_act_on_plan` + 7 RPC), `faz4b_plan_views` (3 görünüm + `v_coach_student_overview` plan kolonları). Faz 4c: `faz4c_topic_alert_facts` (`topic_alert_kind` enum + `v_topic_alert_facts` görünümü; tablo yok). Faz 4d: `faz4d_suggestion_dismissals` (tablo, grant + politikalar). Faz 4 kapanışı: `faz4e_setup_facts_to_date` (`v_plan_completion` + `to_date_*` kolonları, `v_coach_student_overview` + `plan_to_date_percent_week`, `v_student_setup_facts` görünümü, kurum ayarı `alerts.setup_account_days`). Faz 5a: `faz5a_strategy_settings` (kurum ayarı `strategy`), `faz5a_topic_school_dates` (`topics.school_finish_on`, enum `behind_school`, `set_topic_school_dates` RPC, `v_topic_alert_facts.school_finish_on`). Faz 5b: `faz5b_student_targets` (`students` hedef ve uyanık aralık kolonları + `wake_*` kolon grant'ı, `student_subject_targets`, `student_topic_targets`, grant + politikalar), `faz5b_target_rpcs` (`set_student_targets`), `faz5b_pace_views` (`v_student_pace_facts`, `v_student_subject_targets`, `v_coach_student_overview` gidişat kolonları, `v_topic_alert_facts.target_on`), `faz5b_pace_net` (iki görünüm drop + create: net konum kolonları `topics_expected / topics_behind / topics_ahead`).
+Faz 1a'da uygulanan migration'lar: `faz1a_enums`, `faz1a_core_tables`, `faz1a_private_helpers`, `faz1a_privileges`, `faz1a_rls_policies`. Faz 1b: `faz1b_table_grants`, `faz1b_access_token_hook`, `faz1b_student_rpcs`, `faz1b_assign_coach`, `faz1b_accept_invitation`. Faz 1c şema değiştirmedi. Faz 2: `faz2_topics_schema` (enum, 4 tablo, `private.can_read_template/can_edit_template/subject_template/topic_template`, grant + politikalar), `faz2_topic_rpcs` (`create_student_account` yeni imza: `p_curriculum_template_id`; eski imza `drop function` ile kaldırıldı; `move_topic(p_topic_id, p_direction)` security invoker), `faz2_lgs_2027_template` (sistem şablonu verisi + mevcut öğrencilere atama). Faz 3: `faz3_question_logs_goals` (3 enum, `question_logs`, `goals`, `curriculum_templates.exam_date`, grant + politikalar), `faz3_summary_views` (4 görünüm). Faz 4a: `faz4a_org_settings` (ayar varsayılanları), `faz4a_schedule` (`busy_slot_kind`, `busy_slots`, `schedule_exceptions`, grant + politikalar). Faz 4b: `faz4b_weekly_plans` (2 enum, 2 tablo, `question_logs.plan_item_id`, `private.plan_student/can_read_plan/can_write_plan`, grant + politikalar), `faz4b_plan_rpcs` (`private.can_act_on_plan` + 7 RPC), `faz4b_plan_views` (3 görünüm + `v_coach_student_overview` plan kolonları). Faz 4c: `faz4c_topic_alert_facts` (`topic_alert_kind` enum + `v_topic_alert_facts` görünümü; tablo yok). Faz 4d: `faz4d_suggestion_dismissals` (tablo, grant + politikalar). Faz 4 kapanışı: `faz4e_setup_facts_to_date` (`v_plan_completion` + `to_date_*` kolonları, `v_coach_student_overview` + `plan_to_date_percent_week`, `v_student_setup_facts` görünümü, kurum ayarı `alerts.setup_account_days`). Faz 5a: `faz5a_strategy_settings` (kurum ayarı `strategy`), `faz5a_topic_school_dates` (`topics.school_finish_on`, enum `behind_school`, `set_topic_school_dates` RPC, `v_topic_alert_facts.school_finish_on`). Faz 5b: `faz5b_student_targets` (`students` hedef ve uyanık aralık kolonları + `wake_*` kolon grant'ı, `student_subject_targets`, `student_topic_targets`, grant + politikalar), `faz5b_target_rpcs` (`set_student_targets`), `faz5b_pace_views` (`v_student_pace_facts`, `v_student_subject_targets`, `v_coach_student_overview` gidişat kolonları, `v_topic_alert_facts.target_on`), `faz5b_pace_net` (iki görünüm drop + create: net konum kolonları `topics_expected / topics_behind / topics_ahead`). Faz 7a: `faz7a_enums`, `faz7a_resources`, `faz7a_resource_rpcs_views`; Faz 7b: `faz7b_videos`, `faz7b_video_rpcs_views`, `faz7b_copy_template`, `faz7b_playlist_unique_fix` (§4.5).
 
 **Onay tamlığı (Faz 1c, 02 karar #23):** bir öğrencinin onayı, `consents` içinde `privacy_notice` ve `explicit_consent` türlerinin her biri için geri çekilmemiş (`revoked_at is null`) en az bir satır varsa tamdır; satırın veli dijital onayı (`given_by`) ya da koçun işlediği kâğıt onayı (`recorded_by`, `given_by` boş) olması fark etmez. Veli paneli kapısı ve koç ekranındaki rozet bu tanımı kullanır. `student_modules` için satır yoksa manifestteki `defaultEnabled` geçerlidir; seed satır içermez.
 
@@ -238,7 +238,7 @@ question_logs (
   log_date date not null default (now() at time zone 'Europe/Istanbul')::date,
   subject_id uuid not null references subjects(id),
   topic_id uuid references topics(id),
-  -- section_id uuid references resource_sections(id)                  -- Faz 7'de eklenir (kolon yok)
+  section_id uuid references resource_sections(id) on delete set null,   -- Faz 7a ✅; dolu kayıt = test bitti (§4.5); source 'resource' (plan görevindeyse 'plan')
   plan_item_id uuid references plan_items(id) on delete set null,      -- Faz 4b; dolu kayıtta source = 'plan'
   source question_source not null default 'free',
   total_count int not null check (total_count > 0 and total_count <= 500),
@@ -251,7 +251,7 @@ question_logs (
   check (coalesce(correct_count,0) + coalesce(wrong_count,0) + coalesce(blank_count,0) <= total_count),
   check (log_date <= (now() at time zone 'Europe/Istanbul')::date)   -- gelecek tarih yok
 )
--- index (student_id, log_date desc), (student_id, subject_id, log_date), (subject_id), (topic_id)
+-- index (student_id, log_date desc), (student_id, subject_id, log_date), (subject_id), (topic_id), (plan_item_id), (section_id)
 
 goals (
   id uuid pk,
@@ -327,7 +327,7 @@ plan_items (
   plan_id uuid not null references weekly_plans(id) on delete cascade,
   day_of_week smallint check (day_of_week between 1 and 7),   -- NULL = "bu hafta içinde"
   sort_order smallint not null default 0,
-  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom (Faz 7: section, video)
+  kind plan_item_kind not null,           -- topic_study | questions | review | link | custom | section | video (Faz 7 ✅)
   title text not null,                    -- 1–120; boşsa uygulama `taskTitle` ile üretir
   subject_id uuid references subjects(id) on delete set null,
   topic_id uuid references topics(id) on delete set null,
@@ -338,9 +338,11 @@ plan_items (
   completed_at timestamptz,
   student_note text,                      -- ≤ 200
   postponed_from smallint, postponed_at timestamptz,   -- dolu = bir kez ertelendi
+  section_id uuid references resource_sections(id) on delete set null,   -- Faz 7a ✅ (kind = 'section'; kaynak silinirse null, görev dokunuşla tamamlanır)
+  video_id uuid references videos(id) on delete set null,               -- Faz 7b ✅ (kind = 'video')
   created_at, updated_at
 )
--- index (plan_id, day_of_week, sort_order), (subject_id), (topic_id)
+-- index (plan_id, day_of_week, sort_order), (subject_id), (topic_id), (section_id), (video_id)
 
 question_logs.plan_item_id uuid references plan_items(id) on delete set null   -- + indeks; source = 'plan'
 ```
@@ -424,88 +426,109 @@ announcements (
 )
 ```
 
-### 4.5 Kaynaklar ve Videolar (Faz 7)
+### 4.5 Kaynaklar ve Videolar (Faz 7) ✅
+
+Tasarım: `11-faz7-kaynaklar.md` §1.2–1.4, kararlar D1–D17. **Parça 1 (kaynaklar) ✅**, **Parça 2 (videolar, sezon kopyalama) ✅** (2026-09-19). Migration'lar: `faz7a_enums` (`resource_type`, `plan_item_kind` + `section`/`video`; enum değeri aynı transaction'da kullanılamadığı için ayrı dosya), `faz7a_resources`, `faz7a_resource_rpcs_views`, `faz7b_videos`, `faz7b_video_rpcs_views`, `faz7b_copy_template`, `faz7b_playlist_unique_fix`.
 
 ```sql
-resources (
+resources (                                    -- kitap; kurum kataloğu ya da öğrencinin özel kaynağı ✅
   id uuid pk,
-  organization_id uuid not null references organizations(id),
-  template_id uuid not null references curriculum_templates(id),
-  subject_id uuid references subjects(id),     -- null = çok dersli kitap
-  type resource_type not null,
-  title text not null,
-  publisher text,
-  publish_year smallint,
-  cover_path text,                             -- storage
+  organization_id uuid not null references organizations(id) on delete cascade,
+  template_id uuid not null references curriculum_templates(id) on delete cascade,
+  subject_id uuid references subjects(id) on delete restrict,        -- null = çok dersli kitap (testler ders taşır)
+  student_id uuid references students(profile_id) on delete cascade,  -- null = kurum kataloğu; dolu = yalnızca o öğrenci (karar D1)
+  type resource_type not null default 'question_bank',
+  title text not null,                          -- 1–120
+  publisher text,                               -- ≤ 60
+  publish_year smallint,                        -- 2000–2100
+  created_by uuid references profiles(id) on delete set null,   -- kim ekledi; "Öğrenci ekledi" rozeti student_id'den
   created_at, updated_at
 )
+-- index (organization_id, title), (template_id), (subject_id), (student_id), (created_by)
 
-resource_sections (
+resource_sections (                            -- test / bölüm ✅
   id uuid pk,
   resource_id uuid not null references resources(id) on delete cascade,
-  subject_id uuid references subjects(id),
-  topic_id uuid references topics(id),
-  title text not null,                         -- 'Test 12'
-  question_count smallint,
-  page_start smallint, page_end smallint,
-  sort_order smallint not null
+  subject_id uuid references subjects(id) on delete set null,   -- çok dersli kitapta dolu; tek dersli kitapta null
+  topic_id uuid references topics(id) on delete set null,
+  title text not null,                          -- 1–60: 'Test 12'
+  question_count smallint,                      -- 1–200
+  page_start smallint, page_end smallint,       -- check (page_end >= page_start)
+  sort_order smallint not null default 0,
+  created_at, updated_at
 )
+-- index (resource_id, sort_order), (subject_id), (topic_id)
 
-student_resources (
+student_resources (                            -- atama ✅
   student_id uuid references students(profile_id) on delete cascade,
   resource_id uuid references resources(id) on delete cascade,
-  assigned_by uuid references profiles(id),
-  status text not null default 'active' check (status in ('active','completed','dropped')),
+  assigned_by uuid references profiles(id) on delete set null,
   assigned_at timestamptz not null default now(),
   primary key (student_id, resource_id)
 )
+-- index (resource_id), (assigned_by)
 
-video_playlists (
+question_logs.section_id uuid references resource_sections(id) on delete set null   -- + indeks; source: plan → 'plan', yoksa section → 'resource' (D12)
+plan_items.section_id  uuid references resource_sections(id) on delete set null   -- + indeks
+plan_items.video_id    uuid references videos(id) on delete set null              -- + indeks
+
+video_playlists (                              -- oynatma listesi ✅
   id uuid pk,
-  organization_id uuid not null references organizations(id),
-  template_id uuid not null references curriculum_templates(id),
-  subject_id uuid references subjects(id),
-  title text not null,
-  channel_name text,
-  youtube_playlist_id text,
+  organization_id uuid not null references organizations(id) on delete cascade,
+  template_id uuid not null references curriculum_templates(id) on delete cascade,
+  subject_id uuid references subjects(id) on delete restrict,        -- null = karışık liste
+  student_id uuid references students(profile_id) on delete cascade,  -- null = kurum kataloğu (D1 kalıbı)
+  title text not null,                          -- 1–120
+  channel_name text,                            -- ≤ 80
+  youtube_playlist_id text,                     -- null = elle kurulan liste (D3); check ~ '^[A-Za-z0-9_-]{10,60}$'
   imported_at timestamptz,
-  sort_order smallint,
+  created_by uuid references profiles(id) on delete set null,
   created_at, updated_at
 )
+-- index (organization_id, title), (template_id), (subject_id), (student_id), (created_by)
+-- unique index (organization_id, youtube_playlist_id, student_id) nulls not distinct where youtube_playlist_id is not null
+--   (aynı YouTube listesi aynı kapsamda tek; elle listeler serbest — faz7b_playlist_unique_fix)
 
-videos (
+videos (                                       -- ✅
   id uuid pk,
   playlist_id uuid not null references video_playlists(id) on delete cascade,
-  topic_id uuid references topics(id),
-  youtube_video_id text not null,
-  title text not null,
-  duration_seconds int,
-  sort_order smallint not null,
+  topic_id uuid references topics(id) on delete set null,
+  youtube_video_id text not null check (~ '^[A-Za-z0-9_-]{11}$'),
+  title text not null,                          -- 1–200
+  duration_seconds int,                         -- API'den; elle eklemede boş olabilir
+  sort_order smallint not null default 0,       -- YouTube sırası ya da ekleme sırası; elle sıralama yok
+  created_at, updated_at,
   unique (playlist_id, youtube_video_id)
 )
+-- index (playlist_id, sort_order), (topic_id)
 
-student_playlists (
+student_playlists (                            -- atama ✅
   student_id uuid references students(profile_id) on delete cascade,
   playlist_id uuid references video_playlists(id) on delete cascade,
-  assigned_by uuid references profiles(id),
+  assigned_by uuid references profiles(id) on delete set null,
   assigned_at timestamptz not null default now(),
   primary key (student_id, playlist_id)
 )
+-- index (playlist_id), (assigned_by)
 
-student_video_progress (
+student_video_progress (                       -- elle "izledim" işareti; izleme süresi yok (D11) ✅
   student_id uuid references students(profile_id) on delete cascade,
   video_id uuid references videos(id) on delete cascade,
-  watched_seconds int not null default 0,
-  completed_at timestamptz,
-  note text,
-  updated_at,
+  watched_at timestamptz,                       -- null = izlenmedi (satır yalnızca not için açılmış olabilir)
+  note text,                                    -- ≤ 300
+  created_at, updated_at,
   primary key (student_id, video_id)
 )
+-- index (video_id)
 ```
 
-**Tek veri kaynağı kuralı:** Bir testin "bitti" sayılması ayrı bir tabloda tutulmaz. `question_logs.section_id` dolu bir kaydın varlığı o testin bittiği anlamına gelir. Kaynak ilerleme yüzdesi `v_student_resource_progress` görünümüyle hesaplanır.
+**Tek veri kaynağı kuralı:** bir testin "bitti" sayılması ayrı bir tabloda tutulmaz; öğrencinin o `section_id`'li **en az bir** `question_logs` kaydı varsa test bitmiştir (aynı test ikinci kez çözülürse ikinci kayıt da aynı `section_id`'yi taşır, ilerleme `distinct section_id` sayar; kayıt silinince işaret kalkar). Kaynak ilerlemesi `v_student_resource_progress`, testler + açık plan bağı `v_student_resource_sections` (§6). Bir plan görevi `section` türündeyse kayıt hem `plan_item_id` hem `section_id` taşır (`complete_plan_item` `p_log.section_id`); kaynak sayfasından kaydedilen testin yayınlanmış planda açık görevi varsa `createQuestionLog` görünümdeki `open_plan_item_id` ile aynı RPC'yi kullanır.
 
-**YouTube içe aktarma:** Sunucu tarafında YouTube Data API v3 `playlistItems.list` (sayfalı) + `videos.list` (süreler için) çağrılır. API anahtarı istemciye gitmez. Video oynatma `youtube-nocookie.com` embed'i ile yapılır; %90 izlenince `completed_at` otomatik atanabilir (IFrame Player API), öğrenci elle de işaretleyebilir.
+**Özel kaynak / özel liste (karar D1):** `student_id` dolu satır yalnızca o öğrenciye, koçuna ve velisine görünür (`private.can_read_resource / can_read_playlist`); öğrenci kendi özelini düzenler ama `student_id`'yi boşaltamaz (with check); koç/owner "Katalogda tut" ile `student_id → null` yapar (atama kalır), "Kaldır" ile siler. Öğrencinin `create_resource` / `create_playlist` çağrısı kaynağı özel açar ve kendisine atar; katalogdaki mevcut kitabı/listeyi kendine alması `student_resources` / `student_playlists` insert'idir (koçun atamasını silemez).
+
+**YouTube içe aktarma:** sunucu eylemi `lib/youtube/client` ile `playlists.list` + `playlistItems.list` (sayfalı, 50) + `videos.list` (süreler) çağırır (anahtar `YOUTUBE_API_KEY`, yalnızca sunucu; 11 §4), sonucu `create_playlist` / `import_playlist_videos` RPC'lerine verir; özel/silinmiş videolar atlanır, liste başına en fazla 200 video. Anahtar yoksa içe aktarma kapalı, elle liste + bağlantıyla video ekleme açık (başlık zorunlu). Oynatma `youtube-nocookie.com` embed'i; "izlendi" **elle** (`mark_video_watched`; %90 otomatik işaret yapılmadı, izleme süresi kapsam dışı).
+
+**Sezon kopyalama:** `copy_curriculum_template` (§7) owner'ın şablonu (dersler, konular; `p_include_catalogs` ile kurum kataloğu kaynak/test ve liste/video) kurumuna kopyalar; `exam_date` ve `school_finish_on` boş bırakılır, `mock_exams` ve özel kaynaklar kopyalanmaz; YouTube listesi kopyada bağlantısız (elle) liste olur.
 
 ### 4.6 Denemeler, Yanlış Defteri (Faz 6)
 
@@ -576,7 +599,7 @@ mistakes (                                     -- Parça 2 (10 §1.4) ✅
   created_at, updated_at
 )
 -- index (student_id, created_at desc), (subject_id), (topic_id), (mock_result_id), (created_by)
--- Faz 7: section_id; tekrar sistemi: review_stage, next_review_at
+-- Faz 7'de section_id eklenmedi (kayıt akışı yok; 11 §6 kancası); tekrar sistemi: review_stage, next_review_at
 ```
 
 Yanlış defteri (Faz 6b ✅): fotoğraf isteğe bağlı (C7), neden varsayılan `unknown` (C9), `image_path` ≤ 200 ve `{org}/{student}/{uuid}.webp|jpg` (eylem kurum/öğrenci önekini doğrular); `solved_at` ↔ `status = 'solved'` check. Yardımcı `private.can_read_mistakes(p_student_id)` = kendisi **veya** `is_coach_of` **veya** `is_parent_of(p_student_id, true)` (veli kapısı `can_view_details`; C10 — veli arayüzü Faz 8). Politikalar: öğrenci S I U D (kendi; insert `student_id = auth.uid()` ve `created_by` kendisi — **koç kayıt açamaz**, fotoğraf öğrencinin telefonundan), koç/owner S U D (`can_write_student`), veli S (`can_read_mistakes`). Deneme sonucu silinince `mock_result_id` set null (kayıt kalır). Deneme kısayolu yalnızca URL parametresi (`/student/mistakes/new?subjectId=&topicId=&mockResultId=`); `mistakes` → `mock-exams` importu yok.
@@ -747,6 +770,32 @@ as $$
       or private.is_parent_of(p_student_id, true)
 $$;
 
+-- Kaynak / liste kapıları (Faz 7): kurum kataloğu (student_id null) kurum içi herkese; özel satır
+-- öğrenci / koçu / velisine (can_read_student). Düzenleme: katalog → koç/owner; özel → can_write_student.
+-- can_read_playlist / can_edit_playlist aynı tanımla video_playlists üzerinde.
+create or replace function private.can_read_resource(p_resource_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.resources r
+    where r.id = p_resource_id and r.organization_id = private.my_org()
+      and (r.student_id is null or private.can_read_student(r.student_id))
+  )
+$$;
+
+create or replace function private.can_edit_resource(p_resource_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.resources r
+    where r.id = p_resource_id and r.organization_id = private.my_org()
+      and ((r.student_id is null and private.my_role() in ('coach', 'owner'))
+        or (r.student_id is not null and private.can_write_student(r.student_id)))
+  )
+$$;
+
 -- Profil görünürlüğü: kendisi; owner kendi kurumundaki herkes; koç kendi
 -- öğrencileri ve onların velileri; öğrenci kendi koçu ve kendi velileri;
 -- veli kendi çocuğu ve çocuğun koçu.
@@ -821,10 +870,12 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | student_topic_targets (Faz 5b) | S | S I U D (`is_coach_of`; `created_by` kendisi) | S | Tümü |
 | coach_notes | S (visibility ∈ student, student_and_parent) | S I U D | S (visibility ∈ parent, student_and_parent) | Tümü |
 | announcements | S (hedef kitlede ise) | S I (kendi) | S (hedef kitlede ise) | Tümü |
-| resources, resource_sections, video_playlists, videos, schools | S (kurum) | S I U | – | Tümü |
+| resources, video_playlists (Faz 7) ✅ | S (kurum kataloğu + kendi özeli); I (`student_id` kendisi, `created_by` kendisi); U D (kendi özeli; `student_id` boşaltılamaz) | S (katalog + kendi öğrencilerinin özeli); I (katalog, `created_by` kendisi); U D (`can_edit_resource` / `can_edit_playlist`; "Katalogda tut" = `student_id → null`) | S (katalog + çocuğunun özeli) | Tümü |
+| resource_sections, videos (Faz 7) ✅ | S (`can_read_*`); I U D (`can_edit_*`: yalnızca kendi özel kaynağı/listesi) | S I U D (`can_edit_*`) | S | Tümü |
+| schools | S (kurum) | S I U | – | Tümü |
 | mock_exams (Faz 6a) | S (`organization_id = my_org()`) | S I U D (kurum; insert `created_by` kendisi) | S (kurum; rapor başlığı) | Tümü |
-| student_resources, student_playlists | S | S I U D | S | Tümü |
-| student_video_progress | S I U | S | S | Tümü |
+| student_resources, student_playlists (Faz 7) ✅ | S (kendi); I (kendi, `assigned_by` kendisi, okuyabildiği kaynak/liste — katalogdan kendine alma); D **yok** (koçun atamasını kaldıramaz) | S I D (`is_coach_of`; tablo yetkisi update yok) | S | Tümü |
+| student_video_progress (Faz 7) ✅ | S I U D (kendi; standart kalıp) | S I U D (`can_write_student`) | S | Tümü |
 | mock_exam_results (Faz 6a) | S I U D (kendi; insert `created_by` kendisi) | S I U D (`is_coach_of`) | S | Tümü |
 | mock_exam_subject_results, mock_exam_topic_mistakes (Faz 6a) | S I U D (`can_write_student(mock_result_student(result_id))`) | S I U D | S (`can_read_student(…)`) | Tümü |
 | mistakes (Faz 6b) ✅ | S I U D (kendi; insert `student_id = auth.uid()`, `created_by` kendisi) | S U D (`can_write_student`; kayıt açmaz) | S (`can_read_mistakes`: can_view_details) | S U D |
@@ -847,7 +898,7 @@ Her tablo için en az şu testler yazılır:
 
 Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `authenticated`'ın tam olarak beklenen yetkilere (matris; kolon düzeyi dahil) ve `service_role`'ün tam yetkiye sahip olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır; matriste tanımsız tablo testi düşürür).
 
-Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. Faz 5a: `200_strategy_settings` (`strategy` varsayılanları, `periods` boş, `defaults || settings` ile mevcut değer kazanır, owner dönem yazar/koç okur), `205_topic_school_dates` (koç sistem şablonunda `school_finish_on` yazar ve RPC ile toplu yazar/temizler, atomiklik: başka kurumun konusu payload'da → 42501 ve hiçbir satır yazılmaz, dizi olmayan payload 22023, görünümde `school_finish_on` dolu, öğrenci/veli/başka kurum koçu RPC 42501 ve doğrudan 0 satır, anon 42501). Faz 5b: `210_student_targets` (iki tablo 5 senaryo; RPC: koç kurar, yeniden üretimde payload dışı satırlar silinir, geçersiz konu `invalid_target` ve atomik, `invalid_dates`, başka koç / öğrenci 42501; `topics_finish_by` doğrudan UPDATE 42501, `wake_*` koç yazar, check kısıtı), `215_pace_views` (pace facts durum/hedef/okul, hedefsiz öğrencide null; ders hedefi sayımları `target_starts_on`'dan; overview `topics_expected / topics_behind / topics_ahead` net konum; `v_topic_alert_facts.target_on`; RLS koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501); `090` (`students` kolon listesi + `wake_start`, `wake_end`), `110` (hedef satırları öğrenciyle silinir, `created_by` koç silinince `set null`). Faz 6a: `220_mock_exams` (4 tablo 5 senaryo: katalog kurum içi herkes okur, başka kurum 0, öğrenci/veli yazamaz; sonuç öğrenci kendi / koç kendi öğrencisi / veli çocuğu / anon 42501; check'ler: başlık ya da katalog, branş + katalog çelişkisi, gelecek tarih 23514; tekil katalog sonucu 23505; `on delete restrict` 23503; RPC: öğrenci yazar ve düzenler (alt satırlar yenilenir), koç yazar, başka koç 42501, geçersiz ders/konu/aşan sayı/başlık 22023 ve atomiklik, `wrong_penalty` şablondan, `net` hesaplanmış (3 yanlış = −1,00), ceza 0 → net = doğru; overview `last_net / prev_net / net_delta` — tek deneme delta null, branş sayılmaz), `225_mock_settings` (`mock_exams` varsayılanları, `defaults || settings`), `090` (4 tablo × 4 satır), `110` (sonuç + alt satırlar öğrenciyle silinir; katalog kalır, `created_by` set null). Faz 6b: `230_mistakes` (5 senaryo: öğrenci kendi S I U D, koç okur/günceller ama INSERT 42501, başka koç ve başka öğrenci 0 satır, detaysız veli 0 / detaylı veli görür, anon 42501; `solved_at` check 23514; depo: bucket private ve 2 MB, `storage.objects` öğrenci kendi klasörüne yazar, başka öğrenci klasörü / başka kurum 42501, koç ve detaylı veli okur, detaysız veli ve başka öğrenci 0; silme politikası varlıkla denetlenir — yerel `storage.protect_delete` doğrudan DELETE'i engeller, gerçek silme e2e'de), `235_mock_alert_facts` (üç yeni kolon: işaret sayımı son `recent_count` genel denemeye göre, N+1. deneme ve branş sayılmaz, defter penceresi `lookback_days`, `recent_count` ayarı değişince pencere değişir; `v_student_mock_subject_stats` RLS, `exams_count / avg_net / last_net / wrong_total`, sonuçsuz öğrencide 0 / null, branş yalnızca kendi dersinin penceresine girer), `090` (`mistakes` 4 satır), `110` (defter kayıtları öğrenciyle silinir; deneme sonucu silinince `mock_result_id` set null). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. Faz 5a: `200_strategy_settings` (`strategy` varsayılanları, `periods` boş, `defaults || settings` ile mevcut değer kazanır, owner dönem yazar/koç okur), `205_topic_school_dates` (koç sistem şablonunda `school_finish_on` yazar ve RPC ile toplu yazar/temizler, atomiklik: başka kurumun konusu payload'da → 42501 ve hiçbir satır yazılmaz, dizi olmayan payload 22023, görünümde `school_finish_on` dolu, öğrenci/veli/başka kurum koçu RPC 42501 ve doğrudan 0 satır, anon 42501). Faz 5b: `210_student_targets` (iki tablo 5 senaryo; RPC: koç kurar, yeniden üretimde payload dışı satırlar silinir, geçersiz konu `invalid_target` ve atomik, `invalid_dates`, başka koç / öğrenci 42501; `topics_finish_by` doğrudan UPDATE 42501, `wake_*` koç yazar, check kısıtı), `215_pace_views` (pace facts durum/hedef/okul, hedefsiz öğrencide null; ders hedefi sayımları `target_starts_on`'dan; overview `topics_expected / topics_behind / topics_ahead` net konum; `v_topic_alert_facts.target_on`; RLS koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501); `090` (`students` kolon listesi + `wake_start`, `wake_end`), `110` (hedef satırları öğrenciyle silinir, `created_by` koç silinince `set null`). Faz 6a: `220_mock_exams` (4 tablo 5 senaryo: katalog kurum içi herkes okur, başka kurum 0, öğrenci/veli yazamaz; sonuç öğrenci kendi / koç kendi öğrencisi / veli çocuğu / anon 42501; check'ler: başlık ya da katalog, branş + katalog çelişkisi, gelecek tarih 23514; tekil katalog sonucu 23505; `on delete restrict` 23503; RPC: öğrenci yazar ve düzenler (alt satırlar yenilenir), koç yazar, başka koç 42501, geçersiz ders/konu/aşan sayı/başlık 22023 ve atomiklik, `wrong_penalty` şablondan, `net` hesaplanmış (3 yanlış = −1,00), ceza 0 → net = doğru; overview `last_net / prev_net / net_delta` — tek deneme delta null, branş sayılmaz), `225_mock_settings` (`mock_exams` varsayılanları, `defaults || settings`), `090` (4 tablo × 4 satır), `110` (sonuç + alt satırlar öğrenciyle silinir; katalog kalır, `created_by` set null). Faz 6b: `230_mistakes` (5 senaryo: öğrenci kendi S I U D, koç okur/günceller ama INSERT 42501, başka koç ve başka öğrenci 0 satır, detaysız veli 0 / detaylı veli görür, anon 42501; `solved_at` check 23514; depo: bucket private ve 2 MB, `storage.objects` öğrenci kendi klasörüne yazar, başka öğrenci klasörü / başka kurum 42501, koç ve detaylı veli okur, detaysız veli ve başka öğrenci 0; silme politikası varlıkla denetlenir — yerel `storage.protect_delete` doğrudan DELETE'i engeller, gerçek silme e2e'de), `235_mock_alert_facts` (üç yeni kolon: işaret sayımı son `recent_count` genel denemeye göre, N+1. deneme ve branş sayılmaz, defter penceresi `lookback_days`, `recent_count` ayarı değişince pencere değişir; `v_student_mock_subject_stats` RLS, `exams_count / avg_net / last_net / wrong_total`, sonuçsuz öğrencide 0 / null, branş yalnızca kendi dersinin penceresine girer), `090` (`mistakes` 4 satır), `110` (defter kayıtları öğrenciyle silinir; deneme sonucu silinince `mock_result_id` set null). Faz 7a: `240_resources` (3 tablo 5 senaryo; özel kaynak görünürlüğü ve `student_id` boşaltılamaz; öğrenci katalog kitabını kendine alır, koçun atamasını silemez; `create_resource` öğrenci → özel + atama / koç → katalog / başka şablon 22023 / geçersiz konu 22023 atomik / 401 test; `move_resource_section`; `complete_plan_item(p_log.section_id)` kaydı iki bağla; görünümler `done_at / percent / open_plan_item_id` (taslak sayılmaz); kaynak silinince `section_id` set null). Faz 7b: `250_videos` (4 tablo 5 senaryo; `unique` 23505 yalnızca YouTube listesinde, elle listeler serbest; `youtube_video_id` 23514; `create_playlist`, `import_playlist_videos` konuyu korur / çıkan kalır, `mark_video_watched` yayınlanmış görevi tamamlar / taslak dokunulmaz / geri alma planı geri almaz / koç öğrencisi için / başka koç 42501, `complete_plan_item` video → `watched_at`; görünümler + `percent`), `255_copy_template` (owner kopyalar: ders/konu sayıları, `parent_id` yeniden eşleme, tarihler boş, kataloglar ve konu eşlemesi, özel kaynak/atama kopyalanmaz, ikinci çağrı aynı transaction, boş ad 22023, koç / başka kurum 42501); `090` (7 tablo × 4 satır; `student_resources` / `student_playlists` update false), `110` (özel kaynak/liste, atamalar, izleme satırları öğrenciyle silinir; katalog kalır, `created_by` / `assigned_by` set null; kaynak silinince `question_logs.section_id` set null). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 
@@ -861,8 +912,10 @@ Tüm görünümler `with (security_invoker = true)` ile oluşturulur, böylece a
 | `v_student_subject_weekly` ✅ | student_id, week_start, subject_id, questions, correct, wrong | Haftalık ders dağılımı |
 | `v_topic_question_stats` ✅ | student_id, topic_id, questions, correct | Konu detayı (soru sayısı, başarı) |
 | `v_topic_mastery` | student_id, topic_id, subject_id, status, confidence, questions, accuracy, mock_wrong_total, mistakes_open, mastery_score | **Konu haritası** |
-| `v_student_resource_progress` | student_id, resource_id, sections_total, sections_done, questions_done, percent | Kaynak ilerlemesi |
-| `v_student_playlist_progress` | student_id, playlist_id, videos_total, videos_done, percent | Video ilerlemesi |
+| `v_student_resource_sections` ✅ | student_id, resource_id, resource_title, resource_type, section_id, section_title, subject_id (`coalesce(test, kitap)`), subject_name, subject_short_name, subject_color, topic_id, topic_name, question_count, page_start, page_end, sort_order, done_at (`max(log_date)`; null = bitmedi), logs_count, open_plan_item_id (yayınlanmış planda tamamlanmamış, bu teste bağlı en yeni görev) — yalnızca atanmış kaynaklar | Faz 7: öğrenci kitap detayı, K2 sekmesi, havuz `resources`, öneri `section` görevi, `createQuestionLog` açık plan bağı |
+| `v_student_resource_progress` ✅ | student_id, resource_id, sections_total, sections_done (`distinct section_id`), questions_total, questions_done, percent (test yoksa null), last_log_date | Faz 7: öğrenci kaynak listesi, K2 tablo; Faz 8 veli kartı |
+| `v_student_playlist_videos` ✅ | student_id, playlist_id, playlist_title, subject_id, subject_*, video_id, youtube_video_id, title, duration_seconds, topic_id, topic_name, sort_order, watched_at, note, open_plan_item_id — yalnızca atanmış listeler | Faz 7: oynatıcı, K2 sekmesi, havuz `videos`, öneri `video` görevi |
+| `v_student_playlist_progress` ✅ | student_id, playlist_id, videos_total, videos_watched, minutes_total, minutes_remaining, percent (video yoksa null), last_watched_at | Faz 7: öğrenci liste kartları, K2; Faz 8 veli kartı |
 | ~~`v_mock_exam_trend`~~ | — | Faz 6a: yapılmadı; trend uygulamada `mock_exam_results` + alt tablolardan (`lib/exam/mock`) hesaplanır |
 | `v_student_mock_subject_stats` ✅ | student_id, organization_id, coach_id, subject_id, exams_count, avg_net, last_net, wrong_total, exam_question_count (son `recent_count`: genel + dersin branşı) | Faz 6b: strateji deneme açığı, "son 3 denemede 7 yanlış" |
 | `v_review_queue` | student_id, item_type ('topic'/'mistake'), item_id, due_on, overdue_days | Tekrar listesi |
@@ -889,15 +942,20 @@ mastery_score = 0.4 * durum_puanı          (not_started 0, studying 30, complet
 |---|---|---|
 | ~~`private.goal_progress`~~, ~~`public.student_streak`~~ | — | Faz 3'te veritabanı fonksiyonu yerine uygulamada (`getGoalProgress`, `lib/dates/streak`) hesaplanır (karar #36) |
 | `public.save_mock_exam_result(p_result jsonb, p_subjects jsonb, p_topic_ids uuid[] default '{}')` ✅ | **security invoker** (RLS uygulanır); ilk satır `can_write_student(student_id)` değilse `not_allowed` 42501 | Faz 6a: tek transaction. `p_result = {id?, student_id, mock_exam_id?, custom_title?, subject_id?, taken_on, duration_minutes?, score?, percentile?, note?}`; `p_subjects = [{subject_id, correct, wrong, blank}]`. Doğrulama (22023): katalog denemesi öğrencinin kurumu ve şablonunda (`invalid_exam`), ders şablonda ve tekrarsız, branşta tek satır ve o ders (`invalid_subject`), `correct+wrong+blank <= exam_question_count` (null ise sınırsız; `count_exceeded`), konu şablonda ve ders satırı olan derse ait (`invalid_topic`), katalog dışı kayıtta başlık (`title_required`); `wrong_penalty` şablonun `scoring->>'wrong_penalty'` değerinden (yoksa 0). `id` boşsa insert (`created_by` çağıran), doluysa update + alt satırlar silinip yeniden yazılır (RLS 0 satır → `not_found`). Döner `uuid` |
-| `public.complete_plan_item(p_item_id, p_note, p_log jsonb)` ✅ | security definer (`can_act_on_plan`) | Görevi tamamlar; `p_log` doluysa `question_logs` kaydını `plan_item_id` + `source='plan'` ile aynı transaction'da açar; idempotent |
+| `public.complete_plan_item(p_item_id, p_note, p_log jsonb)` ✅ | security definer (`can_act_on_plan`) | Görevi tamamlar; `p_log` doluysa `question_logs` kaydını `plan_item_id` + `source='plan'` (+ Faz 7 `section_id`: `p_log.section_id` ya da görevin bağı) ile aynı transaction'da açar; `video` türünde `student_video_progress.watched_at` yazar (Faz 7b, D6); idempotent |
 | `public.uncomplete_plan_item(p_item_id)` ✅ | security definer | Tamamlamayı geri alır; bağlı kayıtların `plan_item_id`'sini boşaltır (kayıt silinmez), sayısını döner |
 | `public.postpone_plan_item(p_item_id)` ✅ | security definer | Bir kez; hedef `greatest(gün+1, bugün)` (bu haftaysa), 7'yi aşarsa null; gün yoksa/tamamlanmışsa `cannot_postpone` |
 | `public.set_plan_item_note(p_item_id, p_note)`, `public.set_plan_reflection(p_plan_id, p_text)` ✅ | security definer | Öğrenci notu (≤ 200); değerlendirme, hafta kapanınca `week_closed` (karar A9) |
 | `public.move_plan_item(p_item_id, p_day, p_index)` ✅ | security invoker (RLS) | Güne/"bu hafta içinde"ye taşır, hedef günü 0..n yeniden numaralar |
 | `public.set_student_targets(p_student_id, p_topics_finish_by, p_starts_on, p_subject_targets jsonb, p_topic_targets jsonb)` ✅ | security definer; ilk satır `is_coach_of` | Faz 5b: tek transaction — `students.topics_finish_by / target_starts_on`; `student_subject_targets` payload ile değiştirilir (`[{subject_id, questions}]`, payload dışı ders silinir); `student_topic_targets` upsert (`[{topic_id, target_on}]`, payload dışı satır silinir; `created_by` çağıran). Ders/konu öğrencinin şablonunda değilse `invalid_target` (22023), bitiş < başlangıç `invalid_dates`; hiçbir şey yazılmaz. Döner `{subjects, topics}` |
 | `public.set_topic_school_dates(p_rows jsonb)` ✅ | security invoker (RLS; `move_topic` kalıbı) | Faz 5a: `[{topic_id, on}]` (on null temizler) → tek UPDATE (`jsonb_to_recordset`), atomik; güncellenen satır payload'daki konu sayısından azsa (RLS filtresi: öğrenci/veli ya da başka kurumun şablonu) `not_allowed` 42501 ve hiçbir satır yazılmaz; dizi değilse 22023; güncellenen sayıyı döner |
-| `public.copy_weekly_plan(p_source_plan_id, p_target_student_ids uuid[], p_week_start, p_only_incomplete)` ✅ | security definer + her hedef için `is_coach_of` | Hedefte plan yoksa taslak açar, varsa sona ekler (karar A3); tamamlama/not/erteleme sıfırlanır; `{copied:[{student_id, plan_id, existing_items, added_items}]}` |
-| `public.copy_curriculum_template(template_id, new_name, new_season, include_catalogs boolean)` | security definer + owner kontrolü | Şablonu (ve isteğe bağlı kaynak/video kataloglarını) kopyalar |
+| `public.copy_weekly_plan(p_source_plan_id, p_target_student_ids uuid[], p_week_start, p_only_incomplete)` ✅ | security definer + her hedef için `is_coach_of` | Hedefte plan yoksa taslak açar, varsa sona ekler (karar A3); tamamlama/not/erteleme sıfırlanır; `section_id` / `video_id` kopyalanır (Faz 7); `{copied:[{student_id, plan_id, existing_items, added_items}]}` |
+| `public.copy_curriculum_template(p_template_id, p_new_name, p_new_season, p_include_catalogs)` ✅ | security definer; ilk satır `my_role() = 'owner'` + `can_read_template` | Faz 7b: tek transaction — yeni şablon (`based_on_id`, `is_published false`, `exam_date` null), dersler, konular (`parent_id` yeniden eşlenir, `school_finish_on` null); `p_include_catalogs` ile kurum kataloğu `resources` + `resource_sections` ve `video_playlists` + `videos` (ders/konu yeniden eşlenir; YouTube listesi kopyada bağlantısız); özel kaynak, atama, `mock_exams` kopyalanmaz. Boş ad/sezon `invalid_input` 22023. Döner yeni şablon id |
+| `public.create_resource(p_resource jsonb, p_sections jsonb, p_assign_self)` ✅ | security invoker; öğrenci → özel (`student_id` kendisi, şablon kendi şablonu) + kendine atama, koç/owner → katalog | Faz 7a: kitap + testler tek transaction; `invalid_template / invalid_subject / invalid_topic / too_many_sections (400)` 22023 |
+| `public.move_resource_section(p_section_id, p_direction)` ✅ | security invoker (`move_topic` kalıbı) | Faz 7a: test sırası ↑↓; yetkisiz 42501 |
+| `public.create_playlist(p_playlist jsonb, p_videos jsonb, p_assign_self)` ✅ | security invoker | Faz 7b: liste + videolar (≤ 200) tek transaction; `create_resource` kalıbı |
+| `public.import_playlist_videos(p_playlist_id, p_videos jsonb)` ✅ | security invoker (`can_edit_playlist`) | Faz 7b: "Listeyi yenile" / tek video: upsert (`(playlist_id, youtube_video_id)`; başlık/süre/sıra güncellenir, `topic_id` korunur, çıkan video kalır — D4); döner `{inserted, updated}` |
+| `public.mark_video_watched(p_video_id, p_watched, p_student_id default null)` ✅ | security definer; `can_write_student` + `can_read_playlist` | Faz 7b: izleme işareti upsert (not korunur); `p_watched` ise öğrencinin yayınlanmış planlarındaki tamamlanmamış `video_id` eşleşen görevleri tamamlar (D6); geri alma planı geri almaz; döner `{completed_items}` |
 | `public.mark_reviewed(item_type, item_id, result)` | security definer | Tekrar aşamasını ilerletir, sonraki tarihi hesaplar |
 | `public.accept_invitation(code, full_name, relation)` | security definer + `auth.uid()` | Kod geçerli/süresi dolmamış/kullanılmamış (`for update`, tek kullanımlık); profilsiz kullanıcıya davetin kurumunda `parent` profili, mevcut veliye ek çocuk; öğrenci/koç/başka kurum reddedilir; her hata `invalid_invitation` |
 | `public.create_student_account(actor_id, auth_user_id, coach_id, full_name, username, season, exam_date)` | security definer, **sadece `service_role`** | Aktör koç/owner (koç yalnızca kendine, owner kurumundaki koça); `profiles` + `students` tek transaction. Auth kullanıcısı önce admin API ile açılır; RPC düşerse silinir |
@@ -916,7 +974,7 @@ Security definer fonksiyonların tamamı: `set search_path = ''`, ilk satırda y
 |---|---|---|---|
 | `mistake-images` ✅ (Faz 6b, `faz6b_mistakes`) | private | `{organization_id}/{student_id}/{uuid}.webp` (webp üretilemezse `.jpg`) | 2 MB, sadece image/webp, image/jpeg |
 | `avatars` | private | `{organization_id}/{profile_id}.webp` | 512 KB |
-| `resource-covers` | private | `{organization_id}/{resource_id}.webp` | 512 KB |
+| ~~`resource-covers`~~ | — | Faz 7'de yapılmadı (kapak görseli kapsam dışı, karar D10) | — |
 
 Politikalar (`storage.objects`, Faz 6b ✅): select `bucket_id = 'mistake-images' and private.can_read_mistakes(((storage.foldername(name))[2])::uuid)`; insert ve delete `can_write_student(foldername[2]) and foldername[1] = my_org()`; update yok.
 
@@ -924,5 +982,5 @@ Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevril
 
 ## 9. Seed Verisi
 
-- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); demo kurumun sezon dönemleri dolu (Faz 5a ✅); Ayşe'nin sınava kadar hedefi kurulu (9.000 soru derslere orantılı, konuları bitirme tarihi sınav − 8 hafta, başlangıç 20 gün önce, tüm ünite konuları okul kelepçesiyle eşit yayılmış, bitmişlerin hedefi `completed_at` günü → takvimle uyumlu) ve sistem şablonunda okul takvimi bu haftadan itibaren haftada bir konu (gelecek tarihler, `behind_school` üretmez; Faz 5b ✅); Mehmet takvimin gerisinde örnek: hedef 6 hafta önce kurulu (6.000 soru), Türkçe/Matematik/Fen'in ilk iki konusu koçça öne alınmış (3 ve 1 hafta önce) ve başlanmamış → 6 konu "Hedef geçti", K1/K2 geride, soru kaydı yok → her derste soru hedefinin gerisinde (Faz 5c ✅); 1 katalog denemesi ("Demo Yayınları Türkiye Geneli 1", genel, 3 hafta önce) + Ayşe için 4 genel sonuç (8, 5, 3 hafta önce — 3 hafta önceki katalog denemesi — ve 1 hafta önce serbest; 52,00 → 58,33 → 55,67 → 63,33; konu işaretleri Üslü İfadeler 4 denemenin 3'ünde, Paragrafta Anlam 2'sinde) ve Mehmet aynı katalog denemesinde 1 sonuç (karşılaştırma iki satır), Zeynep yok (Faz 6a ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`. Ayşe için 3 fotoğrafsız yanlış defteri kaydı (Üslü İfadeler dikkat hatası, çözüldü; Paragrafta Anlam süre; Basınç bilgi eksiği; ikisi deneme bağlı) — dağılım ve filtre görüntüleri; fotoğraf seed'de yok (Faz 6b ✅).
+- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); demo kurumun sezon dönemleri dolu (Faz 5a ✅); Ayşe'nin sınava kadar hedefi kurulu (9.000 soru derslere orantılı, konuları bitirme tarihi sınav − 8 hafta, başlangıç 20 gün önce, tüm ünite konuları okul kelepçesiyle eşit yayılmış, bitmişlerin hedefi `completed_at` günü → takvimle uyumlu) ve sistem şablonunda okul takvimi bu haftadan itibaren haftada bir konu (gelecek tarihler, `behind_school` üretmez; Faz 5b ✅); Mehmet takvimin gerisinde örnek: hedef 6 hafta önce kurulu (6.000 soru), Türkçe/Matematik/Fen'in ilk iki konusu koçça öne alınmış (3 ve 1 hafta önce) ve başlanmamış → 6 konu "Hedef geçti", K1/K2 geride, soru kaydı yok → her derste soru hedefinin gerisinde (Faz 5c ✅); 1 katalog denemesi ("Demo Yayınları Türkiye Geneli 1", genel, 3 hafta önce) + Ayşe için 4 genel sonuç (8, 5, 3 hafta önce — 3 hafta önceki katalog denemesi — ve 1 hafta önce serbest; 52,00 → 58,33 → 55,67 → 63,33; konu işaretleri Üslü İfadeler 4 denemenin 3'ünde, Paragrafta Anlam 2'sinde) ve Mehmet aynı katalog denemesinde 1 sonuç (karşılaştırma iki satır), Zeynep yok (Faz 6a ✅); LGS 2027 şablonu migration'da; Faz 7 ✅: kurum kataloğunda "Demo Yayınları Matematik Soru Bankası" (20 test × 20 soru, Test 1–4 ilk iki Mat konusuna, 5–8 üçüncüye, 9–12 dördüncüye eşli; Ayşe ve Mehmet'e atanmış; Ayşe'nin **mevcut** 6 Mat kaydı testlere bağlanır → %30, yeni kayıt yok), Mehmet'in özel "Fen Fasikülü" (8 test; "Öğrenci ekledi" bölümü), elle kurulan "Demo Matematik Video Dersleri" (6 video, ilk üçü ilk üç Mat konusuna eşli; kimlikler yer tutucu — yerelde oynatıcı "video kullanılamıyor" gösterir, karar D16; Ayşe ve Mehmet'e atanmış, Ayşe 2 izlemiş, biri notlu). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`. Ayşe için 3 fotoğrafsız yanlış defteri kaydı (Üslü İfadeler dikkat hatası, çözüldü; Paragrafta Anlam süre; Basınç bilgi eksiği; ikisi deneme bağlı) — dağılım ve filtre görüntüleri; fotoğraf seed'de yok (Faz 6b ✅).
 - `supabase/seeds/lgs-2027-template.sql`: Üretimde bir kez çalıştırılan sistem şablonu (`05-lgs-2027-sablonu.md` içeriği).

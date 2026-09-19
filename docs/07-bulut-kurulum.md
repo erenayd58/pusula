@@ -32,6 +32,7 @@ Supabase → Project Settings → API Keys'ten (yeni anahtarlar):
 | `SUPABASE_SECRET_KEY` | `sb_secret_…` (sadece sunucu; "Sensitive" işaretle) |
 | `STUDENT_EMAIL_DOMAIN` | `ogrenci.pusula.local` (koddaki varsayılanla aynı; bu adrese e-posta gitmez). **Bulutta da aynı kalmalı; değişirse mevcut öğrenciler giriş yapamaz.** |
 | `NEXT_PUBLIC_SITE_URL` | `https://<uygulama-alan-adi>` |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 anahtarı (Faz 7; `11-faz7-kaynaklar.md` §4: Google Cloud → API key, yalnızca YouTube Data API v3'e kısıtlı). Sadece sunucu; "Sensitive" işaretle. Boşsa liste içe aktarma kapalı, elle liste ve video ekleme çalışır. |
 
 Production ve Preview için ayrı Supabase projesi yoksa aynı değerler ikisine de girilir. `MAILPIT_URL` bulutta yok.
 

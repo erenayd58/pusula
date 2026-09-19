@@ -20,6 +20,7 @@
 | Sürükle-bırak | **dnd-kit** | Plan oluşturucu için |
 | Görsel sıkıştırma | ~~browser-image-compression~~ → bağımlılıksız canvas | Faz 6b: `lib/image/compress.ts` (10 karar C8) |
 | Bildirim (toast) | **sonner** | |
+| YouTube | **YouTube Data API v3** (`fetch`, bağımlılık yok) | Faz 7: oynatma listesi içe aktarma yalnızca sunucuda (`lib/youtube/client`, anahtar `YOUTUBE_API_KEY`); oynatıcı `youtube-nocookie` iframe (11 §4, karar #49) |
 | PWA | **Serwist** (`@serwist/next`) | Faz 9 |
 | Test | **Vitest** (birim), **Playwright** (uçtan uca), **pgTAP** (RLS, `supabase test db`) | |
 | Kod kalitesi | **ESLint** (flat config) + **Prettier** + `prettier-plugin-tailwindcss` | |
@@ -99,8 +100,8 @@ pusula/
     │   │       ├── log/page.tsx
     │   │       ├── plan/page.tsx
     │   │       ├── goals/page.tsx
-    │   │       ├── resources/…
-    │   │       ├── videos/…
+    │   │       ├── resources/…      # Kaynaklarım: liste, new, [resourceId] (?edit=1 kendi özel kaynağı) (Faz 7a)
+    │   │       ├── videos/…         # Videolarım: liste, new, [playlistId] (?v= oynatıcı, ?edit=1), watch/[videoId] (Faz 7b)
     │   │       ├── exams/…
     │   │       ├── mistakes/…       # Yanlış defteri: liste, new, [mistakeId] (Faz 6b)
     │   │       ├── review/page.tsx
@@ -121,13 +122,15 @@ pusula/
     │   │       │   ├── plan/page.tsx
     │   │       │   ├── exams/page.tsx
     │   │       │   ├── mistakes/page.tsx
+    │   │       │   ├── resources/page.tsx   # K2 Kaynaklar (Faz 7a)
+    │   │       │   ├── videos/page.tsx      # K2 Videolar (Faz 7b)
     │   │       │   ├── notes/page.tsx
     │   │       │   ├── modules/page.tsx   # Modül aç/kapat
     │   │       │   └── settings/page.tsx
     │   │       ├── [section]/page.tsx  # Koç menüsündeki yer tutucu sayfalar (Faz 1c)
     │   │       ├── templates/…      # Müfredat şablonları
-    │   │       ├── resources/…      # Kaynak kataloğu
-    │   │       ├── videos/…         # Video kataloğu
+    │   │       ├── resources/…      # Kaynak kataloğu: liste (+ "Öğrenci ekledi"), new, [resourceId] (test editörü, atama) (Faz 7a)
+    │   │       ├── videos/…         # Video kataloğu: liste, new (YouTube / elle), [playlistId] (video editörü, atama) (Faz 7b)
     │   │       ├── exams/…          # Deneme kataloğu
     │   │       ├── plan-templates/…
     │   │       ├── announcements/…
@@ -149,8 +152,8 @@ pusula/
     │   ├── planner/
     │   ├── coach-notes/
     │   ├── announcements/
-    │   ├── resources/
-    │   ├── videos/
+    │   ├── resources/               # Faz 7a: schemas, types, server (queries/actions), components (resource-form, section-editor, resource-catalog, assign-button, resource-actions, student-resource-list/detail, resource-progress-table)
+    │   ├── videos/                  # Faz 7b: server/youtube.ts (server-only anahtar sarmalayıcı), components (playlist-form, video-editor, video-catalog, playlist-actions, student-playlist-list, student-playlist-player, video-progress-table)
     │   ├── mock-exams/
     │   ├── mistakes/
     │   ├── review/
@@ -173,7 +176,7 @@ pusula/
     ├── components/
     │   ├── ui/                      # shadcn/ui bileşenleri (sadece burada)
     │   ├── layout/                  # SurfaceRoot (data-surface + useSurface), NavLink, BottomNav, StudentRail, CoachSidebar (+ CoachMobileMenu), TabNav
-    │   └── shared/                  # EmptyState, ComingSoon, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
+    │   └── shared/                  # EmptyState, ComingSoon, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper, StudentPicker (Faz 7), quick-log-context (QuickLogRequest.section)…
     │       └── line-chart/          # LineChart (saf SVG; Faz 6a, karar #48) + scale.ts (niceCeil, yTicks, linePath)
     ├── lib/
     │   ├── supabase/
@@ -191,7 +194,14 @@ pusula/
     │   ├── invitations/
     │   │   └── code.ts              # davet kodu üretici (8 karakter, kriptografik)
     │   ├── plan/
-    │   │   └── task-title.ts        # otomatik görev başlığı (planner + analytics ortak, Faz 4d)
+    │   │   └── task-title.ts        # otomatik görev başlığı (planner + analytics ortak, Faz 4d; Faz 7 section/video + mediaTitle)
+    │   ├── resources/
+    │   │   └── sections.ts          # generateSections, resourceProgress (Faz 7a)
+    │   ├── text/
+    │   │   └── similar.ts           # normalizeTitle, similarTitles — benzer ad önerisi (Faz 7)
+    │   ├── youtube/
+    │   │   ├── url.ts               # parseYoutubeUrl · duration.ts parseIsoDuration · progress.ts playlistProgress
+    │   │   └── client.ts            # YouTube Data API v3 istemcisi (anahtar ve fetch parametre; sahte fetch ile test)
     │   ├── env.ts                   # ortam değişkenleri tek yerden
     │   ├── dates/
     │   │   └── index.ts             # todayInIstanbul(), weekStart()…
@@ -579,6 +589,7 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 38 | 2026-09 | Faz 4 plan sistemi kararları `08-faz4-plan-sistemi.md` §6'da (A1–A13): dnd-kit (`@dnd-kit/core`, `sortable`, `utilities`) eklendi; uyarı kuralları TS'te olgu görünümü üzerinden; kopyalamada hedefte plan varsa sona eklenir; yayınlanmış plan canlı düzenlenir; erteleme `max(gün+1, bugün)`; değerlendirme cumartesi→hafta sonu; koç plan ekranı sekme + `/coach/plans`; `plan_item_kind` 5 değer | Tek belgede, parça oturumları verili kabul eder | Belgede listelenen alternatifler |
 | 39 | 2026-09 | Öğrencinin plan yazmaları (tamamla, geri al, ertele, not, değerlendirme) yalnızca security definer RPC ile; tabloda öğrenci UPDATE politikası yok (03 §5.3 seçenek (a)). Soru türü görev hızlı kayıt sheet'inden `complete_plan_item(p_log)` ile tek transaction'da tamamlanır; `useQuickLog` context'i `components/shared`'a taşındı | Koşula bağlı kolon kısıtı (yalnızca yayınlanmış plan, bir kez erteleme) politikayla ifade edilemez; planner istemci bileşeni question-log index'ini import edemez (karar #31 kalıbı) | Tetikleyiciyle kolon denetimi; iki ayrı yazma |
 | 40 | 2026-09 | Plan oluşturucu: yerel arabellek yok, her değişiklik kendi Server Action'ı (otomatik kayıt = son başarılı eylem); 8 sütun (7 gün + "Bu hafta içinde") havuz kapalıyken 1440 px'e kaydırmasız sığar, havuz açıkken yatay kayar; havuz ilk açılışta kapalı, tercih `localStorage`'da; < 768 salt okunur. `created_by` kolonları (program, plan) nullable + `on delete set null` | Koç yan menüsüyle 1440 px'te 8 sütun sığmıyor; öğrenci kendi satırını yazınca `not null` FK cascade silmeyi engelliyordu | Toplu kaydet düğmesi; 04 §8.4'teki 1280/1440 eşikleri |
+| 49 | 2026-09 | Faz 7 kaynaklar ve videolar (`11-faz7-kaynaklar.md` §7, D1–D17): özel kaynak/liste `student_id` kolonuyla (null = kurum kataloğu; cascade; `created_by` denetim) — `is_shared` yok (D1); test sırası `move_resource_section` RPC (D2); tek video elle kurulan liste kabında, `videos.playlist_id` hep dolu (D3); "Listeyi yenile" upsert, konu korunur, çıkan video kalır (D4); öneri motoru `media` parametresi: yeni konu/bilgi eksiği türlerinde eşli video → `video`, pratik türlerinde eşli test → `section` görevi, puan değişmez (D5); plan ↔ video çift yönlü (`mark_video_watched` açık görevi tamamlar, `complete_plan_item(video)` izlendi yazar; D6); `copy_curriculum_template` şimdi (owner formu + `/coach/templates?template=` seçici; tarihler boş, `mock_exams` kopyalanmaz; D7); K2'de iki ayrı sekme (D8); öğrenci de YouTube içe aktarır, 200 video/liste (D9); kapak görseli, `status`, `watched_seconds` yok (D10–D11); `question_logs.source` plan → 'plan', yoksa section → 'resource' (D12); hızlı kayıtta test soru sayısı biliniyorsa Boş otomatik (D14); video küçük resmi yok — Google'a ek istek gitmesin (D15); seed video kimlikleri yer tutucu (D16); YouTube e2e'de çağrılmaz, istemci sahte `fetch` ile birim testli, gerçek API yerelde elle (D17). Havuz kategorileri `resources` / `videos` (`lib/media-pool`: zayıf/gecikmiş konu eşleşmesi öne); planner ve analytics kaynak/video verisini **görünümlerden** okur, modül import etmez; `StudentPicker` ortak atama paneli; `section`/`video` türleri formda seçilmez (havuz/öneriden gelir, düzenlemede kilitli) | 11 §1–§3; RLS `can_read_resource / can_edit_resource` (+ playlist eşleri); tek veri kaynağı (`question_logs.section_id`) | `is_shared` boolean; `videos.playlist_id` nullable; çıkan videoyu silmek; yalnızca video kuralı; tek yönlü plan bağı; kopyalamayı ertelemek; tek K2 sekmesi; `i.ytimg.com` küçük resimleri; gerçek API ile e2e |
 | 48 | 2026-09 | Faz 6a denemeler: trend grafiği **saf SVG `LineChart`** (`components/shared/line-chart/`: `viewBox` ile ölçeklenir, eşit aralıklı x, `niceCeil` y, seri çipleri en az biri açık, nokta seçimi dokunma/klavye, `aria-live` detay, sr-only tablo; Recharts kullanılmadı, 0 KB); deneme hesapları saf `lib/exam/mock.ts` (genel deneme / toplam net / değişim / son N tanımları tek yerde); `mock_exams.subject_id` ile genel/branş (is_full_exam yerine), işaret tablosu sayısız, katalog denemesi öğrenci başına tek sonuç (kısmi tekil indeks) ve `on delete restrict` (koç önce sonuçları siler); `save_mock_exam_result` **security invoker** (RLS uygulanır; tek transaction, doğrulamalar 22023); Boş otomatik (`autoBlank`, düzenlenebilir); K1 "Son net" overview görünümünden, K2 yalnızca "Son deneme neti" kutusu; kurum ayarı `mock_exams` üst düzey anahtar (sığ birleştirme). Parça 2 (2026-09-19): `mistakes` tablosu + `mistake-images` bucket, `private.can_read_mistakes` (veli yalnızca `can_view_details`; C10), koç kayıt açmaz; fotoğraf isteğe bağlı (C7), bağımlılıksız canvas sıkıştırma (`lib/image/compress`; C8), doğrudan bucket'a yükleme + eylemde yol öneki doğrulaması, kısa süreli imzalı URL; `mock_weak` uyarı türü (işaret ≥ `weak_min_marks` VEYA defter ≥ `weak_min_mistakes`, bitmiş konuda da; C11) ve `subjectGap = combineGap(soru, deneme, gap_weight)` (C12); `v_student_mock_subject_stats` yalnızca analytics için; `parentSummary` widget kalıbı (`ModuleWidgets`, `getParentSummaryWidgets`; C15); `deleteStudent` depo klasörünü temizler | 10 §3.2 karşılaştırma tablosu (SSR, erişilebilirlik, token uyumu), kararlar C1–C6, C14 | Recharts (~100 kB gz, `ResponsiveContainer` hidrasyon boşluğu); `is_full_exam` boolean; branşı toplam trende dahil; katalog silmede `set null` + başlık kopyalayan tetikleyici |
 | 47 | 2026-09 | e2e paylaşımlı durum izolasyonu: kurum ayarını (`/coach/settings`) ya da sistem şablonunu (konu ekleme, okul takvimi) değiştiren spec'ler `e2e/shared/` altında (`alert-thresholds`, `curriculum-calendar`, `strategy-suggestions`, `template-topics`) ve `shared-desktop` projesinde `workers: 1` + `fullyParallel: false` ile seri koşar; `desktop-chromium` / `mobile-chromium` bu projeye `dependencies` ile bağlı (paylaşımlı faz önce biter ve durumu `finally` ile geri alır; okuyan testler değişmiş ayarı görmez). Tek dosya koşarken `--no-deps` bağımlılığı atlar. Yalnızca okuyan testler (`alerts.spec` öğrenci kartı, `topics.spec` öğrenci durumu) iki projede kalır | Kurum tek satır, şablon paylaşımlı: dönem / eşik / konu sayısı yarışları (curriculum-calendar ↔ strategy-suggestions dönemleri, alerts eşiği ↔ Ayşe'nin bakım uyarıları, topics ↔ 54 konu sayımı) 4 işçide gerçek kararsızlık kaynağıydı; Playwright 1.63 proje düzeyi `workers` bunu izole eder | İşçi sayısını düşürmek (tüm paketi yavaşlatır); her spec'in kendi kurumunu açması (kurum + owner + koç + öğrenci + kayıt kurulumu, RPC yok); dosya kilidi fixture'ı (okuyanları korumaz) |
 | 46 | 2026-09 | Faz 5c strateji farkındalığı: öneri motoru imzaları değişmedi, strateji isteğe bağlı parametre (`buildSuggestions.strategy`, `priorityScore` ek alanlar; verilmezse Faz 4 sonucu birebir); strateji bağlamı (`StudentStrategy`) sorgu katmanında kurum ayarı + `students.exam_date` + gidişat görünümlerinden kurulur (`getStrategyContext`, React `cache`; `getSuggestions` çağıran her yer aynı bağlamı alır), tablo/görünüm eklenmedi; dönem karışımı kotası `lib/strategy/mix.ts: allocateByMix` (en büyük kalan; dolmayan kota puana açılır, dönem yoksa kota yok); sınav yakınlığı çarpanı `1 ± 0,25 × yakınlık` (yeni konu −, zayıf/bakım +), gecikme `max(uyarı, hedef)`, ders `× (1 + soru açığı)`; `distributeTasks` ders çeşitliliği (aynı dersten en az olan gün, sonra kapasite) ve `date` anahtarı (çok haftalık ufuk için kanca, tek hafta kullanımı sürer); `strategyNote` satır metni saf katmanda üretilir, arayüz ve havuz aynı metni gösterir; dönem satırı `SuggestionList`'e `period` prop'uyla gelir | 09 §2 Parça 3, karar B9; 08 §5 kancaları imza değiştirmeden dolduruldu; karar #42 saf katman kalıbı | Strateji bağlamı için yeni görünüm; ağırlıkları dönemle değiştirmek; dönem satırını bileşenin kendisinin okuması (analytics → core çalışma zamanı bağı) |

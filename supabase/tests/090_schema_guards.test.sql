@@ -11,7 +11,7 @@
 --   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals, faz5b_student_targets, faz6a_mock_exams ve faz6b_mistakes ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals, faz5b_student_targets, faz6a_mock_exams, faz6b_mistakes, faz7a_resources ve faz7b_videos ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -123,7 +123,35 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('mistakes',               'select', true,  null),
   ('mistakes',               'insert', true,  null),
   ('mistakes',               'update', true,  null),
-  ('mistakes',               'delete', true,  null);
+  ('mistakes',               'delete', true,  null),
+  ('resources',              'select', true,  null),
+  ('resources',              'insert', true,  null),
+  ('resources',              'update', true,  null),
+  ('resources',              'delete', true,  null),
+  ('resource_sections',      'select', true,  null),
+  ('resource_sections',      'insert', true,  null),
+  ('resource_sections',      'update', true,  null),
+  ('resource_sections',      'delete', true,  null),
+  ('student_resources',      'select', true,  null),
+  ('student_resources',      'insert', true,  null),
+  ('student_resources',      'update', false, null),
+  ('student_resources',      'delete', true,  null),
+  ('video_playlists',        'select', true,  null),
+  ('video_playlists',        'insert', true,  null),
+  ('video_playlists',        'update', true,  null),
+  ('video_playlists',        'delete', true,  null),
+  ('videos',                 'select', true,  null),
+  ('videos',                 'insert', true,  null),
+  ('videos',                 'update', true,  null),
+  ('videos',                 'delete', true,  null),
+  ('student_playlists',      'select', true,  null),
+  ('student_playlists',      'insert', true,  null),
+  ('student_playlists',      'update', false, null),
+  ('student_playlists',      'delete', true,  null),
+  ('student_video_progress', 'select', true,  null),
+  ('student_video_progress', 'insert', true,  null),
+  ('student_video_progress', 'update', true,  null),
+  ('student_video_progress', 'delete', true,  null);
 
 select plan((
     (select count(*) from pg_class c

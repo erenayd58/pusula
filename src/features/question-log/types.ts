@@ -26,6 +26,9 @@ export type QuestionLogRow = {
   subjectColor: string;
   topicId: string | null;
   topicName: string | null;
+  /** Faz 7: bağlı kaynak testi. */
+  sectionId: string | null;
+  sectionLabel: string | null;
   total: number;
   correct: number;
   wrong: number;

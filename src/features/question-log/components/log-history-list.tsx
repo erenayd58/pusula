@@ -62,7 +62,10 @@ export function LogHistoryList({ rows }: { rows: QuestionLogRow[] }) {
                       >
                         {r.topicName ?? NO_TOPIC_LABEL}
                       </span>
-                      <span className="text-small text-ink-500">{formatLogCounts(r)}</span>
+                      <span className="text-small text-ink-500">
+                        {r.sectionLabel ? `${r.sectionLabel} · ` : ""}
+                        {formatLogCounts(r)}
+                      </span>
                     </span>
                     <Button
                       type="button"

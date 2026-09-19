@@ -45,6 +45,36 @@ export async function deleteE2EMockExams(): Promise<number> {
   return count ?? 0;
 }
 
+/** Testlerin bıraktığı "E2E Kaynak …" kitaplarını siler (testler cascade; kayıt bağı set null). */
+export async function deleteE2EResources(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("resources")
+    .delete({ count: "exact" })
+    .like("title", "E2E Kaynak%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/** Testlerin bıraktığı "E2E Liste …" video listelerini siler (videolar ve izleme cascade). */
+export async function deleteE2EPlaylists(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("video_playlists")
+    .delete({ count: "exact" })
+    .like("title", "E2E Liste%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/** Testlerin kopyaladığı "E2E Şablon …" şablonlarını siler (dersler, konular, kataloglar cascade). */
+export async function deleteE2ETemplates(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("curriculum_templates")
+    .delete({ count: "exact" })
+    .like("name", "E2E Şablon%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
 export async function clearSchoolDates(): Promise<number> {
   const { count, error } = await adminClient()

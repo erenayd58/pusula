@@ -3,6 +3,7 @@
 import { ActionError, createAction } from "@/lib/actions/create-action";
 import { isDone } from "../lib/completion";
 import {
+  copyTemplateSchema,
   addTopicSchema,
   moveTopicSchema,
   renameTopicSchema,
@@ -168,5 +169,30 @@ export const moveTopic = createAction({
       throw error;
     }
     return { topicId: input.topicId };
+  },
+});
+
+/**
+ * Şablonu kopyala (Faz 7, karar D7): owner; `copy_curriculum_template` security definer tek
+ * transaction (dersler, konular; isteğe bağlı kurum kaynak/video kataloğu). Sınav tarihi ve okul
+ * takvimi kopyada boş kalır; owner Takvim görünümünden yeniden dağıtır.
+ */
+export const copyTemplate = createAction({
+  name: "copyTemplate",
+  schema: copyTemplateSchema,
+  roles: ["owner"],
+  revalidate: [...TEMPLATE_PATHS, "/coach/resources", "/coach/videos"],
+  handler: async (input, ctx) => {
+    const { data, error } = await ctx.supabase.rpc("copy_curriculum_template", {
+      p_template_id: input.templateId,
+      p_new_name: input.name,
+      p_new_season: input.season,
+      p_include_catalogs: input.includeCatalogs,
+    });
+    if (error) {
+      if (error.code === "42501") throw new ActionError(NOT_ALLOWED);
+      throw error;
+    }
+    return { id: data };
   },
 });

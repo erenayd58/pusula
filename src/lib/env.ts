@@ -34,4 +34,8 @@ export const serverEnv = {
   get studentEmailDomain() {
     return process.env.STUDENT_EMAIL_DOMAIN || DEFAULT_STUDENT_EMAIL_DOMAIN;
   },
+  /** YouTube Data API v3 (Faz 7, 11 §4); isteğe bağlı: yoksa içe aktarma kapalı, elle ekleme açık. */
+  get youtubeApiKey(): string | null {
+    return process.env.YOUTUBE_API_KEY || null;
+  },
 };

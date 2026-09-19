@@ -23,6 +23,7 @@ export {
   strategyNoteFor,
   type Suggestion,
   type SuggestionTask,
+  type TopicMedia,
 } from "./lib/suggestions";
 export {
   distributeTasks,

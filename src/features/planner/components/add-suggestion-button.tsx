@@ -62,6 +62,8 @@ export function AddSuggestionButton({
         targetValue: task.targetValue,
         targetUnit: task.targetUnit,
         estimatedMinutes: task.estimatedMinutes,
+        sectionId: task.sectionId ?? null,
+        videoId: task.videoId ?? null,
       });
       if (!result.ok) {
         setError(result.error);

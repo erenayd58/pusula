@@ -16,8 +16,10 @@ export function taskTitle(input: {
   topicName: string | null;
   targetValue: number | null;
   targetUnit: TaskTargetUnit | null;
+  /** Faz 7: `section` → "Kitap · Test 12"; `video` → video başlığı. */
+  mediaTitle?: string | null;
 }): string {
-  const { kind, subjectName, topicName, targetValue, targetUnit } = input;
+  const { kind, subjectName, topicName, targetValue, targetUnit, mediaTitle } = input;
   const base = topicName ?? subjectName;
   const target =
     targetValue && targetUnit === "questions"
@@ -37,6 +39,12 @@ export function taskTitle(input: {
       return base ? `${base} · bağlantı` : planItemKindLabels.link;
     case "custom":
       return base ?? planItemKindLabels.custom;
+    case "section":
+      return [mediaTitle ?? base, target].filter(Boolean).join(" · ") || planItemKindLabels.section;
+    case "video":
+      return mediaTitle
+        ? `${planItemKindLabels.video}: ${mediaTitle}`
+        : [planItemKindLabels.video, base].filter(Boolean).join(" · ");
   }
 }
 

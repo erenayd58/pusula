@@ -314,13 +314,13 @@ Tanımlar tek yerde: **genel deneme** = `subject_id` (sonuç ya da katalog) boş
 
 | Yapı | Faz 6 | Sonraki ek |
 |---|---|---|
-| `mistakes` | ders/konu/deneme bağı | Faz 7 `section_id` (kaynak testi); tekrar sistemi `review_stage`, `next_review_at`, `mistake_status` + `reviewing`, `v_review_queue (item_type 'mistake')`, `mark_reviewed` |
+| `mistakes` | ders/konu/deneme bağı | Faz 7'de `section_id` eklenmedi (kayıt akışı yok; 11 §6); tekrar sistemi `review_stage`, `next_review_at`, `mistake_status` + `reviewing`, `v_review_queue (item_type 'mistake')`, `mark_reviewed` |
 | `v_coach_student_overview.last_net / prev_net` | K1 sütunu | Faz 8 `detect_alerts` "Net düşüşü" (01 §7: son 2 ort. − önceki 3 ort. ≥ eşik; ayar `alerts.net_drop_threshold`), K1 hızlı eylem "Planı gözden geçir" |
 | `v_topic_alert_facts.mock_wrong_recent / mistakes_window`, `TopicMapCell.mockWrongRecent` | `mock_weak`, hücre detayı satırı | `v_topic_mastery` ısı haritası (`mastery_score` formülü 03 §6); hücrede görsel işaret |
 | `parentSummary` widget kalıbı | son deneme kartı | Faz 8 veli özeti: plan uyumu, soru/süre, gidişat cümlesi (09 §5), haftalık özet üretimi aynı widget verisinden |
 | `can_read_mistakes` | DB kapısı | Faz 8 koç "veliye görünürlük" anahtarı (`student_parents.can_view_details` formu) + veli defter sekmesi (C10) |
 | `LineChart` | net trendi | Faz 8 veli haftalık özet, Faz 9 çalışma süresi / günlük durum çizgileri |
-| `mock_exams.template_id` | tek sezon | `copy_curriculum_template(include_catalogs)` deneme kataloğunu da kopyalar |
+| `mock_exams.template_id` | tek sezon | `copy_curriculum_template(include_catalogs)` (Faz 7 ✅) deneme kataloğunu **kopyalamaz** (tarihli); istenirse sonraki ek |
 | `mistake-images` | 1 GB ücretsiz plan | Eski sezon fotoğraf arşivleme / silme eylemi (01 §10); PWA kamera kısayolu (Faz 9) |
 | Bildirimler | — | Faz 8: "deneme girildi" (koç), "koç deneme ekledi" (öğrenci) |
 | `save_mock_exam_result` | ders D/Y/B + konu işareti | Soru soru cevap anahtarı istenirse `mock_exam_answers` alt tablosu; RPC imzası aynı, `p_answers` isteğe bağlı parametre |

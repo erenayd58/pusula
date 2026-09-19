@@ -44,6 +44,19 @@ export function estimateMinutes(input: {
     case "custom":
       minutes = defaults.custom_minutes;
       break;
+    case "section": {
+      // Kaynak testi = soru görevi (hedef test soru sayısı).
+      const perQuestion =
+        pace && pace.minutesPerQuestion > 0
+          ? pace.minutesPerQuestion
+          : defaults.minutes_per_question;
+      minutes = (targetValue ?? defaults.questions_target) * perQuestion;
+      break;
+    }
+    case "video":
+      // Video süresi havuz/öneride `videoMinutes` ile verilir; formda bağlantı varsayılanı.
+      minutes = targetValue ?? defaults.link_minutes;
+      break;
   }
   return Math.min(600, Math.max(1, Math.round(minutes)));
 }

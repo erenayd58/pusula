@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { CheckIcon, ChevronRightIcon, ExternalLinkIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, ExternalLinkIcon, PlayIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useQuickLog } from "@/components/shared/quick-log-context";
 import { subjectVars } from "@/components/shared/subject-scope";
@@ -55,6 +56,18 @@ export function PlanTaskCard({
           topicId: item.topicId,
           targetValue: item.targetValue,
         },
+        // Kaynak testi (Faz 7): kayıt teste bağlanır, Boş otomatik (soru sayısı = hedef).
+        section:
+          item.kind === "section" && item.sectionId
+            ? {
+                id: item.sectionId,
+                title: item.title,
+                resourceTitle: "",
+                subjectId: item.subjectId,
+                topicId: item.topicId,
+                questionCount: item.targetValue,
+              }
+            : undefined,
       });
       return;
     }
@@ -203,11 +216,28 @@ function TaskDetailSheet({
             </Button>
           ) : null}
 
+          {/* Video görevi (Faz 7): oynatıcıya gider; "İzledim" görevi de tamamlar (karar D6). */}
+          {item.kind === "video" && item.videoId ? (
+            <Button asChild variant={done ? "secondary" : "primary"}>
+              <Link href={`/student/videos/watch/${item.videoId}`}>
+                <PlayIcon aria-hidden="true" />
+                İzle
+              </Link>
+            </Button>
+          ) : null}
+
           {!done ? (
-            <Button type="button" onClick={onComplete} disabled={pending}>
+            <Button
+              type="button"
+              variant={item.kind === "video" && item.videoId ? "secondary" : "primary"}
+              onClick={onComplete}
+              disabled={pending}
+            >
               {KIND_SPECS[item.kind].completeMode === "quick-log"
                 ? "Tamamla ve soruları gir"
-                : "Tamamla"}
+                : item.kind === "video"
+                  ? "İzlemeden tamamla"
+                  : "Tamamla"}
             </Button>
           ) : (
             <Button

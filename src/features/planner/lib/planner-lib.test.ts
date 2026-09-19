@@ -178,11 +178,13 @@ describe("task pool", () => {
       "weak",
       "not_started",
       "review_due",
+      "resources",
+      "videos",
       "frequent",
     ]);
-    expect(pool[5]?.items).toHaveLength(1);
-    expect(filterPool(pool, "PARAGRAF")[5]?.items).toHaveLength(1);
-    expect(filterPool(pool, "olasılık")[5]?.items).toHaveLength(0);
+    expect(pool[7]?.items).toHaveLength(1);
+    expect(filterPool(pool, "PARAGRAF")[7]?.items).toHaveLength(1);
+    expect(filterPool(pool, "olasılık")[7]?.items).toHaveLength(0);
   });
 });
 

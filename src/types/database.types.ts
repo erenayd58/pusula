@@ -1106,6 +1106,7 @@ export type Database = {
           plan_id: string
           postponed_at: string | null
           postponed_from: number | null
+          section_id: string | null
           sort_order: number
           student_note: string | null
           subject_id: string | null
@@ -1115,6 +1116,7 @@ export type Database = {
           topic_id: string | null
           updated_at: string
           url: string | null
+          video_id: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -1126,6 +1128,7 @@ export type Database = {
           plan_id: string
           postponed_at?: string | null
           postponed_from?: number | null
+          section_id?: string | null
           sort_order?: number
           student_note?: string | null
           subject_id?: string | null
@@ -1135,6 +1138,7 @@ export type Database = {
           topic_id?: string | null
           updated_at?: string
           url?: string | null
+          video_id?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -1146,6 +1150,7 @@ export type Database = {
           plan_id?: string
           postponed_at?: string | null
           postponed_from?: number | null
+          section_id?: string | null
           sort_order?: number
           student_note?: string | null
           subject_id?: string | null
@@ -1155,6 +1160,7 @@ export type Database = {
           topic_id?: string | null
           updated_at?: string
           url?: string | null
+          video_id?: string | null
         }
         Relationships: [
           {
@@ -1170,6 +1176,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "weekly_plans"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "resource_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["section_id"]
           },
           {
             foreignKeyName: "plan_items_subject_id_fkey"
@@ -1226,6 +1246,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "plan_items_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["video_id"]
+          },
+          {
+            foreignKeyName: "plan_items_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1286,6 +1320,7 @@ export type Database = {
           log_date: string
           note: string | null
           plan_item_id: string | null
+          section_id: string | null
           source: Database["public"]["Enums"]["question_source"]
           student_id: string
           subject_id: string
@@ -1303,6 +1338,7 @@ export type Database = {
           log_date?: string
           note?: string | null
           plan_item_id?: string | null
+          section_id?: string | null
           source?: Database["public"]["Enums"]["question_source"]
           student_id: string
           subject_id: string
@@ -1320,6 +1356,7 @@ export type Database = {
           log_date?: string
           note?: string | null
           plan_item_id?: string | null
+          section_id?: string | null
           source?: Database["public"]["Enums"]["question_source"]
           student_id?: string
           subject_id?: string
@@ -1335,6 +1372,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "plan_items"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_plan_item_id_fkey"
+            columns: ["plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["open_plan_item_id"]
+          },
+          {
+            foreignKeyName: "question_logs_plan_item_id_fkey"
+            columns: ["plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["open_plan_item_id"]
+          },
+          {
+            foreignKeyName: "question_logs_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "resource_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["section_id"]
           },
           {
             foreignKeyName: "question_logs_student_id_fkey"
@@ -1440,6 +1505,270 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["topic_id"]
+          },
+        ]
+      }
+      resource_sections: {
+        Row: {
+          created_at: string
+          id: string
+          page_end: number | null
+          page_start: number | null
+          question_count: number | null
+          resource_id: string
+          sort_order: number
+          subject_id: string | null
+          title: string
+          topic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_end?: number | null
+          page_start?: number | null
+          question_count?: number | null
+          resource_id: string
+          sort_order?: number
+          subject_id?: string | null
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_end?: number | null
+          page_start?: number | null
+          question_count?: number | null
+          resource_id?: string
+          sort_order?: number
+          subject_id?: string | null
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_sections_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_sections_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["resource_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          publish_year: number | null
+          publisher: string | null
+          student_id: string | null
+          subject_id: string | null
+          template_id: string
+          title: string
+          type: Database["public"]["Enums"]["resource_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          publish_year?: number | null
+          publisher?: string | null
+          student_id?: string | null
+          subject_id?: string | null
+          template_id: string
+          title: string
+          type?: Database["public"]["Enums"]["resource_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          publish_year?: number | null
+          publisher?: string | null
+          student_id?: string | null
+          subject_id?: string | null
+          template_id?: string
+          title?: string
+          type?: Database["public"]["Enums"]["resource_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resources_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "resources_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1687,6 +2016,190 @@ export type Database = {
           },
           {
             foreignKeyName: "student_parents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      student_playlists: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          playlist_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          playlist_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          playlist_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      student_resources: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          resource_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          resource_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          resource_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_resources_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["resource_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_topic_alert_facts"
@@ -2012,6 +2525,97 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["topic_id"]
+          },
+        ]
+      }
+      student_video_progress: {
+        Row: {
+          created_at: string
+          note: string | null
+          student_id: string
+          updated_at: string
+          video_id: string
+          watched_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          student_id: string
+          updated_at?: string
+          video_id: string
+          watched_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          student_id?: string
+          updated_at?: string
+          video_id?: string
+          watched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["video_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2399,6 +3003,229 @@ export type Database = {
           },
         ]
       }
+      video_playlists: {
+        Row: {
+          channel_name: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          imported_at: string | null
+          organization_id: string
+          student_id: string | null
+          subject_id: string | null
+          template_id: string
+          title: string
+          updated_at: string
+          youtube_playlist_id: string | null
+        }
+        Insert: {
+          channel_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string | null
+          organization_id: string
+          student_id?: string | null
+          subject_id?: string | null
+          template_id: string
+          title: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Update: {
+          channel_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string | null
+          organization_id?: string
+          student_id?: string | null
+          subject_id?: string | null
+          template_id?: string
+          title?: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_playlists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          playlist_id: string
+          sort_order: number
+          title: string
+          topic_id: string | null
+          updated_at: string
+          youtube_video_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          playlist_id: string
+          sort_order?: number
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+          youtube_video_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          playlist_id?: string
+          sort_order?: number
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+          youtube_video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
       weekly_plans: {
         Row: {
           coach_message: string | null
@@ -2753,6 +3580,383 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_student_playlist_progress: {
+        Row: {
+          last_watched_at: string | null
+          minutes_remaining: number | null
+          minutes_total: number | null
+          percent: number | null
+          playlist_id: string | null
+          student_id: string | null
+          videos_total: number | null
+          videos_watched: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      v_student_playlist_videos: {
+        Row: {
+          duration_seconds: number | null
+          note: string | null
+          open_plan_item_id: string | null
+          playlist_id: string | null
+          playlist_title: string | null
+          sort_order: number | null
+          student_id: string | null
+          subject_color: string | null
+          subject_id: string | null
+          subject_name: string | null
+          subject_short_name: string | null
+          title: string | null
+          topic_id: string | null
+          topic_name: string | null
+          video_id: string | null
+          watched_at: string | null
+          youtube_video_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
+      v_student_resource_progress: {
+        Row: {
+          last_log_date: string | null
+          percent: number | null
+          questions_done: number | null
+          questions_total: number | null
+          resource_id: string | null
+          sections_done: number | null
+          sections_total: number | null
+          student_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_resource_sections"
+            referencedColumns: ["resource_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      v_student_resource_sections: {
+        Row: {
+          done_at: string | null
+          logs_count: number | null
+          open_plan_item_id: string | null
+          page_end: number | null
+          page_start: number | null
+          question_count: number | null
+          resource_id: string | null
+          resource_title: string | null
+          resource_type: Database["public"]["Enums"]["resource_type"] | null
+          section_id: string | null
+          section_title: string | null
+          sort_order: number | null
+          student_id: string | null
+          subject_color: string | null
+          subject_id: string | null
+          subject_name: string | null
+          subject_short_name: string | null
+          topic_id: string | null
+          topic_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "resource_sections_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_resources_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -3293,6 +4497,15 @@ export type Database = {
         Args: { p_item_id: string; p_log?: Json; p_note?: string }
         Returns: Json
       }
+      copy_curriculum_template: {
+        Args: {
+          p_include_catalogs?: boolean
+          p_new_name: string
+          p_new_season: string
+          p_template_id: string
+        }
+        Returns: string
+      }
       copy_weekly_plan: {
         Args: {
           p_only_incomplete?: boolean
@@ -3301,6 +4514,14 @@ export type Database = {
           p_week_start: string
         }
         Returns: Json
+      }
+      create_playlist: {
+        Args: { p_assign_self?: boolean; p_playlist: Json; p_videos?: Json }
+        Returns: string
+      }
+      create_resource: {
+        Args: { p_assign_self?: boolean; p_resource: Json; p_sections?: Json }
+        Returns: string
       }
       create_student_account: {
         Args: {
@@ -3316,8 +4537,20 @@ export type Database = {
         Returns: string
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      import_playlist_videos: {
+        Args: { p_playlist_id: string; p_videos: Json }
+        Returns: Json
+      }
+      mark_video_watched: {
+        Args: { p_student_id?: string; p_video_id: string; p_watched: boolean }
+        Returns: Json
+      }
       move_plan_item: {
         Args: { p_day: number; p_index: number; p_item_id: string }
+        Returns: undefined
+      }
+      move_resource_section: {
+        Args: { p_direction: string; p_section_id: string }
         Returns: undefined
       }
       move_topic: {
@@ -3369,9 +4602,23 @@ export type Database = {
         | "unknown"
       mistake_status: "open" | "solved"
       parent_relation: "mother" | "father" | "guardian" | "other"
-      plan_item_kind: "topic_study" | "questions" | "review" | "link" | "custom"
+      plan_item_kind:
+        | "topic_study"
+        | "questions"
+        | "review"
+        | "link"
+        | "custom"
+        | "section"
+        | "video"
       plan_status: "draft" | "published"
       question_source: "resource" | "plan" | "school" | "online" | "free"
+      resource_type:
+        | "lecture_book"
+        | "question_bank"
+        | "worksheet"
+        | "booklet"
+        | "mock_book"
+        | "other"
       student_status: "active" | "paused" | "archived"
       topic_alert_kind:
         | "knowledge_gap"
@@ -3540,9 +4787,25 @@ export const Constants = {
       ],
       mistake_status: ["open", "solved"],
       parent_relation: ["mother", "father", "guardian", "other"],
-      plan_item_kind: ["topic_study", "questions", "review", "link", "custom"],
+      plan_item_kind: [
+        "topic_study",
+        "questions",
+        "review",
+        "link",
+        "custom",
+        "section",
+        "video",
+      ],
       plan_status: ["draft", "published"],
       question_source: ["resource", "plan", "school", "online", "free"],
+      resource_type: [
+        "lecture_book",
+        "question_bank",
+        "worksheet",
+        "booklet",
+        "mock_book",
+        "other",
+      ],
       student_status: ["active", "paused", "archived"],
       topic_alert_kind: [
         "knowledge_gap",

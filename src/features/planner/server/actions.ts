@@ -7,6 +7,7 @@ import { ActionError, createAction } from "@/lib/actions/create-action";
 import { isoDayOfWeek, todayInIstanbul, toDateKey, weekStart } from "@/lib/dates";
 import { taskTitle } from "@/lib/plan/task-title";
 import type { ServerSupabaseClient } from "@/lib/supabase/server";
+import type { PlanItemKind } from "@/types";
 import {
   addPlanItemsSchema,
   coachMessageSchema,
@@ -61,7 +62,7 @@ async function resolveTitle(
   supabase: ServerSupabaseClient,
   input: {
     title: string;
-    kind: "topic_study" | "questions" | "review" | "link" | "custom";
+    kind: PlanItemKind;
     subjectId: string | null;
     topicId: string | null;
     targetValue: number | null;
@@ -136,6 +137,8 @@ export const addPlanItems = createAction({
         target_value: input.targetValue,
         target_unit: input.targetUnit,
         estimated_minutes: input.estimatedMinutes,
+        section_id: input.kind === "section" ? (input.sectionId ?? null) : null,
+        video_id: input.kind === "video" ? (input.videoId ?? null) : null,
       };
     });
     const { data, error } = await ctx.supabase.from("plan_items").insert(rows).select("id");
@@ -162,6 +165,8 @@ export const updatePlanItem = createAction({
         target_value: input.targetValue,
         target_unit: input.targetUnit,
         estimated_minutes: input.estimatedMinutes,
+        section_id: input.kind === "section" ? (input.sectionId ?? null) : null,
+        video_id: input.kind === "video" ? (input.videoId ?? null) : null,
       })
       .eq("id", input.id)
       .select("id");
@@ -313,6 +318,8 @@ export const prepareSuggestedPlan = createAction({
         target_value: s.task.targetValue,
         target_unit: s.task.targetUnit,
         estimated_minutes: s.task.estimatedMinutes,
+        section_id: s.task.sectionId ?? null,
+        video_id: s.task.videoId ?? null,
       };
     });
     const { error } = await ctx.supabase.from("plan_items").insert(rows);

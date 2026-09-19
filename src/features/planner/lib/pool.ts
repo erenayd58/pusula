@@ -3,8 +3,9 @@ import type { TaskPoolCategory, TaskPoolCategoryId, TaskPoolItem } from "../type
 /**
  * Görev havuzu kategorileri (08 §3.1, 09 §3.3). Sıra sabittir; her parça kendi kategorisini
  * doldurur: Parça 2 `frequent`, Parça 3 `weak` / `not_started` / `review_due`, Parça 4
- * `suggestions`, Faz 5a `behind`. Boş kategoriler de listede kalır (boş metniyle) — koç havuzun
- * yapısını görür.
+ * `suggestions`, Faz 5a `behind`, Faz 7 `resources` / `videos` (atanmış kaynakların bitmemiş
+ * testleri, atanmış listelerin izlenmemiş videoları). Boş kategoriler de listede kalır (boş
+ * metniyle) — koç havuzun yapısını görür.
  */
 const CATEGORY_META: { id: TaskPoolCategoryId; title: string; emptyText: string }[] = [
   {
@@ -32,6 +33,16 @@ const CATEGORY_META: { id: TaskPoolCategoryId; title: string; emptyText: string 
     id: "review_due",
     title: "Tekrar zamanı",
     emptyText: "Tekrar bekleyen konu yok.",
+  },
+  {
+    id: "resources",
+    title: "Kaynaklar",
+    emptyText: "Atanmış kaynaklarda bitmemiş test yok.",
+  },
+  {
+    id: "videos",
+    title: "Videolar",
+    emptyText: "Atanmış listelerde izlenmemiş video yok.",
   },
   {
     id: "frequent",

@@ -15,6 +15,9 @@ export type SuggestionTask = {
   targetUnit: TaskTargetUnit | null;
   estimatedMinutes: number;
   title: string;
+  /** Faz 7: konuya eşli kaynak testi / video görevi (11 §3.3). */
+  sectionId?: string;
+  videoId?: string;
 };
 
 export type Suggestion = {
@@ -77,6 +80,23 @@ export function plannedKey(studentId: string, id: string): string {
   return `${studentId}:${id}`;
 }
 
+/**
+ * Konuya eşli medya (Faz 7, 11 §3.3): öğrenci × konu için ilk izlenmemiş video ve ilk bitmemiş
+ * kaynak testi. `buildSuggestions.media` anahtarı `plannedKey(öğrenci, konu)`.
+ */
+export type TopicMedia = {
+  video?: { videoId: string; title: string; minutes: number };
+  section?: { sectionId: string; title: string; questionCount: number | null };
+};
+
+/** Video görevi olabilen uyarı türleri (yeni konu / bilgi eksiği); pratik türleri test görevi (D5). */
+const VIDEO_KINDS: ReadonlySet<TopicAlertKind> = new Set([
+  "knowledge_gap",
+  "not_started",
+  "behind_school",
+]);
+const SECTION_KINDS: ReadonlySet<TopicAlertKind> = new Set(["low_accuracy", "mock_weak"]);
+
 /** Uyarı türü → görev türü (08 §2 Parça 4; planner `alert-pool.ts` ile aynı eşleme). */
 const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
   knowledge_gap: "topic_study",
@@ -95,7 +115,52 @@ const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
  * `minutes_per_question`; öğrenci temposu planner formunda ayrıca önerilir), tekrar
  * (`review_minutes`). Kurum ayarı parametredir, eşik koda gömülmez.
  */
-export function alertToTask(alert: TopicAlert, planner: OrgSettings["planner"]): SuggestionTask {
+export function alertToTask(
+  alert: TopicAlert,
+  planner: OrgSettings["planner"],
+  media?: TopicMedia,
+): SuggestionTask {
+  // Faz 7: konuya eşli video / test varsa görev o türde (tür değişir, puan değişmez).
+  if (media?.video && VIDEO_KINDS.has(alert.kind)) {
+    const v = media.video;
+    return {
+      kind: "video",
+      targetValue: v.minutes,
+      targetUnit: "minutes",
+      estimatedMinutes: v.minutes,
+      videoId: v.videoId,
+      title: taskTitle({
+        kind: "video",
+        subjectName: alert.subject.name,
+        topicName: alert.topicName,
+        targetValue: v.minutes,
+        targetUnit: "minutes",
+        mediaTitle: v.title,
+      }),
+    };
+  }
+  if (media?.section && SECTION_KINDS.has(alert.kind)) {
+    const sec = media.section;
+    const targetValue = sec.questionCount ?? planner.questions_target;
+    return {
+      kind: "section",
+      targetValue,
+      targetUnit: "questions",
+      estimatedMinutes: Math.min(
+        600,
+        Math.max(1, Math.round(targetValue * planner.minutes_per_question)),
+      ),
+      sectionId: sec.sectionId,
+      title: taskTitle({
+        kind: "section",
+        subjectName: alert.subject.name,
+        topicName: alert.topicName,
+        targetValue,
+        targetUnit: "questions",
+        mediaTitle: sec.title,
+      }),
+    };
+  }
   const kind = TASK_KIND[alert.kind];
   const targetValue = kind === "questions" ? planner.questions_target : null;
   const targetUnit: TaskTargetUnit | null = kind === "questions" ? "questions" : null;
@@ -142,6 +207,8 @@ export function buildSuggestions(input: {
   today: string;
   /** Öğrenci → strateji bağlamı (`getStrategyContext`); yoksa Faz 4 davranışı. */
   strategy?: ReadonlyMap<string, StudentStrategy>;
+  /** `plannedKey(öğrenci, konu)` → konuya eşli video / test (Faz 7); yoksa görev türü değişmez. */
+  media?: ReadonlyMap<string, TopicMedia>;
 }): Suggestion[] {
   const { alerts, settings, today } = input;
   const scored: Suggestion[] = [];
@@ -175,7 +242,11 @@ export function buildSuggestions(input: {
       topicName: a.topicName,
       kind: a.kind,
       reason: alertReason(a),
-      task: alertToTask(a, settings.planner),
+      task: alertToTask(
+        a,
+        settings.planner,
+        a.topicId ? input.media?.get(plannedKey(a.studentId, a.topicId)) : undefined,
+      ),
       score: priorityScore({
         examQuestionCount: a.subject.examQuestionCount ?? 0,
         maxExamQuestionCount: input.maxExamQuestionCount,

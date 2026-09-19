@@ -276,6 +276,57 @@ describe("alertToTask", () => {
       expect(t.title).toBe("Üslü İfadeler · tekrar");
     }
   });
+
+  // Faz 7 (11 §3.3, karar D5): konuya eşli medya görev türünü değiştirir, diğer türler dokunulmaz.
+  const media = {
+    video: { videoId: "v1", title: "Üslü İfadeler 1", minutes: 13 },
+    section: { sectionId: "sec1", title: "Tonguç Mat SB · Test 12", questionCount: 24 },
+  };
+
+  it("bilgi eksiği / başlanmamış / okulun gerisinde + eşli video → video görevi", () => {
+    for (const kind of ["knowledge_gap", "not_started", "behind_school"] as const) {
+      const t = alertToTask(alert({ kind }), SETTINGS.planner, media);
+      expect(t).toEqual({
+        kind: "video",
+        targetValue: 13,
+        targetUnit: "minutes",
+        estimatedMinutes: 13,
+        videoId: "v1",
+        title: "Video: Üslü İfadeler 1",
+      });
+    }
+    // Video yoksa test eşleşmesi bu türlerde kullanılmaz.
+    expect(
+      alertToTask(alert({ kind: "knowledge_gap" }), SETTINGS.planner, { section: media.section })
+        .kind,
+    ).toBe("topic_study");
+  });
+
+  it("düşük başarı / denemede yanlış + eşli test → kaynak testi (soru sayısı testten)", () => {
+    for (const kind of ["low_accuracy", "mock_weak"] as const) {
+      const t = alertToTask(alert({ kind }), SETTINGS.planner, media);
+      expect(t).toEqual({
+        kind: "section",
+        targetValue: 24,
+        targetUnit: "questions",
+        estimatedMinutes: 36,
+        sectionId: "sec1",
+        title: `Tonguç Mat SB · Test 12 · 24${NBSP}soru`,
+      });
+    }
+    expect(alertToTask(alert({ kind: "review_due" }), SETTINGS.planner, media).kind).toBe("review");
+  });
+
+  it("buildSuggestions: media haritası konu anahtarıyla eşleşir; puan değişmez", () => {
+    const a = alert({ kind: "not_started" });
+    const [plain] = build([a]);
+    const [withMedia] = build([a], { media: new Map([[plannedKey("s1", "t1"), media]]) });
+    expect(withMedia!.task.kind).toBe("video");
+    expect(withMedia!.task.videoId).toBe("v1");
+    expect(withMedia!.score).toBe(plain!.score);
+    const [other] = build([a], { media: new Map([[plannedKey("s1", "t2"), media]]) });
+    expect(other!.task.kind).toBe("topic_study");
+  });
 });
 
 describe("buildSuggestions", () => {

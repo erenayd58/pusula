@@ -4,8 +4,14 @@ export { topicsWidgets } from "./widgets";
 export { TopicMap, TopicLegend } from "./components/topic-map";
 export { TemplateEditor } from "./components/template-editor";
 export { TemplateCalendar } from "./components/template-calendar";
-export { setTopicSchoolDates } from "./server/actions";
-export { setTopicSchoolDatesSchema, type SetTopicSchoolDatesInput } from "./schemas";
+export { TemplateCopyForm } from "./components/template-copy-form";
+export { setTopicSchoolDates, copyTemplate } from "./server/actions";
+export {
+  setTopicSchoolDatesSchema,
+  copyTemplateSchema,
+  type SetTopicSchoolDatesInput,
+  type CopyTemplateInput,
+} from "./schemas";
 export {
   getTopicMap,
   getTemplateEditor,
