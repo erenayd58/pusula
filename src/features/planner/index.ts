@@ -17,6 +17,7 @@ export {
   getPlanOptions,
   getFrequentTasks,
   getResourcePoolRows,
+  getVideoPoolRows,
   getPlanCompletion,
   listCoachPlans,
   getExistingItemCounts,

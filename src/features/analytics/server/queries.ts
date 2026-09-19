@@ -7,7 +7,13 @@ import { combineGap, mockSubjectGap } from "@/lib/strategy/gap";
 import { periodFor } from "@/lib/strategy/periods";
 import { createClient } from "@/lib/supabase/server";
 import { alertThresholds, evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
-import { buildSuggestions, dismissalKey, plannedKey, type Suggestion } from "../lib/suggestions";
+import {
+  buildSuggestions,
+  dismissalKey,
+  plannedKey,
+  type Suggestion,
+  type TopicMedia,
+} from "../lib/suggestions";
 import type {
   SetupAlert,
   SetupFacts,
@@ -250,6 +256,85 @@ export async function getStrategyContext(
  * İstanbul'a göre bu hafta (K1, K2 ve "Plana ekle" bu haftaya yazar); plan oluşturucu
  * görüntülenen haftayı geçirir.
  */
+/** Video süresi → plan dakikası (planner `videoMinutes` ile aynı kural; analytics planner'ı import etmez). */
+function minutesOf(durationSeconds: number | null, fallback: number): number {
+  if (durationSeconds === null || durationSeconds <= 0) return Math.max(5, fallback);
+  return Math.max(5, Math.ceil(durationSeconds / 60));
+}
+
+/**
+ * Konuya eşli medya (Faz 7, 11 §3.3): öğrencinin atanmış listelerindeki ilk izlenmemiş video ve
+ * atanmış kaynaklarındaki ilk bitmemiş test (görünümlerden; `resources` / `videos` modülü kapalı
+ * öğrencilerde yok). Anahtar `plannedKey(öğrenci, konu)`.
+ */
+async function getTopicMedia(
+  ids: string[] | undefined,
+  linkMinutes: number,
+): Promise<Map<string, TopicMedia>> {
+  const supabase = await createClient();
+  let videoQuery = supabase
+    .from("v_student_playlist_videos")
+    .select("student_id, topic_id, video_id, title, duration_seconds, playlist_title, sort_order")
+    .is("watched_at", null)
+    .not("topic_id", "is", null)
+    .order("playlist_title")
+    .order("sort_order");
+  if (ids) videoQuery = videoQuery.in("student_id", ids);
+  let sectionQuery = supabase
+    .from("v_student_resource_sections")
+    .select(
+      "student_id, topic_id, section_id, section_title, resource_title, question_count, sort_order",
+    )
+    .is("done_at", null)
+    .not("topic_id", "is", null)
+    .order("resource_title")
+    .order("sort_order");
+  if (ids) sectionQuery = sectionQuery.in("student_id", ids);
+  const [videos, sections, disabled] = await Promise.all([
+    videoQuery,
+    sectionQuery,
+    listDisabledModules(),
+  ]);
+  if (videos.error) throw videos.error;
+  if (sections.error) throw sections.error;
+
+  const out = new Map<string, TopicMedia>();
+  for (const v of videos.data) {
+    if (!v.student_id || !v.topic_id || !v.video_id || disabled.get(v.student_id)?.has("videos"))
+      continue;
+    const key = plannedKey(v.student_id, v.topic_id);
+    const entry = out.get(key) ?? {};
+    if (!entry.video) {
+      entry.video = {
+        videoId: v.video_id,
+        title: v.title ?? "",
+        minutes: minutesOf(v.duration_seconds, linkMinutes),
+      };
+      out.set(key, entry);
+    }
+  }
+  for (const sec of sections.data) {
+    if (
+      !sec.student_id ||
+      !sec.topic_id ||
+      !sec.section_id ||
+      disabled.get(sec.student_id)?.has("resources")
+    )
+      continue;
+    const key = plannedKey(sec.student_id, sec.topic_id);
+    const entry = out.get(key) ?? {};
+    if (!entry.section) {
+      entry.section = {
+        sectionId: sec.section_id,
+        title: `${sec.resource_title ?? ""} · ${sec.section_title ?? ""}`,
+        questionCount: sec.question_count,
+      };
+      out.set(key, entry);
+    }
+  }
+  return out;
+}
+
 export async function getSuggestions(
   studentIds?: string | string[],
   week?: string,
@@ -280,6 +365,7 @@ export async function getSuggestions(
   ]);
   if (planned.error) throw planned.error;
   if (dismissed.error) throw dismissed.error;
+  const media = await getTopicMedia(ids, settings.planner.link_minutes);
 
   const plannedTopicIds = new Set<string>();
   const plannedSubjectIds = new Set<string>();
@@ -305,6 +391,7 @@ export async function getSuggestions(
     maxExamQuestionCount,
     today,
     strategy,
+    media,
   });
 }
 

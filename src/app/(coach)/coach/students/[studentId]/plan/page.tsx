@@ -13,9 +13,11 @@ import {
   getPlanCompletion,
   getPlanOptions,
   getResourcePoolRows,
+  getVideoPoolRows,
   getWeekPlan,
   sectionsToPoolItems,
   suggestionsToPoolItems,
+  videosToPoolItems,
   type CopyTarget,
 } from "@/features/planner";
 import { getWeekAvailability } from "@/features/schedule";
@@ -54,6 +56,7 @@ export default async function CoachPlanPage({
     alerts,
     suggestions,
     sectionRows,
+    videoRows,
   ] = await Promise.all([
     getStudentHeader(studentId),
     getWeekPlan(studentId, week),
@@ -67,6 +70,7 @@ export default async function CoachPlanPage({
     getSuggestions(studentId, week),
     // Faz 7: kaynak modülü kapalıysa kategori boş kalır.
     enabled.has("resources") ? getResourcePoolRows(studentId) : Promise.resolve([]),
+    enabled.has("videos") ? getVideoPoolRows(studentId) : Promise.resolve([]),
   ]);
   const alertPriority = alertPriorityByTopic(alerts);
   if (!student) notFound();
@@ -107,6 +111,7 @@ export default async function CoachPlanPage({
           suggestions: suggestionsToPoolItems(suggestions),
           ...alertsToPoolItems(alerts, { ...options, reason: alertReason }),
           resources: sectionsToPoolItems(sectionRows, { alertPriority, ...options }),
+          videos: videosToPoolItems(videoRows, { alertPriority, defaults: options.defaults }),
           frequent,
         })}
         otherStudents={otherStudents}

@@ -5,7 +5,7 @@ import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import type { PlanItemKind } from "@/types";
 import type { PlannerDefaults } from "../lib/estimate";
-import type { SectionPoolRow } from "../lib/media-pool";
+import type { SectionPoolRow, VideoPoolRow } from "../lib/media-pool";
 import type {
   CoachPlanRow,
   PlanCompletion,
@@ -310,6 +310,37 @@ export async function getResourcePoolRows(studentId: string): Promise<SectionPoo
             topicId: r.topic_id,
             topicName: r.topic_name,
             questionCount: r.question_count,
+          },
+        ]
+      : [],
+  );
+}
+
+/** Havuz `videos` kategorisi: atanmış listelerin izlenmemiş videoları (görünüm; Faz 7). */
+export async function getVideoPoolRows(studentId: string): Promise<VideoPoolRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("v_student_playlist_videos")
+    .select(
+      "video_id, playlist_title, title, subject_id, subject_name, topic_id, topic_name, duration_seconds, watched_at",
+    )
+    .eq("student_id", studentId)
+    .is("watched_at", null)
+    .order("playlist_title")
+    .order("sort_order");
+  if (error) throw error;
+  return data.flatMap((r) =>
+    r.video_id
+      ? [
+          {
+            videoId: r.video_id,
+            playlistTitle: r.playlist_title ?? "",
+            title: r.title ?? "",
+            subjectId: r.subject_id,
+            subjectName: r.subject_name,
+            topicId: r.topic_id,
+            topicName: r.topic_name,
+            durationSeconds: r.duration_seconds,
           },
         ]
       : [],
