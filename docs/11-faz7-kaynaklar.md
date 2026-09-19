@@ -339,14 +339,14 @@ Tanımlar tek yerde: **bitmiş test** = öğrencinin o `section_id`'li en az bir
 
 | Yapı | Faz 7 | Sonraki ek |
 |---|---|---|
-| `v_student_resource_progress`, `v_student_playlist_progress` | Öğrenci/K2 | Faz 8 veli `parentSummary` kartı ("3 kitapta %42 · bu hafta 4 video"), haftalık özet; 01 §5 veli sütunları |
+| `v_student_resource_progress`, `v_student_playlist_progress` | Öğrenci/K2 | ✅ Faz 8 (12, E9): veli Özet kartları "1 kitapta 20 testin 6'sı bitti · %30" / "1 listede 6 videonun 2'si izlendi" (order 60–61); haftalık özette yok |
 | `student_video_progress.watched_at` | Elle işaret | `v_student_daily_summary.videos_completed` + `goal_metric` `'videos'` (Faz 9 hedef türü); `study_sessions.kind = 'video'` süre kaydı (Faz 9 odak sayacı) |
 | `resource_sections.topic_id`, `videos.topic_id` | Havuz/öneri eşlemesi | Konu hücresi detayında "Kaynak: 3 test (1 bitti) · Video: 2 (1 izlendi)" satırı (04 §9 masaüstü detay; `TopicMapCell` + iki sayım) |
 | `mistakes` | — | `mistakes.section_id` (10 §5): hızlı kayıttan "yanlış ekle" kısayolu testi taşır |
 | `copy_curriculum_template` | Şablon + kataloglar | Deneme kataloğu kopyası (10 §5) — tarihli olduğu için varsayılan dışı; okul tarihlerini yıl farkıyla kaydırma seçeneği |
 | `create_playlist / import_playlist_videos` | Elle bağlantı | Faz 9+ otomatik öneri (`search.list`, 100 birim/çağrı — kota nedeniyle kapsam dışı) |
 | Oynatıcı | `youtube-nocookie` iframe | IFrame Player API ile %90 otomatik işaret (istenirse; izleme süresi ölçümü kapsam dışı kararı değişirse) |
-| Bildirimler | — | Faz 8: "koç kaynak/liste atadı" (öğrenci), "öğrenci kaynak ekledi" (koç) |
+| Bildirimler | — | Faz 8'de yapılmadı; 12 §6 kancası (`resource_assigned`, `playlist_assigned`, `student_resource_added` enum değerleri) |
 | `student_resources`/`student_playlists` | Atama | Öğrenci "listemden gizle" (`hidden_at`) ihtiyaç doğarsa |
 
 ## 7. Kararlar (2026-09-19, onaylandı)

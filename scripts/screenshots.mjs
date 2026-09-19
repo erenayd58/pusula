@@ -602,6 +602,106 @@ const SHOTS = [
       await page.getByRole("dialog").waitFor();
     },
   },
+  // Faz 8: veli paneli ve bildirimler
+  {
+    dir: "uygulama-8",
+    file: "veli-ozet-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-8",
+    file: "veli-ozet-gecen-hafta-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}`,
+    before: async (page) => {
+      await page.getByRole("link", { name: "Önceki hafta" }).click();
+      await page.waitForURL(/week=/);
+      await page.waitForLoadState("networkidle");
+    },
+  },
+  {
+    dir: "uygulama-8",
+    file: "veli-notlar-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}/notes`,
+  },
+  {
+    dir: "uygulama-8",
+    file: "veli-yanlislar-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}/mistakes`,
+  },
+  {
+    dir: "uygulama-8",
+    file: "veli-bildirimler-390.png",
+    as: "parent",
+    width: 390,
+    path: "/parent/notifications",
+  },
+  {
+    dir: "uygulama-8",
+    file: "ogrenci-bildirimler-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/notifications",
+  },
+  {
+    dir: "uygulama-8",
+    file: "ogrenci-notlar-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/notes",
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-bildirimler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/notifications",
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-genel-bakis-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-notlar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/notes`,
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-duyurular-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/announcements",
+  },
+  {
+    dir: "uygulama-8",
+    file: "koc-ayarlar-ogrenci-uyarilari-1440.png",
+    as: "owner",
+    width: 1440,
+    path: "/coach/settings",
+    before: async (page) => {
+      await page.getByRole("group", { name: "Öğrenci uyarıları" }).scrollIntoViewIfNeeded();
+    },
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */

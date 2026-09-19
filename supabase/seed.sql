@@ -490,3 +490,69 @@ insert into public.student_playlists (student_id, playlist_id, assigned_by) valu
 insert into public.student_video_progress (student_id, video_id, watched_at, note) values
   ('b0000000-0000-4000-8000-000000000011', 'f3000000-0000-4000-8000-000000000001', now() - interval '5 days', 'Üslü sayılarda negatif üs kısmını tekrar izle'),
   ('b0000000-0000-4000-8000-000000000011', 'f3000000-0000-4000-8000-000000000002', now() - interval '2 days', null);
+
+-- Faz 8: koç notları, duyuru, öğrenci düzeyi uyarı örnekleri ve örnek bildirimler ----------------
+-- Notlar (Ayşe): veliye açık + sabitlenmiş, öğrenciye açık, yalnızca koç. Tetikleyici görünür
+-- notlar için Ayşe'ye / veli.ayse'ye bildirim yazar.
+insert into public.coach_notes (id, student_id, author_id, body, visibility, is_pinned, created_at, updated_at) values
+  ('d8000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002',
+   'Paragraf hızı iyi; bu hafta yeni konu yerine tekrar ve deneme yanlışlarına bakıyoruz. Evde akşam 30 soru yeterli.',
+   'student_and_parent', true, now() - interval '3 days', now() - interval '3 days'),
+  ('d8000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002',
+   'Üslü ifadelerde negatif üs kısmını bir daha çalış; cuma kısa bir tekrar testi yapacağız.',
+   'student', false, now() - interval '1 day', now() - interval '1 day'),
+  ('d8000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000002',
+   'Veli görüşmesi: hafta içi ders saatleri değişti, salı akşamı boş.',
+   'coach_only', false, now() - interval '6 days', now() - interval '6 days');
+
+-- Duyuru: öğrenciler + veliler, tüm öğrenciler (tetikleyici aktif öğrencilere ve velilerine dağıtır).
+insert into public.announcements (id, organization_id, author_id, title, body, audience, created_at)
+values ('d8100000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000002',
+        'Cumartesi deneme', 'Cumartesi 10:00''da kurumda Türkiye geneli deneme var; kalem, silgi ve su getirin.',
+        '{"roles": ["student", "parent"], "student_ids": null}'::jsonb, now() - interval '2 days');
+
+-- Zeynep: tek kayıt 5 gün önce → K1 "Hareketsizlik" (eşik 3 gün) ve cron student_inactive örneği.
+insert into public.question_logs (student_id, log_date, subject_id, topic_id, total_count, correct_count, wrong_count, blank_count, duration_minutes)
+values ('b0000000-0000-4000-8000-000000000013', (now() at time zone 'Europe/Istanbul')::date - 5,
+        'c1000000-0000-4000-8000-000000000001', 'c2000000-0000-4000-8000-000000001001', 20, 14, 4, 2, 30);
+
+-- Mehmet: geçen haftanın yayınlanmış planı 3 görev / 1 tamamlandı (%33) → K1 "Plan uyumu düşük".
+insert into public.weekly_plans (id, student_id, week_start, created_by, status, published_at)
+values ('d0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000012',
+        (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 7,
+        'b0000000-0000-4000-8000-000000000002', 'published', now() - interval '9 days');
+insert into public.plan_items (plan_id, day_of_week, sort_order, kind, title, estimated_minutes, completed_at) values
+  ('d0000000-0000-4000-8000-000000000002', 1, 0, 'custom', 'Türkçe · 20 soru', 30, now() - interval '8 days'),
+  ('d0000000-0000-4000-8000-000000000002', 3, 0, 'custom', 'Matematik · 20 soru', 30, null),
+  ('d0000000-0000-4000-8000-000000000002', 5, 0, 'custom', 'Fen · 20 soru', 30, null);
+-- Plan yayın bildirimi seed'de gerçek yayın tarihinde görünsün (tetikleyici insert'te çalışmaz; doğrudan satır).
+delete from public.notifications where type = 'plan_published';
+
+-- Örnek bildirimler (metin uygulamada üretilir; burada yalnızca olgular): Ayşe'ye okunmuş plan yayını,
+-- tekrar hatırlatması ve geçen haftanın özeti; veli.ayse'ye geçen haftanın özeti; koça geçen hafta özeti.
+insert into public.notifications (recipient_id, student_id, type, data, read_at, created_at) values
+  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000011', 'plan_published',
+   jsonb_build_object('plan_id', 'd0000000-0000-4000-8000-000000000001', 'week_start', (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date, 'items_count', 7, 'has_message', true),
+   now() - interval '2 days', now() - interval '2 days'),
+  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000011', 'review_due',
+   '{"count": 4, "topics": ["Sözcükte Anlam", "Cümlede Anlam", "Mevsimler ve İklim"]}'::jsonb,
+   null, ((now() at time zone 'Europe/Istanbul')::date + time '07:30') at time zone 'Europe/Istanbul'),
+  ('b0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000011', 'weekly_summary',
+   jsonb_build_object('week_start', (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 7,
+     'questions', 244, 'study_minutes', 395, 'plan_total', 8, 'plan_done', 6, 'plan_percent', 75, 'topics_done', 2, 'last_net', 55.67),
+   null, ((date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 1 + time '20:00') at time zone 'Europe/Istanbul'),
+  ('b0000000-0000-4000-8000-000000000021', 'b0000000-0000-4000-8000-000000000011', 'weekly_summary',
+   jsonb_build_object('week_start', (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 7,
+     'questions', 244, 'study_minutes', 395, 'plan_total', 8, 'plan_done', 6, 'plan_percent', 75, 'topics_done', 2, 'last_net', 55.67),
+   null, ((date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 1 + time '20:00') at time zone 'Europe/Istanbul'),
+  ('b0000000-0000-4000-8000-000000000002', null, 'weekly_summary',
+   jsonb_build_object('week_start', (date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 7,
+     'students', jsonb_build_array(
+       jsonb_build_object('student_id', 'b0000000-0000-4000-8000-000000000011', 'name', 'Ayşe Kılıç', 'questions', 244, 'plan_percent', 75),
+       jsonb_build_object('student_id', 'b0000000-0000-4000-8000-000000000012', 'name', 'Mehmet Yılmaz', 'questions', 0, 'plan_percent', 33),
+       jsonb_build_object('student_id', 'b0000000-0000-4000-8000-000000000013', 'name', 'Zeynep Arslan', 'questions', 20, 'plan_percent', null)),
+     'totals', jsonb_build_object('students', 3, 'questions', 264, 'plan_percent_avg', 54)),
+   null, ((date_trunc('week', (now() at time zone 'Europe/Istanbul')::date))::date - 1 + time '20:00') at time zone 'Europe/Istanbul');
+-- Ayşe'nin seed denemeleri koça 4 "deneme girildi" bildirimi üretir; yalnızca sonuncusu okunmamış kalsın.
+update public.notifications set read_at = created_at
+where type = 'mock_result_added' and (data ->> 'result_id') <> 'e1000000-0000-4000-8000-000000000004';

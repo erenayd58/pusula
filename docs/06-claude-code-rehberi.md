@@ -307,7 +307,7 @@ D) Konu haritası: v_topic_mastery, TopicMasteryCell (5 durum + seçili; doluluk
    + sağ yan panel + ok tuşlarıyla gezinme, koç için sade sürüm, zayıf konular listesi.
 ```
 
-### Faz 8: Veli Paneli ve Bildirimler
+### Faz 8: Veli Paneli ve Bildirimler — ✅ uygulandı (2026-09-20; tasarım `12-faz8-veli-bildirim.md`, kararlar E1–E10). Aşağıdaki istem tarihsel; gerçek kapsam 12'de (e-posta yok, kurum ayarı bölümü "Öğrenci uyarıları", tekrar aralıkları / sıralama tablosu bu fazda değil).
 
 ```
 CLAUDE.md, docs/01-proje-plani.md (Bölüm 5, 7), docs/03-veri-modeli.md (Bölüm 4.7, 7)

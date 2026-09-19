@@ -273,8 +273,9 @@ Menüler modül registry'sinden üretildiği için (`nav.student.mobile: true`) 
 ### 8.3 Veli
 
 - Telefon öncelikli tek sütun. Masaüstünde aynı içerik ortalanır, en fazla iki sütuna yayılır; yeni bilgi eklenmez.
-- **V1 Haftalık özet sırası:** selamlama + hafta seçici → plan uyumu cümlesi ve çubuğu → soru sayısı ve çalışma süresi → son deneme neti ve değişimi → son 5 deneme grafiği → ders bazında haftalık soru → koçun veliye açık son notu.
-- **Alt menü:** Özet · Denemeler · Notlar.
+- **V1 Haftalık özet sırası (Faz 8 ✅):** başlık ("Ayşe'nin haftası", koç adı) → hafta seçici (`?week=`, ‹ ›; gelecek hafta yok) → plan uyumu cümlesi ve çubuğu (`ink-900`) → soru sayısı ve çalışma süresi (iki kutu) → konu gidişatı cümlesi ("siz", üçüncü tekil) → son deneme neti ve değişimi (nötr) → ders bazında haftalık soru (ders rengi dolgu) → kaynak ve video özeti → koçun veliye açık son notu. Son 5 deneme grafiği Denemeler sekmesindedir (V1'deki grafik Özet'te yok). Kartlar modül registry'sinden (`parentSummary`, `order` 10–70).
+- **Alt menü:** Özet · Denemeler · Notlar (· Yanlışlar, yalnızca koç `can_view_details` açtıysa). Üst barda zil (okunmamış rozeti `ink-900`), bildirim listesi `/parent/notifications` (çocuktan bağımsız).
+- Veli salt okunur: boş durumlar bilgi cümlesi, eylem yok; uyarı/kırmızı/fosforlu yok.
 
 > **Kapsam notu:** Tasarımda veli alt menüsünde "Mesajlar" sekmesi ve "koçunuza mesaj yazabilirsiniz" cümlesi var. Mesajlaşma `01-proje-plani.md` Bölüm 12'de kapsam dışıdır. Bu nedenle sekme **"Notlar"** olarak uygulanır (koçun veliye açık notları) ve mesaj cümlesi kaldırılır. Mesajlaşma istenirse önce modül olarak plana eklenir.
 
@@ -282,8 +283,8 @@ Menüler modül registry'sinden üretildiği için (`nav.student.mobile: true`) 
 
 - Masaüstü öncelikli; yan menü 232 px, içerik en fazla 1320 px.
 - **Telefonda:** yan menü soldan açılan panele (hamburger) döner, tablo satırları kart listesine döner, plan oluşturucu salt okunurdur ve "Düzenlemek için bilgisayardan açın" notu gösterilir.
-- **K1 Ana ekran:** Başlık (Öğrenciler, tarih, LGS geri sayımı) + arama + Filtreler + Yeni öğrenci. "Dikkat gerektirenler" satırlarında uyarının türüne göre **hızlı eylem** düğmesi vardır: hareketsizlik → "Not yaz", net düşüşü → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur"; ayrıca "Öğrenciyi aç". Öğrenci tablosu: öğrenci, son giriş, haftalık hedef (ince çubuk + yüzde), son net ve trend, plan uyumu, birikmiş tekrar, satır menüsü.
-- **K2 Öğrenci detayı:** Başlıkta sınıf, okul, hedef lise, veli adı, LGS geri sayımı, "Not yaz" ve "Plan hazırla". Sekmeler registry'den. Genel bakışta 5 özet kutusu (bu hafta soru, çalışma süresi, plan uyumu, son net, birikmiş tekrar; her birinin altında karşılaştırma bilgisi), son 14 gün yığılmış soru grafiği, deneme net trendi (toplam + ders çizgileri), sade konu haritası, yanlış nedeni dağılımı, sabitlenmiş not, öğrencinin geçen hafta değerlendirmesi.
+- **K1 Ana ekran:** Başlık (Öğrenciler, tarih, LGS geri sayımı) + arama + Filtreler + Yeni öğrenci. "Öğrenci uyarıları" (Faz 8 ✅; öğrenci düzeyi) satırlarında türe göre **hızlı eylem**: hareketsizlik → "Not yaz" (K2 Notlar, form odaklı), net düşüşü ve plan uyumu düşük → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur", hedef geride → "Hedefi aç". "Dikkat gerektirenler" konu düzeyi (Faz 4; "Plana ekle", "Öğrenciyi aç"). Öğrenci tablosu: öğrenci, son giriş, haftalık hedef (ince çubuk + yüzde), son net ve trend, plan uyumu, takvim, birikmiş tekrar, satır menüsü. Yan menü marka satırında zil.
+- **K2 Öğrenci detayı:** Başlıkta sınıf, okul, hedef lise, veli adı, LGS geri sayımı, "Not yaz" ve "Plan hazırla". Sekmeler registry'den. Genel bakışta 5 özet kutusu (bu hafta soru, çalışma süresi, plan uyumu, son net, birikmiş tekrar; her birinin altında karşılaştırma bilgisi), son 14 gün yığılmış soru grafiği, deneme net trendi (toplam + ders çizgileri), sade konu haritası, yanlış nedeni dağılımı, sabitlenmiş not (Faz 8 ✅), öğrencinin geçen hafta değerlendirmesi, "Uyarılar" (öğrenci düzeyi, Faz 8 ✅), "Veliler" kartı (bağlı veliler + "Yanlış defterini görebilir" anahtarı, Faz 8 ✅). Notlar sekmesi: not formu (görünürlük çipleri: Sadece ben / Öğrenci / Veli / Öğrenci ve veli; sabitle) + liste (düzenle / sil / sabitle).
 - **K3 Plan oluşturucu:** Başlıkta taslak durumu ve otomatik kayıt zamanı, hafta seçici, hafta toplamı (süre + soru), Şablondan başlat, Başka öğrencilere kopyala, Planı yayınla. Solda aranabilir kaynak paneli: zayıf konular (%60 altı başarı veya tekrar gerekli), atanmış kaynaklar, izlenmemiş video listeleri. 7 gün sütunu, gün başlığında tarih ve toplam süre, "Buraya bırak" hedefi, "+ Görev ekle". Altta gün başına süre özeti. **Otomatik taslak kaydı** bu ekranın gereksinimidir.
 - **Dar masaüstü:** 1440 px'te 7 sütun sıkışıktır. 1440 px'in altında sol kaynak paneli daraltılabilir olur; 1280 px'in altında gün sütunları yatay kaydırılır.
 
@@ -316,6 +317,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 | `Input`, `Select` | `components/ui` | Clay'de kap clay, alan içi `clay-well` |
 | `formatNamePossessive` | `lib/format` | Faz 6b: ad + ilgi hali (`Ayşe'nin`, `Mehmet'in`, `Can'ın`); veli başlığı "…'nin bu haftası" — ek elle yazılmaz |
 | `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı; `dense` (deneme sihirbazı): etiket solda, 36 px düğme + 44 px dokunma alanı, iki adımlayıcı telefonda yan yana (< 390 px etiket üstte) |
+| `DayChips` | `components/shared` | Gün çipleri (Pzt–Paz, isteğe bağlı "Bu hafta içinde"); çoklu seçimde "Hızlı seç: Hafta içi · Hafta sonu · Her gün · Temizle" kısayolu, `single` modunda radyo (tek gün, kısayol yok). Koç kısayolları (2026-09-20): görev formu, görev menüsü "Kopyala", meşguliyet formu |
 | `SubjectBadge`, `SubjectStripe` | `components/shared` | `subjectVars()` ile |
 | `GoalRing`, `ProgressBar` | `components/shared` | Hedefe ulaşınca fosforlu + "hedef tamam" metni |
 | `PlanTaskCard` | `features/planner` | Bekliyor / tamamlandı; koç sürümü sürüklenebilir + "Buraya bırak" hedefi |
@@ -333,6 +335,11 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 | `StudentPicker` | `components/shared` | Faz 7: kaynak/liste atama paneli (`ResponsiveSheet`, onay kutuları; atanmışlar işaretli + devre dışı; "N öğrenciye ata") |
 | `ResourceForm`, `SectionEditor`, `StudentResourceList/Detail` | `features/resources` | Faz 7a: ad alanında benzer ad önerisi ("Bunu mu demek istedin?"), tür/ders çipleri (`radiogroup`), test partisi ("Test 1–40, her biri 20 soru", canlı önizleme); editörde çoklu seçim → "Konuya eşle", ↑↓; öğrenci kartlarında `ProgressBar` (`ink-900`, ders rengi ve fosforlu yok), test satırı dokununca hızlı kayıt `section` ön dolgusu (Boş otomatik) |
 | `PlaylistForm`, `VideoEditor`, `StudentPlaylistPlayer` | `features/videos` | Faz 7b: "YouTube listesi" / "Elle liste kur" çipleri (anahtar yoksa nötr not); editörde konuya eşle, video ekle, Listeyi yenile (küçük resim yok, D15); oynatıcı `youtube-nocookie` iframe 16:9, "İzledim" `aria-pressed`, not, sonraki video; izlenen satır nötr onay ikonu (fosforlu yalnızca plan kartında) |
+| `NotificationBell`, `NotificationList`, `NotificationPrefsForm`, `NotificationsPage` | `features/notifications` | Faz 8: zil 44 px, `aria-label` sayı ile, rozet `ink-900` (uyarı rengi yok); liste satırı `Link` (tıklamada okundu), türe göre lucide ikon, okunmamış kalın + nokta + sr-only; tercihler `Switch` listesi, anında kaydeder; metin `notificationText` ("sen/siz") |
+| `NoteForm`, `NoteItem`, `NoteList`, `PinnedNoteCard` | `features/coach-notes` | Faz 8: görünürlük `radiogroup` çipleri; koç kartı düzenle (satır içi form) / sil (onaylı) / sabitle; öğrenci ve veli `clay-sm` salt okunur |
+| `AnnouncementForm`, `AnnouncementList` | `features/announcements` | Faz 8: hedef çipleri (`checkbox` rolü), "Tüm öğrenciler / Seçtiklerim" (`radiogroup` + onay kutuları); liste sil (onaylı), düzenleme yok |
+| `StudentAlertList` | `features/analytics` | Faz 8: uyarı rengi kenar + ikon (yalnızca koç), tür, sebep, hızlı eylem bağlantısı; K1 öğrenci adıyla, K2 tek öğrenci + boş metin |
+| `ParentWeekSelector`, `ParentVisibilityCard` | `features/core` | Faz 8: ‹ › hafta bağlantıları (44 px, `aria-label`), "Bu hafta / Geçmiş hafta"; K2 veli anahtarı (`Switch`, iyimser) |
 | `LineChart` | `components/shared/line-chart` | Faz 6a (karar C1): saf SVG çizgi grafiği; `viewBox` genişliği kabın ölçülen genişliği (`ResizeObserver`; metin telefonda küçülmez), x eşit aralıklı (etiket sayısı genişliğe göre 3–6), y `niceCeil`; seri çipleri (`checkbox`, en az biri açık; toplam `ink-900` 3 px, dersler `var(--s)` 1,5 px), `secondaryToggle` ile `defaultOn` olmayan seriler < md "Dersleri göster" arkasında (grafik ilk ekranda), nokta seçimi dokunma/←→/Home/End, `aria-live` detay kutusu, `<figure aria-label={özet}>` + sr-only tablo; hareket yok. Dört noktadan azsa çağıran kart listesi çizer |
 
 ## 11. Hareket
@@ -383,5 +390,5 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 - [ ] Öğrenci: Denemeler, Yanlış defteri, Kaynaklar, Videolar, Ben ekranları (Faz 6–7 uygulama görüntüleri `docs/tasarim/uygulama-6/`, `uygulama-7/`)
 - [ ] Koç: Şablon editörü, Kaynak ve video katalogları, Deneme kataloğu ve karşılaştırma, Ayarlar (Faz 7 uygulama görüntüleri `docs/tasarim/uygulama-7/`)
 - [ ] Giriş, davet ve KVKK onay ekranları
-- [ ] Veli: Denemeler ve Notlar sekmeleri
+- [x] Veli: Denemeler ve Notlar sekmeleri (Faz 6b/8 uygulama görüntüleri `docs/tasarim/uygulama-8/`); bildirim listesi ve zil tasarım turunda yeniden ele alınabilir
 - [ ] Boş durum illüstrasyonları (özgün SVG)

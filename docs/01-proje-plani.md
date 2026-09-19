@@ -64,16 +64,16 @@ Her modül bağımsız bir klasördür (`src/features/<modul>`), kendi menü ö�
 | 2 | **Soru Takibi** (`question-log`) | Ders, konu, kaynak seçip doğru/yanlış/boş girer | Günlük, haftalık grafikleri ve konu bazlı başarı oranını görür | Haftalık toplam soru | 3 |
 | 3 | **Hedefler** (`goals`) | Hedef ilerleme çubuklarını görür | Günlük, haftalık, aylık hedef atar (soru, süre, video, konu, net) | Hedef tamamlanma oranı | 3, 5 ("Hedef" sekmesi, geri planlama) |
 | 4 | **Haftalık Plan** (`planner`) | Günlük görev listesini tamamlar, hafta sonu kısa değerlendirme yazar | Sürükle-bırak plan hazırlar, plan şablonu kaydeder, başka öğrenciye kopyalar | Planın yüzde kaçının yapıldığı | 4, 5 (dönem karışımı, ders çeşitliliği) |
-| 5 | **Koç Notları ve Görüşmeler** (`coach-notes`) | Kendisine açık notları okur | Not yazar (görünürlük seçerek), görüşme kaydı ve aksiyon maddesi tutar | Veliye açık notlar | 4 |
-| 6 | **Duyurular** (`announcements`) | Duyuruları görür | Tüm veya seçili öğrencilere duyuru gönderir | Veliye açık duyurular | 4 |
-| 7 | **Kaynak Takibi** (`resources`) | Kitaplarını, testleri tek tek işaretler; test bitince soru kaydı otomatik açılır; kendi kitabını da ekler (yalnızca kendisine görünür) | Kaynak kataloğu oluşturur (yayınevi, test listesi tek hamlede, konu eşleşmesi), öğrenciye atar; öğrencinin eklediğini kataloğa alır | Kaynak ilerleme yüzdeleri (Faz 8 kartı) | 7 ✅ |
-| 8 | **Video Takibi** (`videos`) | Oynatma listesindeki videoları uygulama içinde izler, izlendi işaretler, not düşer; kendi listesini ekler | YouTube oynatma listesini linkle içe aktarır (sunucu), videoları konulara eşler, atar | İzlenen video sayısı (Faz 8 kartı) | 7 ✅ |
+| 5 | **Koç Notları ve Görüşmeler** (`coach-notes`) | Kendisine açık notları okur | Not yazar (görünürlük seçerek), görüşme kaydı ve aksiyon maddesi tutar | Veliye açık notlar | 8 ✅ |
+| 6 | **Duyurular** (`announcements`) | Duyuruları bildirim olarak görür | Tüm veya seçili öğrencilere / velilere duyuru gönderir | Bildirim olarak | 8 ✅ |
+| 7 | **Kaynak Takibi** (`resources`) | Kitaplarını, testleri tek tek işaretler; test bitince soru kaydı otomatik açılır; kendi kitabını da ekler (yalnızca kendisine görünür) | Kaynak kataloğu oluşturur (yayınevi, test listesi tek hamlede, konu eşleşmesi), öğrenciye atar; öğrencinin eklediğini kataloğa alır | Kaynak ilerleme özeti (Faz 8 kartı ✅) | 7 ✅ |
+| 8 | **Video Takibi** (`videos`) | Oynatma listesindeki videoları uygulama içinde izler, izlendi işaretler, not düşer; kendi listesini ekler | YouTube oynatma listesini linkle içe aktarır (sunucu), videoları konulara eşler, atar | İzlenen video sayısı (Faz 8 kartı ✅) | 7 ✅ |
 | 9 | **Denemeler** (`mock-exams`) | Deneme sonucunu ders bazında girer, yanlış yaptığı konuları işaretler | Deneme kataloğu tutar, aynı denemede öğrencileri karşılaştırır, net trendini görür | Net grafiği | 6 |
 | 10 | **Yanlış Defteri** (`mistakes`) | Sorunun fotoğrafını çeker, konu ve hata nedeni seçer (bilgi eksiği, dikkat, süre, soru kökü, işlem hatası) | Hata nedeni dağılımını görür: "Bu öğrencinin sorunu bilgi değil, dikkat" | Yok (isteğe bağlı) | 6 |
 | 11 | **Tekrar Sistemi** (`review`) | "Bugün tekrar edilecekler" listesi (konu ve yanlış soru) | Tekrar aralıklarını ayarlar (varsayılan 1-3-7-15-30 gün) | Yok | 6 |
 | 12 | **Analiz ve Raporlar** (`analytics`) | Kendi istatistiklerini görür | Konu haritası (ısı haritası), zayıf konu listesi, yazdırılabilir veli görüşmesi raporu | Haftalık özet raporu | 4–9 (uyarılar ve öneriler 4, strateji 5, ısı haritası 6, veli raporu 9) |
-| 13 | **Veli Paneli** (`parent`) | Yok | Veli davet eder, veliye neyin görüneceğini seçer | Özet panel | 8 |
-| 14 | **Bildirimler** (`notifications`) | Plan, not, tekrar hatırlatmaları | Uyarılar, haftalık özet | Haftalık özet | 8 |
+| 13 | **Veli Paneli** (`parent`) | Yok | Veli davet eder, veliye neyin görüneceğini seçer (K2 "Veliler" kartı: yanlış defteri) | Özet panel (hafta seçici; kartlar modüllerden), Notlar, Yanlışlar (izinle) | 8 ✅ (ayrı modül değil: core + modül kartları) |
+| 14 | **Bildirimler** (`notifications`) | Plan yayını, koç notu, duyuru, tekrar hatırlatması, haftalık özet (zil + liste + tercihler) | Deneme girildi, öğrenci notu, hareketsizlik, haftalık toplu özet | Koç notu, duyuru, haftalık özet | 8 ✅ (çekirdek gibi: kapatılamaz, tercih tür başına) |
 | 15 | **Odak Sayacı** (`study-timer`) | Pomodoro veya serbest sayaç; süre otomatik kaydedilir | Çalışma süresi dağılımını görür | Haftalık çalışma süresi | 9 |
 | 16 | **Günlük Durum** (`checkins`) | 10 saniyelik günlük giriş: ruh hali, enerji, uyku saati | Motivasyon ve uyku ile performans ilişkisini görür, düşüş uyarısı alır | Yok (isteğe bağlı) | 9 |
 | 17 | **Kitap Okuma** (`reading`) | Okuduğu kitap ve sayfa sayısını girer (LGS Türkçe paragraf becerisi için) | Okuma hedefi atar | Okunan sayfa | 9 |
@@ -120,17 +120,17 @@ Faz 5 (strateji katmanı, `09-faz5-strateji.md`) yeni modül eklemez: `core`, `t
 
 ## 7. Koç Uyarı Kuralları
 
-Uyarılar veritabanında bir görünüm (view) ile hesaplanır; eşik değerleri kurum ayarlarında düzenlenebilir. Koç ana ekranında her uyarı satırında türüne uygun bir hızlı eylem bulunur (hareketsizlik → "Not yaz", net düşüşü → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur").
+Olgular veritabanı görünümünden (`v_coach_student_overview`, `v_review_queue`) gelir, karar saf TypeScript kuralındadır (`evaluateStudentAlerts`, Faz 8 ✅); eşikler kurum ayarı `student_alerts` içinde düzenlenir. Koç ana ekranında ("Öğrenci uyarıları") her satırda türüne uygun bir hızlı eylem bulunur: hareketsizlik → "Not yaz", net düşüşü ve plan uyumu → "Planı gözden geçir", birikmiş tekrar → "Tekrar planı kur", hedef geride → "Hedefi aç". Hareketsizlik ayrıca günlük cron ile koça bildirim olarak düşer; konu düzeyi uyarılar Faz 4'te ("Dikkat gerektirenler").
 
 | Uyarı | Varsayılan kural |
 |---|---|
 | Hareketsizlik | 3 gündür hiç kayıt yok |
 | Hedef geride | Haftanın ortasında haftalık soru hedefinin %40'ının altında |
-| Net düşüşü | Son 2 denemenin ortalaması, önceki 3 denemenin ortalamasından 5 net düşük |
+| Net düşüşü | Son genel deneme öncekinden 5 net düşük (`net_delta`; Faz 8 karar E7 — 2-vs-3 ortalama için 5 deneme birikmesi gerekirdi) |
 | Plan uyumu düşük | Geçen hafta planın %50'sinden azı tamamlandı |
-| Birikmiş tekrar | Süresi geçmiş 15'ten fazla tekrar maddesi |
-| Motivasyon düşüşü | Son 5 günlük durum girişinden 3'ü "düşük" |
-| Uyku | Hafta içi ortalama uyku 7 saatin altında |
+| Birikmiş tekrar | Vadesi geçmiş 15'ten fazla tekrar konusu (`v_review_queue`; yanlış tekrarı Faz 6b sonra) |
+| Motivasyon düşüşü | Son 5 günlük durum girişinden 3'ü "düşük" (Faz 9) |
+| Uyku | Hafta içi ortalama uyku 7 saatin altında (Faz 9) |
 
 ## 8. Hesap Yapısı: Öğrencilerin E-postası Yoksa?
 
@@ -262,11 +262,18 @@ Kararlar D1–D17 (11 §7; 02 karar #49). Kapanış doğrulaması: `check`, `db:
 - `v_topic_mastery` ısı haritası (`mastery_score`, 03 §6): konu durumu + soru başarı oranı + deneme yanlışları birleşik; hücrede görsel işaret
 - **Kabul:** Tekrar kuyruğu günlük dolar; zayıf konular haritada öne çıkar.
 
-### Faz 8: Veli Paneli ve Bildirimler (M)
-- Veli özet paneli (gidişat cümlesi "siz" diliyle, 09 §5), görünürlük ayarları
-- Uygulama içi bildirimler, koç uyarı görünümü (Bölüm 7; konu uyarıları Faz 4'te yapıldı)
-- Haftalık özet üretimi (`pg_cron`), isteğe bağlı e-posta (Resend vb.)
-- **Kabul:** Pazar akşamı veliye haftalık özet bildirimi düşüyor; koç panelinde uyarılar listeleniyor.
+### Faz 8: Veli Paneli ve Bildirimler (M, tek parça; tasarım: `12-faz8-veli-bildirim.md`) — ✅ 2026-09-20 (dal: `faz-8-veli-bildirim`)
+Kararlar E1–E10 (12 §7; 02 karar #50). Kapanış doğrulaması: `check`, `db:reset` + `db:test`, `test:e2e`, `format:check`, `build`; ekran görüntüleri `docs/tasarim/uygulama-8/`.
+- [x] Şema: `faz8a_notes_announcements` (`note_visibility`, `coach_notes`, `announcements`), `faz8b_notifications` (`notification_type`, `notifications` yalnızca `type + data`, `profiles.notification_prefs`, `private.notify` + 6 tetikleyici), `faz8c_student_alerts` (kurum ayarı `student_alerts`, `v_review_queue`, overview `overdue_reviews`), `faz8d_cron` (pg_cron; günlük tekrar hatırlatması + 90 gün saklama, günlük hareketsizlik, pazar haftalık özet); pgTAP `260`, `265`, `270`, `275`, `090`
+- [x] Saf katman: `notificationText` (tür + olgu + rol → başlık/gövde/bağlantı; "sen/siz"), `evaluateStudentAlerts` / `studentAlertReason` / `studentAlertAction`, `paceSentence` veli sesi; birim testli
+- [x] `coach-notes`: K2 Notlar sekmesi (form: görünürlük çipleri, sabitle; liste: düzenle/sil/sabitle), öğrenci `/student/notes` (ray + "Ben"), veli Notlar sekmesi, veli Özet "Koçun notu" kartı, K2 "Sabitlenmiş not"
+- [x] `announcements`: `/coach/announcements` (form: hedef Öğrenciler/Veliler, tüm/seçili öğrenciler; gönderilenler + sil); alıcılar bildirimden okur
+- [x] `notifications`: zil (üç kabuk; okunmamış rozeti), `/{rol}/notifications` liste (türe göre ikon, tıklamada okundu, "Tümünü okundu işaretle") + tercihler (tür başına anahtar)
+- [x] Veli paneli: Özet `?week=` hafta seçici + kartlar (plan uyumu, soru/süre, gidişat, son deneme, ders dağılımı, kaynak, video, koçun notu), K2 "Veliler" kartı (`can_view_details` anahtarı) → velide "Yanlışlar" sekmesi (salt okunur)
+- [x] Koç uyarıları: K1 "Öğrenci uyarıları" (hareketsizlik, net düşüşü, plan uyumu düşük, hedef geride, birikmiş tekrar; hızlı eylemler), K2 "Uyarılar", K1 tablo "Birikmiş tekrar" sütunu, ayar formu "Öğrenci uyarıları" bölümü
+- [x] Seed (notlar, duyuru, Zeynep hareketsiz, Mehmet plan uyumu düşük, örnek bildirimler), e2e `notifications`, `parent-summary`, `shared/parent-visibility`, `shared/student-alerts`; `pnpm screenshots --only 8`
+- E-posta yok (E1; 12 §5 karşılaştırma) — `notifications` satırı ileride teslim kanalı
+- **Kabul:** Pazar akşamı veliye, öğrenciye ve koça haftalık özet düşüyor (pgTAP ✅ fonksiyon çağrısı; `cron.job` ✅); koç plan yayınlayınca öğrencinin zili artıyor, okununca sıfırlanıyor (e2e ✅); veli Özet kartları "siz" diliyle ve geçmiş haftaya geçilebiliyor (e2e ✅); koç görünürlüğü açınca velide Yanlışlar sekmesi (e2e ✅ + pgTAP kapı ✅); K1'de öğrenci uyarıları kurum eşiğiyle ve hızlı eylemlerle (e2e ✅ + birim ✅).
 
 ### Faz 9: Deneyimi Zenginleştirme (L, parçalı yapılabilir)
 - PWA (ana ekrana ekleme, çevrimdışı açılış ekranı), web push bildirimleri
@@ -292,7 +299,7 @@ Geliştirme sırasında netleştirilecek konular. Karar verildikçe `02-mimari.m
 
 - [ ] Barındırma: Vercel Hobby mi, Vercel Pro mu, Cloudflare mı? (Koçluğun ücretli olup olmamasına bağlı)
 - [ ] Alan adı
-- [ ] Veli, öğrencinin yanlış defteri fotoğraflarını görebilsin mi?
+- [x] Veli, öğrencinin yanlış defteri fotoğraflarını görebilsin mi? → Koç öğrenci bazında açar (`can_view_details`, varsayılan kapalı; Faz 8 E8)
 - [ ] Öğrenci kendi hedefini oluşturabilsin mi, yoksa sadece koç mu?
 - [ ] Sıralama tablosu tamamen kaldırılsın mı, yoksa koç isterse açabilsin mi?
-- [ ] E-posta bildirimleri Faz 8'de mi, sonra mı?
+- [x] E-posta bildirimleri Faz 8'de mi, sonra mı? → Sonra; Faz 8 uygulama içi (12 §5, E1). Gerekirse Resend, `notifications` satırı teslim kanalı

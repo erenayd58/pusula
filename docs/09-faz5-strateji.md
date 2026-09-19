@@ -353,7 +353,7 @@ Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/date
 | `topics.school_finish_on` | Şablon düzeyi tek takvim | `students.school_calendar_offset_days` (öğrenci bazlı kaydırma: `schoolLagWeeks` girdisine eklenir, imza aynı); `copy_curriculum_template` (Faz 7 ✅) tarihleri **boş bırakır**, owner "Sıradan dağıt" ile yeniden doldurur (11 karar D7) |
 | `StudentStrategy.subjectGap` | Soru hedefi açığı | Deneme yanlışları (`mock_wrong_total`, Faz 6) ders açığına ikinci bileşen olarak; ağırlık kurum ayarına |
 | `v_topic_alert_facts.target_on` | `behind_school` yalnızca okul tarihi | Tekrar modülü (`v_review_queue`) gelince `review_due` oradan; hedef gecikmesi `TopicAlert.delayDays`'e taşınabilir |
-| `paceSentence` | Öğrenci Bugün | Veli özeti (Faz 8, "siz" dili: "Elif 54 konunun 9'unu bitirdi"); haftalık özet üretimi |
+| `paceSentence` | Öğrenci Bugün | ✅ Faz 8 (12): `{ audience: "parent", name }` → "54 konunun 9'u bitti · Ayşe takvimin 3 konu gerisinde" (veli Özet kartı); haftalık özet bildirimi yalnızca biten konu sayısı |
 | `distributeTasks({ days: [{ date }] })` | Anahtar hazır, tek hafta | Geri planlama ufku: `student_topic_targets` haftalarına göre çok haftalık taslak ("Sonraki 4 haftayı hazırla"), `plan_templates` |
 | `periods` (kurum ayarı) | Tek sezon | Sezon başına dönem (şablona bağlı tablo) yalnızca çok kurum/çok şablon olursa |
 | `feasibility.minutesPerQuestion` | Kurum değeri | `v_student_subject_pace` ders temposu (Faz 4 verisi hazır) |

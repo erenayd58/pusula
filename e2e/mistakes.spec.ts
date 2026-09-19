@@ -120,7 +120,7 @@ test.describe("yanlış defteri", () => {
     expect(await listMistakeImages(student.studentId)).toHaveLength(0);
   });
 
-  test("veli Özet kartı ve Denemeler sekmesi; defter rotası yok", async ({ page }) => {
+  test("veli Özet kartı ve Denemeler sekmesi; Yanlışlar sekmesi (detay izni)", async ({ page }) => {
     await login(page, accounts.parent.identifier);
     await expect(page).toHaveURL(new RegExp(`/parent/${AYSE_ID}$`));
     const card = page.getByTestId("parent-last-result");
@@ -137,11 +137,9 @@ test.describe("yanlış defteri", () => {
     await expect(page.getByTestId("result-row")).toHaveCount(4);
     // Satırlar bağlantısız (detay rotası yok), sıralama/karşılaştırma yok.
     await expect(page.getByTestId("result-row").first().getByRole("link")).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Veli menüsü" })).not.toContainText(
-      "Yanlışlar",
-    );
-    await page.goto(`/parent/${AYSE_ID}/mistakes`);
-    await expect(page.getByRole("heading", { level: 1, name: "Bu sayfa yok" })).toBeVisible();
+    // Faz 8 (E8): veli.ayse `can_view_details = true` → "Yanlışlar" sekmesi ve salt okunur liste
+    // (parent-summary.spec); anahtar kapalı durumu shared/parent-visibility.spec'te.
+    await expect(page.getByRole("navigation", { name: "Veli menüsü" })).toContainText("Yanlışlar");
   });
 
   test("seed: mock_weak K2 zayıf listesinde, K1 öneri notunda ve hücre detayında", async ({

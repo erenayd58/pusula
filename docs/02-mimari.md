@@ -124,7 +124,7 @@ pusula/
     │   │       │   ├── mistakes/page.tsx
     │   │       │   ├── resources/page.tsx   # K2 Kaynaklar (Faz 7a)
     │   │       │   ├── videos/page.tsx      # K2 Videolar (Faz 7b)
-    │   │       │   ├── notes/page.tsx
+    │   │       │   ├── notes/page.tsx       # K2 Notlar: not formu + liste (Faz 8; `?new=1` odaklı)
     │   │       │   ├── modules/page.tsx   # Modül aç/kapat
     │   │       │   └── settings/page.tsx
     │   │       ├── [section]/page.tsx  # Koç menüsündeki yer tutucu sayfalar (Faz 1c)
@@ -133,32 +133,36 @@ pusula/
     │   │       ├── videos/…         # Video kataloğu: liste, new (YouTube / elle), [playlistId] (video editörü, atama) (Faz 7b)
     │   │       ├── exams/…          # Deneme kataloğu
     │   │       ├── plan-templates/…
-    │   │       ├── announcements/…
+    │   │       ├── announcements/…  # Duyuru formu + gönderilenler (Faz 8)
+    │   │       ├── notifications/page.tsx  # Bildirim listesi + tercihler (Faz 8)
     │   │       └── settings/page.tsx   # Kurum ayarları, uyarı eşikleri
     │   └── (parent)/
     │       └── parent/
     │           ├── layout.tsx
     │           ├── page.tsx         # Çocuk seçimi (tek çocuksa doğrudan yönlendirir)
+    │           ├── notifications/page.tsx  # Bildirimler (profil düzeyi; Faz 8)
     │           └── [studentId]/
-    │               ├── layout.tsx   # Çocuk başlığı + alt menü (Özet · Denemeler · Notlar, registry'den)
-    │               ├── page.tsx     # Özet (parentSummary widget'ları registry'den; Faz 6b)
+    │               ├── layout.tsx   # Çocuk başlığı + alt menü (Özet · Denemeler · Notlar · Yanlışlar[detay izni], registry'den)
+    │               ├── page.tsx     # Özet (`?week=` hafta seçici + parentSummary widget'ları; Faz 6b/8)
     │               ├── exams/page.tsx   # Denemeler (Faz 6b; salt okunur)
-    │               └── [tab]/page.tsx   # Yer tutucu sekmeler (Notlar)
+    │               ├── notes/page.tsx   # Koçun veliye açık notları (Faz 8)
+    │               ├── mistakes/page.tsx  # Yanlış defteri, salt okunur; yalnızca can_view_details (Faz 8, E8)
+    │               └── [tab]/page.tsx   # Yer tutucu sekmeler
     ├── features/                    # MODÜLLER (bkz. Bölüm 3)
     │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay, kabuk başlıkları
     │   ├── topics/
     │   ├── question-log/
     │   ├── goals/
     │   ├── planner/
-    │   ├── coach-notes/
-    │   ├── announcements/
+    │   ├── coach-notes/             # Faz 8: schemas, types, server, components (note-form, note-item, note-list, pinned-note-card, widgets/parent-last-note-widget)
+    │   ├── announcements/           # Faz 8: schemas, types, server, components (announcement-form, announcement-list, delete-announcement-button)
     │   ├── resources/               # Faz 7a: schemas, types, server (queries/actions), components (resource-form, section-editor, resource-catalog, assign-button, resource-actions, student-resource-list/detail, resource-progress-table)
     │   ├── videos/                  # Faz 7b: server/youtube.ts (server-only anahtar sarmalayıcı), components (playlist-form, video-editor, video-catalog, playlist-actions, student-playlist-list, student-playlist-player, video-progress-table)
     │   ├── mock-exams/
     │   ├── mistakes/
     │   ├── review/
     │   ├── analytics/
-    │   ├── notifications/
+    │   ├── notifications/           # Faz 8: lib/text.ts (notificationText, saf), schemas (data şemaları + tercihler), server, components (notification-bell, notification-list, notification-link, mark-all-read-button, notification-prefs-form, notifications-page)
     │   ├── study-timer/
     │   ├── checkins/
     │   ├── reading/
@@ -298,7 +302,8 @@ export type StudentTodayWidget = {
 export type ModuleWidgets = {
   moduleId: string;                  // manifest.id ile aynı
   studentToday?: StudentTodayWidget[];
-  // coachOverview, parentSummary: ilk ihtiyaçla aynı kalıpla eklenir
+  // coachOverview: ilk ihtiyaçla aynı kalıpla eklenir
+  parentSummary?: ParentSummaryWidget[];   // Faz 6b/8: component prop'u { studentId, weekStart } (E5)
 };
 ```
 
@@ -530,14 +535,13 @@ Yerel `config.toml`'daki şu ayarların üretim/staging projesinde elle yapılma
 
 Vercel Hobby planında cron günde bir kez ve saat hassasiyetinde çalıştığı için zamanlanmış işler **Supabase pg_cron** ile yapılır:
 
-| İş | Zaman (İstanbul) | Ne yapar |
-|---|---|---|
-| `refresh_review_queue` | Her gün 03:00 | Tekrar tarihi gelen konu ve yanlışları işaretler |
-| `create_daily_notifications` | Her gün 07:30 | "Bugün planında X görev var" bildirimleri |
-| `detect_inactivity` | Her gün 21:00 | Hareketsizlik uyarılarını üretir |
-| `generate_weekly_summary` | Pazar 20:00 | Öğrenci ve veli için haftalık özet |
+| İş (`cron.job` adı) | Zaman (İstanbul → UTC) | Fonksiyon | Ne yapar |
+|---|---|---|---|
+| `pusula_daily_reminders` | Her gün 07:30 → `30 4 * * *` | `private.send_daily_reminders()` | `v_review_queue`'da konusu olan aktif öğrenciye `review_due` (dedupe 20 saat; `topics` modülü kapalıysa yok); 90 günden eski bildirimleri siler |
+| `pusula_detect_inactivity` | Her gün 21:00 → `0 18 * * *` | `private.detect_inactivity()` | Son kaydı `student_alerts.inactivity_days` (3) gün önceden eski aktif öğrenci için koça `student_inactive` (dedupe `inactivity_notify_days`) |
+| `pusula_weekly_summaries` | Pazar 20:00 → `0 17 * * 0` | `private.generate_weekly_summaries()` | Haftanın soru/süre/plan/konu/son net olguları → öğrenci + velileri; koça toplu satır (dedupe 6 gün) |
 
-pg_cron UTC ile çalışır; ifadeler buna göre yazılır (İstanbul = UTC+3).
+Faz 8 ✅ (`faz8d_cron`): `create extension pg_cron with schema pg_catalog` migration'la (yerel CLI ve bulut aynı); işler `postgres` olarak koşar (RLS'yi geçer), fonksiyonlar security definer ve hiçbir role execute verilmez; metin üretmezler, yalnızca olgu (`notifications.data`; karar #50). pg_cron UTC ile çalışır, İstanbul sabit UTC+3 (yaz saati yok). Tekrar kuyruğu canlı görünüm olduğu için ayrı "refresh" işi yok; "bugün planında X görev var" bildirimi yapılmadı (plan yayını bildirimi tetikleyiciyle). pgTAP `275` fonksiyonları doğrudan çağırır ve `cron.job` satırlarını sayar.
 
 GitHub Actions:
 - `backup.yml`: Haftalık `pg_dump`, şifrelenmiş artifact olarak saklanır (veya ayrı özel depo).
@@ -589,6 +593,7 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 38 | 2026-09 | Faz 4 plan sistemi kararları `08-faz4-plan-sistemi.md` §6'da (A1–A13): dnd-kit (`@dnd-kit/core`, `sortable`, `utilities`) eklendi; uyarı kuralları TS'te olgu görünümü üzerinden; kopyalamada hedefte plan varsa sona eklenir; yayınlanmış plan canlı düzenlenir; erteleme `max(gün+1, bugün)`; değerlendirme cumartesi→hafta sonu; koç plan ekranı sekme + `/coach/plans`; `plan_item_kind` 5 değer | Tek belgede, parça oturumları verili kabul eder | Belgede listelenen alternatifler |
 | 39 | 2026-09 | Öğrencinin plan yazmaları (tamamla, geri al, ertele, not, değerlendirme) yalnızca security definer RPC ile; tabloda öğrenci UPDATE politikası yok (03 §5.3 seçenek (a)). Soru türü görev hızlı kayıt sheet'inden `complete_plan_item(p_log)` ile tek transaction'da tamamlanır; `useQuickLog` context'i `components/shared`'a taşındı | Koşula bağlı kolon kısıtı (yalnızca yayınlanmış plan, bir kez erteleme) politikayla ifade edilemez; planner istemci bileşeni question-log index'ini import edemez (karar #31 kalıbı) | Tetikleyiciyle kolon denetimi; iki ayrı yazma |
 | 40 | 2026-09 | Plan oluşturucu: yerel arabellek yok, her değişiklik kendi Server Action'ı (otomatik kayıt = son başarılı eylem); 8 sütun (7 gün + "Bu hafta içinde") havuz kapalıyken 1440 px'e kaydırmasız sığar, havuz açıkken yatay kayar; havuz ilk açılışta kapalı, tercih `localStorage`'da; < 768 salt okunur. `created_by` kolonları (program, plan) nullable + `on delete set null` | Koç yan menüsüyle 1440 px'te 8 sütun sığmıyor; öğrenci kendi satırını yazınca `not null` FK cascade silmeyi engelliyordu | Toplu kaydet düğmesi; 04 §8.4'teki 1280/1440 eşikleri |
+| 50 | 2026-09 | Faz 8 veli paneli ve bildirimler (`12-faz8-veli-bildirim.md` §7, E1–E10): e-posta **yok** (yalnızca uygulama içi; Resend karşılaştırması 12 §5, `notifications` satırı ileride teslim kanalı); bildirim tablosu yalnızca `type + data` (olgu), metin ve bağlantı `features/notifications/lib/text.ts: notificationText` ile uygulamada (E2; `lib/format` kuralı, "sen/siz", birim testli); tek yazma noktası `private.notify` (tercih `profiles.notification_prefs` + dedupe penceresi), tetikleyiciler (plan ilk yayın → öğrenci; görünür not → öğrenci/veliler; duyuru → hedef kitle, metin kopyalanır; öğrencinin girdiği deneme → koç; görev notu / hafta değerlendirmesi → koç) ve üç pg_cron işi (§10); duyuru tablosunu yalnızca koç/owner okur, öğrenci/veli bildirimden (E3); `notifications` modülü `core: true` (E4); veli Özet `?week=` hafta seçici, `ParentSummaryWidgetProps.weekStart` (E5); `v_review_queue` SQL görünümü TS `review_due` kuralının kopyası, `v_coach_student_overview.overdue_reviews` (E6); net düşüşü `net_delta <= −student_alerts.net_drop` (E7); veli yanlış defteri sekmesi `SegmentItem.requiresDetails` + `can_view_details` anahtarı K2 "Veliler" kartında (E8); kaynak/video veli kartları (E9); öğrenci notları rayda "Notlar" + "Ben" bağlantısı (E10); öğrenci düzeyi uyarılar saf `evaluateStudentAlerts` (eşikler `student_alerts` üst düzey anahtar), K1/K2 hızlı eylemli; `coach_notes` / `announcements` 03 §4.4c taslağından sadeleştirildi (yazar `set null`, duyuru taslaksız ve düzenlenemez) | 12 §5 karşılaştırma, §7 tablo | Resend; metin DB'de; duyuru liste sayfaları + RLS yardımcısı; öğrenci bazında kapanan bildirim modülü; 01 §7 2-vs-3 ortalama kuralı |
 | 49 | 2026-09 | Faz 7 kaynaklar ve videolar (`11-faz7-kaynaklar.md` §7, D1–D17): özel kaynak/liste `student_id` kolonuyla (null = kurum kataloğu; cascade; `created_by` denetim) — `is_shared` yok (D1); test sırası `move_resource_section` RPC (D2); tek video elle kurulan liste kabında, `videos.playlist_id` hep dolu (D3); "Listeyi yenile" upsert, konu korunur, çıkan video kalır (D4); öneri motoru `media` parametresi: yeni konu/bilgi eksiği türlerinde eşli video → `video`, pratik türlerinde eşli test → `section` görevi, puan değişmez (D5); plan ↔ video çift yönlü (`mark_video_watched` açık görevi tamamlar, `complete_plan_item(video)` izlendi yazar; D6); `copy_curriculum_template` şimdi (owner formu + `/coach/templates?template=` seçici; tarihler boş, `mock_exams` kopyalanmaz; D7); K2'de iki ayrı sekme (D8); öğrenci de YouTube içe aktarır, 200 video/liste (D9); kapak görseli, `status`, `watched_seconds` yok (D10–D11); `question_logs.source` plan → 'plan', yoksa section → 'resource' (D12); hızlı kayıtta test soru sayısı biliniyorsa Boş otomatik (D14); video küçük resmi yok — Google'a ek istek gitmesin (D15); seed video kimlikleri yer tutucu (D16); YouTube e2e'de çağrılmaz, istemci sahte `fetch` ile birim testli, gerçek API yerelde elle (D17). Havuz kategorileri `resources` / `videos` (`lib/media-pool`: zayıf/gecikmiş konu eşleşmesi öne); planner ve analytics kaynak/video verisini **görünümlerden** okur, modül import etmez; `StudentPicker` ortak atama paneli; `section`/`video` türleri formda seçilmez (havuz/öneriden gelir, düzenlemede kilitli) | 11 §1–§3; RLS `can_read_resource / can_edit_resource` (+ playlist eşleri); tek veri kaynağı (`question_logs.section_id`) | `is_shared` boolean; `videos.playlist_id` nullable; çıkan videoyu silmek; yalnızca video kuralı; tek yönlü plan bağı; kopyalamayı ertelemek; tek K2 sekmesi; `i.ytimg.com` küçük resimleri; gerçek API ile e2e |
 | 48 | 2026-09 | Faz 6a denemeler: trend grafiği **saf SVG `LineChart`** (`components/shared/line-chart/`: `viewBox` ile ölçeklenir, eşit aralıklı x, `niceCeil` y, seri çipleri en az biri açık, nokta seçimi dokunma/klavye, `aria-live` detay, sr-only tablo; Recharts kullanılmadı, 0 KB); deneme hesapları saf `lib/exam/mock.ts` (genel deneme / toplam net / değişim / son N tanımları tek yerde); `mock_exams.subject_id` ile genel/branş (is_full_exam yerine), işaret tablosu sayısız, katalog denemesi öğrenci başına tek sonuç (kısmi tekil indeks) ve `on delete restrict` (koç önce sonuçları siler); `save_mock_exam_result` **security invoker** (RLS uygulanır; tek transaction, doğrulamalar 22023); Boş otomatik (`autoBlank`, düzenlenebilir); K1 "Son net" overview görünümünden, K2 yalnızca "Son deneme neti" kutusu; kurum ayarı `mock_exams` üst düzey anahtar (sığ birleştirme). Parça 2 (2026-09-19): `mistakes` tablosu + `mistake-images` bucket, `private.can_read_mistakes` (veli yalnızca `can_view_details`; C10), koç kayıt açmaz; fotoğraf isteğe bağlı (C7), bağımlılıksız canvas sıkıştırma (`lib/image/compress`; C8), doğrudan bucket'a yükleme + eylemde yol öneki doğrulaması, kısa süreli imzalı URL; `mock_weak` uyarı türü (işaret ≥ `weak_min_marks` VEYA defter ≥ `weak_min_mistakes`, bitmiş konuda da; C11) ve `subjectGap = combineGap(soru, deneme, gap_weight)` (C12); `v_student_mock_subject_stats` yalnızca analytics için; `parentSummary` widget kalıbı (`ModuleWidgets`, `getParentSummaryWidgets`; C15); `deleteStudent` depo klasörünü temizler | 10 §3.2 karşılaştırma tablosu (SSR, erişilebilirlik, token uyumu), kararlar C1–C6, C14 | Recharts (~100 kB gz, `ResponsiveContainer` hidrasyon boşluğu); `is_full_exam` boolean; branşı toplam trende dahil; katalog silmede `set null` + başlık kopyalayan tetikleyici |
 | 47 | 2026-09 | e2e paylaşımlı durum izolasyonu: kurum ayarını (`/coach/settings`) ya da sistem şablonunu (konu ekleme, okul takvimi) değiştiren spec'ler `e2e/shared/` altında (`alert-thresholds`, `curriculum-calendar`, `strategy-suggestions`, `template-topics`) ve `shared-desktop` projesinde `workers: 1` + `fullyParallel: false` ile seri koşar; `desktop-chromium` / `mobile-chromium` bu projeye `dependencies` ile bağlı (paylaşımlı faz önce biter ve durumu `finally` ile geri alır; okuyan testler değişmiş ayarı görmez). Tek dosya koşarken `--no-deps` bağımlılığı atlar. Yalnızca okuyan testler (`alerts.spec` öğrenci kartı, `topics.spec` öğrenci durumu) iki projede kalır | Kurum tek satır, şablon paylaşımlı: dönem / eşik / konu sayısı yarışları (curriculum-calendar ↔ strategy-suggestions dönemleri, alerts eşiği ↔ Ayşe'nin bakım uyarıları, topics ↔ 54 konu sayımı) 4 işçide gerçek kararsızlık kaynağıydı; Playwright 1.63 proje düzeyi `workers` bunu izole eder | İşçi sayısını düşürmek (tüm paketi yavaşlatır); her spec'in kendi kurumunu açması (kurum + owner + koç + öğrenci + kayıt kurulumu, RPC yok); dosya kilidi fixture'ı (okuyanları korumaz) |
