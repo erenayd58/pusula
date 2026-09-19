@@ -4497,6 +4497,15 @@ export type Database = {
         Args: { p_item_id: string; p_log?: Json; p_note?: string }
         Returns: Json
       }
+      copy_curriculum_template: {
+        Args: {
+          p_include_catalogs?: boolean
+          p_new_name: string
+          p_new_season: string
+          p_template_id: string
+        }
+        Returns: string
+      }
       copy_weekly_plan: {
         Args: {
           p_only_incomplete?: boolean

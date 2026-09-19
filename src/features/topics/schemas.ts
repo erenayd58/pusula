@@ -59,3 +59,15 @@ export const setTopicSchoolDatesSchema = z.object({
     }),
 });
 export type SetTopicSchoolDatesInput = z.infer<typeof setTopicSchoolDatesSchema>;
+
+/** Şablon kopyalama (Faz 7, karar D7; yalnızca owner): ad, sezon, kataloglar da kopyalansın mı. */
+export const copyTemplateSchema = z.object({
+  templateId: z.uuid("Şablon kimliği geçersiz."),
+  name: z.string().trim().min(2, "Şablon adı en az 2 karakter.").max(60, "En fazla 60 karakter."),
+  season: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{4}$/, "Sezon 2027-2028 biçiminde olmalı."),
+  includeCatalogs: z.boolean(),
+});
+export type CopyTemplateInput = z.infer<typeof copyTemplateSchema>;
