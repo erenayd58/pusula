@@ -2,15 +2,16 @@ import Link from "next/link";
 import { ProgressBar } from "@/components/shared/progress-bar";
 import { studentStatusLabels } from "@/content/labels";
 import { daysUntil } from "@/lib/dates";
-import { formatCount, formatDateTr, formatPercent } from "@/lib/format";
+import { formatCount, formatDateTr, formatNet, formatPercent, formatSigned } from "@/lib/format";
 import { paceLabel } from "@/lib/strategy/pace";
 import type { StudentListRow } from "../server/queries";
 import { StudentRowActions } from "./student-row-actions";
 
 /**
  * K1 öğrenci listesi (flat): ≥ md tablo, telefonda kart listesi (aynı veri, aynı eylemler).
- * Kolonlar: öğrenci, son kayıt, bu hafta soru, haftalık hedef (ince çubuk + %), plan uyumu, takvim
- * (Faz 5b: `paceLabel` "−3 konu" / "+2 konu" / "Uyumlu" / "—"), durum, (koç).
+ * Kolonlar: öğrenci, son kayıt, bu hafta soru, haftalık hedef (ince çubuk + %), plan uyumu, son net
+ * (Faz 6a: son genel denemenin toplam neti + değişim; yok → "—"), takvim (Faz 5b: `paceLabel`
+ * "−3 konu" / "+2 konu" / "Uyumlu" / "—"), durum, (koç).
  * Satır ve kart `data-testid="student-row"` taşır (e2e her iki yerleşimde aynı seçiciyi kullanır).
  */
 export function StudentTable({
@@ -77,6 +78,10 @@ export function StudentTable({
               <dd className="text-ink-900">
                 <PlanCompliance row={s} />
               </dd>
+              <dt className="text-ink-500">Son net</dt>
+              <dd className="text-ink-900">
+                <LastNet row={s} />
+              </dd>
               <dt className="text-ink-500">Takvim</dt>
               <dd className="text-ink-900">
                 <Pace row={s} />
@@ -100,6 +105,7 @@ export function StudentTable({
               <th className="px-4 py-3 text-right font-medium">Bu hafta</th>
               <th className="px-4 py-3 font-medium">Haftalık hedef</th>
               <th className="px-4 py-3 text-right font-medium">Plan uyumu</th>
+              <th className="px-4 py-3 text-right font-medium">Son net</th>
               <th className="px-4 py-3 text-right font-medium">Takvim</th>
               <th className="px-4 py-3 font-medium">Durum</th>
               {viewerRole === "owner" ? <th className="px-4 py-3 font-medium">Koç</th> : null}
@@ -135,6 +141,9 @@ export function StudentTable({
                 </td>
                 <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
                   <PlanCompliance row={s} />
+                </td>
+                <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
+                  <LastNet row={s} />
                 </td>
                 <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
                   <Pace row={s} />
@@ -198,6 +207,29 @@ function Pace({ row }: { row: StudentListRow }) {
       }
     >
       {label}
+    </span>
+  );
+}
+
+/** Son net (Faz 6a): son genel denemenin toplam neti + önceki denemeye göre değişim; yoksa "—". */
+function LastNet({ row }: { row: StudentListRow }) {
+  if (row.lastNet === null) {
+    return (
+      <span data-testid="last-net" className="text-ink-500">
+        —
+      </span>
+    );
+  }
+  return (
+    <span
+      data-testid="last-net"
+      className="inline-flex flex-col items-end leading-tight"
+      title={row.lastMockOn ? formatDateTr(row.lastMockOn, { year: true }) : undefined}
+    >
+      <span className="font-medium">{formatNet(row.lastNet)}</span>
+      <span className="text-micro-lg text-ink-500">
+        {row.netDelta === null ? "ilk deneme" : formatSigned(row.netDelta)}
+      </span>
     </span>
   );
 }

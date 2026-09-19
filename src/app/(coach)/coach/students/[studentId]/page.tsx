@@ -15,6 +15,7 @@ import {
   getPlanCompletion,
   getWeekPlan,
 } from "@/features/planner";
+import { LastMockTile } from "@/features/mock-exams";
 import { CoachOverview } from "@/features/question-log";
 import { requireRole } from "@/lib/auth";
 import { shiftWeek, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
@@ -27,8 +28,8 @@ export const metadata: Metadata = { title: "Genel bakış" };
  * K2 Genel bakış (flat): bugün/bu hafta soru, hedef durumu, son 14 gün çubukları (question-log
  * açıksa); plan uyumu kutusu ve "Öneriler" kartı (planner / analytics açıksa; "Plana ekle" bu
  * haftanın taslağına); hedef formu (goals açıksa); sınav tarihi. Faz 5b: konu takvimi özet kutusu
- * (`PaceTile`) ve "Ders bazlı gidişat" tablosu (goals açıksa). Deneme ve tekrar özetleri kendi
- * fazlarında eklenir.
+ * (`PaceTile`) ve "Ders bazlı gidişat" tablosu (goals açıksa). Faz 6a: "Son deneme neti" kutusu
+ * (`LastMockTile`, mock-exams açıksa; karar C14). Tekrar özeti kendi fazında eklenir.
  */
 export default async function OverviewPage({ params }: PageProps<"/coach/students/[studentId]">) {
   const { studentId } = await params;
@@ -42,6 +43,7 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
   const logsOn = enabled.has("question-log");
   const plannerOn = enabled.has("planner");
   const analyticsOn = enabled.has("analytics");
+  const mockExamsOn = enabled.has("mock-exams");
   const week = toDateKey(weekStart(todayInIstanbul()));
   const lastWeek = shiftWeek(week, -1);
   const [goals, planThisWeek, planLastWeek, lastWeekPlan, suggestions, setup, settings, targets] =
@@ -71,12 +73,13 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
         </p>
       )}
 
-      {plannerOn || targets ? (
+      {plannerOn || targets || mockExamsOn ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {plannerOn ? (
             <PlanCompletionTile thisWeek={planThisWeek} lastWeek={planLastWeek} />
           ) : null}
           {targets ? <PaceTile targets={targets} pace={pace} /> : null}
+          {mockExamsOn ? <LastMockTile studentId={studentId} /> : null}
           {lastWeekPlan?.studentReflection ? (
             <div className="flex flex-col gap-0.5 rounded-sm border border-line bg-bg-paper px-4 py-3 sm:col-span-2 lg:col-span-1">
               <span className="text-micro-lg text-ink-500">
