@@ -4,29 +4,29 @@ import { notFound } from "next/navigation";
 import { ChevronLeftIcon } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { ResultDetail, ResultWizard, getMockOptions, getResultDetail } from "@/features/mock-exams";
+import { MistakeDetail, MistakeForm, getMistake, getMistakeOptions } from "@/features/mistakes";
 import { requireRole } from "@/lib/auth";
 import { getEnabledModules } from "@/modules/get-enabled-modules";
 
-export const metadata: Metadata = { title: "Deneme" };
+export const metadata: Metadata = { title: "Yanlış kaydı" };
 
-const BASE = "/student/exams";
+const BASE = "/student/mistakes";
 
-/** Deneme detayı; `?edit=1` sihirbazı dolu açar. RLS satır vermezse 404. */
-export default async function ExamDetailPage({
+/** Kayıt detayı; `?edit=1` formu dolu açar (fotoğraf değişmez). RLS satır vermezse 404. */
+export default async function MistakeDetailPage({
   params,
   searchParams,
-}: PageProps<"/student/exams/[resultId]">) {
-  const { resultId } = await params;
+}: PageProps<"/student/mistakes/[mistakeId]">) {
+  const { mistakeId } = await params;
   const { edit } = await searchParams;
-  if (!z.uuid().safeParse(resultId).success) notFound();
+  if (!z.uuid().safeParse(mistakeId).success) notFound();
   const { userId } = await requireRole("student");
   const enabled = await getEnabledModules(userId);
-  if (!enabled.has("mock-exams")) notFound();
-  const result = await getResultDetail(resultId);
-  if (!result || result.studentId !== userId) notFound();
+  if (!enabled.has("mistakes")) notFound();
+  const mistake = await getMistake(mistakeId);
+  if (!mistake || mistake.studentId !== userId) notFound();
   const editing = edit === "1";
-  const options = editing ? await getMockOptions(userId) : null;
+  const options = editing ? await getMistakeOptions(userId) : null;
 
   return (
     <>
@@ -34,28 +34,26 @@ export default async function ExamDetailPage({
         <Button asChild variant="ghost" className="w-fit">
           <Link href={BASE}>
             <ChevronLeftIcon aria-hidden="true" />
-            Denemeler
+            Yanlış defterim
           </Link>
         </Button>
         <h1 className="text-title font-semibold tracking-tight lg:text-title-lg">
-          {editing ? "Denemeyi düzenle" : result.title}
+          {editing ? "Kaydı düzenle" : (mistake.topicName ?? mistake.subjectName)}
         </h1>
       </header>
       {editing && options ? (
-        <ResultWizard
+        <MistakeForm
           studentId={userId}
-          audience="student"
           options={options}
-          initial={result}
-          preselectExamId={null}
+          initial={mistake}
+          prefill={{}}
           basePath={BASE}
         />
       ) : (
-        <ResultDetail
-          result={result}
+        <MistakeDetail
+          mistake={mistake}
           basePath={BASE}
-          canEdit
-          notebookPath={enabled.has("mistakes") ? "/student/mistakes" : null}
+          examsPath={enabled.has("mock-exams") ? "/student/exams" : null}
         />
       )}
     </>

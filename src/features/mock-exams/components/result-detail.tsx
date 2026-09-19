@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { NotebookPenIcon } from "lucide-react";
 import { SubjectBadge } from "@/components/shared/subject-badge";
 import { Badge } from "@/components/ui/badge";
 import { mockExamKindLabels } from "@/content/labels";
@@ -24,16 +26,20 @@ const NUM_CELL = "px-2 py-2.5 text-right text-ink-900 tabular-nums sm:px-3";
  * Deneme detayı: başlık satırı (ad, tarih, tür rozeti), toplam net + değişim, ders tablosu
  * (D/Y/B/net/değişim), işaretli konular, isteğe bağlı süre / puan / yüzdelik / not, düzenle / sil.
  * Puan ve yüzdelik yalnızca burada gösterilir (grafiğe girmez); LGS puanı hesaplanmaz.
- * `topicsSlot`: Parça 2 "Deftere ekle" bağlantıları için yuva (bu parçada boş).
+ * `notebookPath` (Parça 2): `mistakes` modülü açıkken işaretli konu satırına "Deftere ekle"
+ * bağlantısı (`/student/mistakes/new?subjectId=&topicId=&mockResultId=`; yalnızca URL, modül importu
+ * yok; yalnızca öğrenci yüzeyinde).
  */
 export function ResultDetail({
   result,
   basePath,
   canEdit,
+  notebookPath = null,
 }: {
   result: MockResultDetail;
   basePath: string;
   canEdit: boolean;
+  notebookPath?: string | null;
 }) {
   const facts = [
     result.durationMinutes !== null ? `Süre ${formatDuration(result.durationMinutes)}` : null,
@@ -122,6 +128,16 @@ export function ResultDetail({
                 <li key={t.topicId} className="flex items-center gap-3 px-4 py-2.5">
                   {s ? <SubjectBadge color={s.color} shortName={s.shortName} /> : null}
                   <span className="min-w-0 flex-1 truncate text-small text-ink-900">{t.name}</span>
+                  {notebookPath ? (
+                    <Link
+                      href={`${notebookPath}/new?subjectId=${t.subjectId}&topicId=${t.topicId}&mockResultId=${result.id}`}
+                      className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xs px-2 text-micro-lg font-medium text-ink-700 underline-offset-4 hover:underline clay:min-h-11 clay:text-small"
+                      data-testid="notebook-link"
+                    >
+                      <NotebookPenIcon aria-hidden="true" className="size-4" />
+                      Deftere ekle
+                    </Link>
+                  ) : null}
                 </li>
               );
             })}
