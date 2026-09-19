@@ -24,3 +24,4 @@ export type PlanItemRow = Tables<"plan_items">;
 export type TopicAlertKind = Enums<"topic_alert_kind">;
 export type MistakeReason = Enums<"mistake_reason">;
 export type MistakeStatus = Enums<"mistake_status">;
+export type ResourceType = Enums<"resource_type">;
