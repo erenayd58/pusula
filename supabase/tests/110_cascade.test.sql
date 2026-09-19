@@ -3,10 +3,10 @@
 -- student_modules, busy_slots, schedule_exceptions (Faz 4a; created_by set null olduğundan
 -- öğrencinin kendi yazdığı satırlar silmeyi engellemez), suggestion_dismissals (Faz 4d),
 -- student_subject_targets, student_topic_targets (Faz 5b; created_by koç silinince set null),
--- mock_exam_results + ders satırları + konu işaretleri (Faz 6a; katalog kalır, created_by set null).
--- Veli profili silinmez.
+-- mock_exam_results + ders satırları + konu işaretleri (Faz 6a; katalog kalır, created_by set null),
+-- mistakes (Faz 6b; deneme sonucu silinince mock_result_id set null). Veli profili silinmez.
 begin;
-select plan(19);
+select plan(21);
 select tests.seed_fixture();
 select tests.seed_templates();
 
@@ -43,6 +43,11 @@ insert into public.mock_exam_topic_mistakes (result_id, topic_id)
 values (tests.id('result_cascade'), tests.id('topic_org_a_1'));
 insert into public.mock_exam_results (id, student_id, custom_title, taken_on, created_by)
 values (tests.id('result_cascade_c'), tests.id('student_c'), 'Serbest', date '2026-09-01', tests.id('coach_w'));
+-- Yanlış defteri (Faz 6b): öğrenci A'nın deneme bağlı kaydı; öğrenci C'nin deneme bağlı kaydı (sonuç silinince bağ düşer).
+insert into public.mistakes (id, student_id, subject_id, topic_id, mock_result_id, created_by)
+values
+  (tests.id('mistake_cascade_a'), tests.id('student_a'), tests.id('subj_org_a'), tests.id('topic_org_a_1'), tests.id('result_cascade'), tests.id('student_a')),
+  (tests.id('mistake_cascade_c'), tests.id('student_c'), tests.id('subj_org_a'), null, tests.id('result_cascade_c'), tests.id('student_c'));
 
 select is(
   (select count(*) from public.student_parents where student_id = tests.id('student_a')),
@@ -68,6 +73,7 @@ select is((select count(*) from public.mock_exam_results where student_id = test
 select is((select count(*) from public.mock_exam_subject_results where result_id = tests.id('result_cascade')), 0::bigint, 'deneme ders satırları silindi');
 select is((select count(*) from public.mock_exam_topic_mistakes where result_id = tests.id('result_cascade')), 0::bigint, 'deneme konu işaretleri silindi');
 select is((select count(*) from public.mock_exams where id = tests.id('exam_cascade')), 1::bigint, 'katalog denemesi kalır');
+select is((select count(*) from public.mistakes where student_id = tests.id('student_a')), 0::bigint, 'yanlış defteri kayıtları silindi');
 
 -- Koç W silinince öğrenci C'nin konu hedefi kalır, created_by boşalır.
 delete from auth.users where id = tests.id('coach_w');
@@ -83,6 +89,14 @@ select is(
   'koç silinince katalog ve sonuç kalır, created_by set null'
 );
 select is((select count(*) from public.profiles where id = tests.id('parent_p1')), 1::bigint, 'veli profili kalır');
+
+-- Deneme sonucu silinince defter kaydı kalır, bağ düşer (Faz 6b).
+delete from public.mock_exam_results where id = tests.id('result_cascade_c');
+select is(
+  (select mock_result_id is null from public.mistakes where id = tests.id('mistake_cascade_c')),
+  true,
+  'deneme sonucu silinince defter kaydı kalır, mock_result_id set null'
+);
 
 select * from finish();
 rollback;

@@ -14,13 +14,14 @@ const CATEGORY_OF: Record<TopicAlertKind, MixCategory> = {
   behind_school: "new_topic",
   knowledge_gap: "weak",
   low_accuracy: "weak",
+  mock_weak: "weak",
   neglected_subject: "weak",
   review_due: "review",
   forgetting_risk: "review",
   stale: "review",
 };
 
-/** new_topic: not_started, behind_school · weak: knowledge_gap, low_accuracy, neglected_subject · review: kalanlar. */
+/** new_topic: not_started, behind_school · weak: knowledge_gap, low_accuracy, mock_weak, neglected_subject · review: kalanlar. */
 export function mixCategoryOf(kind: TopicAlertKind): MixCategory {
   return CATEGORY_OF[kind];
 }

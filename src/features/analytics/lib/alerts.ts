@@ -24,16 +24,17 @@ export function alertThresholds(settings: OrgSettings): AlertThresholds {
   return { ...settings.alerts, school_lag_weeks: settings.strategy.school_lag_weeks };
 }
 
-/** Listeleme sırası: önce zayıflık, okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
+/** Listeleme sırası: önce zayıflık (soru, deneme), okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
 const KIND_PRIORITY: Record<TopicAlertKind, number> = {
   knowledge_gap: 0,
   low_accuracy: 1,
-  behind_school: 2,
-  neglected_subject: 3,
-  forgetting_risk: 4,
-  review_due: 5,
-  stale: 6,
-  not_started: 7,
+  mock_weak: 2,
+  behind_school: 3,
+  neglected_subject: 4,
+  forgetting_risk: 5,
+  review_due: 6,
+  stale: 7,
+  not_started: 8,
 };
 
 const DONE: readonly TopicStatus[] = ["completed", "mastered"];
@@ -210,7 +211,7 @@ export function evaluateTopicAlerts(
 
 /**
  * Ekran grupları: weak = başarı kuralları, behind = okulun gerisinde, maintenance = bakım,
- * subjects = ders düzeyi. `not_started` gruplanmaz (dikkat gerektirmez).
+ * subjects = ders düzeyi; `mock_weak` (Faz 6b) zayıflık grubunda. `not_started` gruplanmaz.
  */
 export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
   const g: AlertGroup = { weak: [], behind: [], maintenance: [], subjects: [] };
@@ -218,6 +219,7 @@ export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
     switch (a.kind) {
       case "knowledge_gap":
       case "low_accuracy":
+      case "mock_weak":
         g.weak.push(a);
         break;
       case "behind_school":
@@ -294,5 +296,7 @@ export function alertReason(a: TopicAlert): string {
     }
     case "neglected_subject":
       return days ? `${days}dür bu derste kayıt yok` : "Bu derste kayıt yok";
+    case "mock_weak":
+      return "Denemede tekrarlayan yanlış";
   }
 }

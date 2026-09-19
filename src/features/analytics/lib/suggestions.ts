@@ -74,6 +74,7 @@ export function plannedKey(studentId: string, id: string): string {
 /** Uyarı türü → görev türü (08 §2 Parça 4; planner `alert-pool.ts` ile aynı eşleme). */
 const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
   knowledge_gap: "topic_study",
+  mock_weak: "topic_study",
   not_started: "topic_study",
   behind_school: "topic_study",
   low_accuracy: "questions",

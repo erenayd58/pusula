@@ -23,6 +23,7 @@ const ALERT_TASK: Partial<
 > = {
   knowledge_gap: { kind: "topic_study", category: "weak" },
   low_accuracy: { kind: "questions", category: "weak" },
+  mock_weak: { kind: "topic_study", category: "weak" },
   behind_school: { kind: "topic_study", category: "behind" },
   not_started: { kind: "topic_study", category: "not_started" },
   review_due: { kind: "review", category: "review_due" },
@@ -31,7 +32,7 @@ const ALERT_TASK: Partial<
 };
 
 /**
- * `weak` (bilgi eksiği → konu çalışması, düşük başarı → soru), `behind` (okulun gerisinde → konu
+ * `weak` (bilgi eksiği ve denemede tekrarlayan yanlış → konu çalışması, düşük başarı → soru), `behind` (okulun gerisinde → konu
  * çalışması; Faz 5a), `not_started` (konu çalışması), `review_due` (bakım türleri → tekrar). Tahmini süre `estimateMinutes`, başlık `taskTitle`,
  * sebep `alertReason`. Ders düzeyi uyarılar (topicId boş) havuza girmez.
  */

@@ -127,6 +127,23 @@ export const topicAlertKindLabels = {
   not_started: "Başlanmamış",
   neglected_subject: "İhmal edilen ders",
   behind_school: "Okulun gerisinde",
+  mock_weak: "Denemede tekrarlayan yanlış",
+} as const;
+
+/** Yanlış defteri nedeni (Faz 6b, karar C9); `unknown` varsayılan. */
+export const mistakeReasonLabels = {
+  knowledge_gap: "Bilgi eksiği",
+  attention: "Dikkat hatası",
+  time: "Süre yetmedi",
+  misread_question: "Soru kökünü yanlış okuma",
+  calculation: "İşlem hatası",
+  unknown: "Bilmiyorum",
+} as const;
+
+/** Yanlış defteri durumu (Faz 6b). */
+export const mistakeStatusLabels = {
+  open: "Açık",
+  solved: "Çözüldü",
 } as const;
 
 /** Deneme türü (Faz 6a): `subject_id` boş → genel, dolu → branş. */

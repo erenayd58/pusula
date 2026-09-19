@@ -387,3 +387,21 @@ insert into public.mock_exam_topic_mistakes (result_id, topic_id) values
   ('e1000000-0000-4000-8000-000000000003', 'c2000000-0000-4000-8000-000000001003'),
   ('e1000000-0000-4000-8000-000000000004', 'c2000000-0000-4000-8000-000000001003'),
   ('e1000000-0000-4000-8000-000000000011', 'c2000000-0000-4000-8000-000000002002');
+
+-- Yanlış defteri (Faz 6b): Ayşe için 3 fotoğrafsız kayıt — Üslü İfadeler (Mat, dikkat hatası, 3. denemeden;
+-- çözüldü), Paragrafta Anlam (Türkçe, süre yetmedi, 4. denemeden), Basınç (Fen, bilgi eksiği). Dağılım ve
+-- filtre görüntüleri için; fotoğraf seed'de yok (depo nesnesi yazılamaz).
+insert into public.mistakes (id, student_id, subject_id, topic_id, mock_result_id, reason, note, status, solved_at, created_by, created_at)
+values
+  ('e2000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000002',
+   'c2000000-0000-4000-8000-000000002002', 'e1000000-0000-4000-8000-000000000003', 'attention',
+   'Negatif üssü pozitif aldım; (−2)⁻³ işareti', 'solved', now() - interval '12 days',
+   'b0000000-0000-4000-8000-000000000011', now() - interval '20 days'),
+  ('e2000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000001',
+   'c2000000-0000-4000-8000-000000001003', 'e1000000-0000-4000-8000-000000000004', 'time',
+   'Son iki paragraf sorusuna süre kalmadı', 'open', null,
+   'b0000000-0000-4000-8000-000000000011', now() - interval '6 days'),
+  ('e2000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000011', 'c1000000-0000-4000-8000-000000000003',
+   'c2000000-0000-4000-8000-000000003003', null, 'knowledge_gap',
+   'Sıvı basıncı derinlikle nasıl değişiyor, formülü karıştırdım', 'open', null,
+   'b0000000-0000-4000-8000-000000000011', now() - interval '2 days');
