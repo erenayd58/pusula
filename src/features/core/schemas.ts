@@ -202,6 +202,12 @@ export const orgSettingsFormSchema = z.object({
     pace_window_days: int(7),
     topics_finish_weeks_before_exam: int(0),
   }),
+  mock_exams: z.object({
+    recent_count: int(1),
+    weak_min_marks: int(1),
+    weak_min_mistakes: int(1),
+    gap_weight: z.number("Sayı gir.").min(0, "0 ile 1 arası gir.").max(1, "0 ile 1 arası gir."),
+  }),
 });
 export type OrgSettingsFormInput = z.infer<typeof orgSettingsFormSchema>;
 export type SeasonPeriodInput = z.infer<typeof seasonPeriodSchema>;

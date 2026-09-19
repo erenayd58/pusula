@@ -18,6 +18,12 @@ describe("parseOrgSettings", () => {
       pace_window_days: 28,
       topics_finish_weeks_before_exam: 8,
     });
+    expect(s.mock_exams).toEqual({
+      recent_count: 3,
+      weak_min_marks: 2,
+      weak_min_mistakes: 3,
+      gap_weight: 0.5,
+    });
   });
 
   it("sezon dönemleri veritabanından okunur", () => {

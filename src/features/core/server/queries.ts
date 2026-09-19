@@ -36,6 +36,11 @@ export type StudentListRow = {
   topicsBehind: number;
   /** max(0, bitmiş − beklenen) */
   topicsAhead: number;
+  /** Faz 6a: son genel denemenin toplam neti; deneme yoksa null. */
+  lastNet: number | null;
+  /** Önceki genel denemeye göre; tek deneme → null. */
+  netDelta: number | null;
+  lastMockOn: string | null;
 };
 
 /**
@@ -47,7 +52,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
   const { data, error } = await supabase
     .from("v_coach_student_overview")
     .select(
-      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_behind, topics_ahead",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_behind, topics_ahead, last_net, net_delta, last_mock_on",
     )
     .order("full_name");
   if (error) throw error;
@@ -85,6 +90,9 @@ export async function listStudents(): Promise<StudentListRow[]> {
             topicsDone: row.topics_done ?? 0,
             topicsBehind: row.topics_behind ?? 0,
             topicsAhead: row.topics_ahead ?? 0,
+            lastNet: row.last_net === null ? null : Number(row.last_net),
+            netDelta: row.net_delta === null ? null : Number(row.net_delta),
+            lastMockOn: row.last_mock_on,
           },
         ]
       : [],

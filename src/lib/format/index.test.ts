@@ -7,6 +7,7 @@ import {
   formatPercent,
   formatSigned,
   formatPossessive,
+  formatNamePossessive,
   formatWeekRange,
   withUnit,
 } from "./index";
@@ -108,6 +109,30 @@ describe("formatDateTr", () => {
     expect(formatDateTr(new Date("2026-09-15T21:30:00Z"), { year: true })).toBe(
       `16${NB}Eylül${NB}2026`,
     );
+  });
+});
+
+describe("formatNamePossessive", () => {
+  it("ünlüyle bitende kaynaştırma n, ünlü uyumuna göre ek", () => {
+    expect(formatNamePossessive("Ayşe")).toBe("Ayşe'nin");
+    expect(formatNamePossessive("Buğra")).toBe("Buğra'nın");
+    expect(formatNamePossessive("Ebru")).toBe("Ebru'nun");
+    expect(formatNamePossessive("Sümeyye")).toBe("Sümeyye'nin");
+  });
+
+  it("ünsüzle bitende doğrudan ek", () => {
+    expect(formatNamePossessive("Mehmet")).toBe("Mehmet'in");
+    expect(formatNamePossessive("Zeynep")).toBe("Zeynep'in");
+    expect(formatNamePossessive("Can")).toBe("Can'ın");
+    expect(formatNamePossessive("Ömer")).toBe("Ömer'in");
+    expect(formatNamePossessive("Umut")).toBe("Umut'un");
+    expect(formatNamePossessive("Gül")).toBe("Gül'ün");
+  });
+
+  it("büyük İ/I Türkçe küçültmeyle; boş ad olduğu gibi", () => {
+    expect(formatNamePossessive("ILGIN")).toBe("ILGIN'ın");
+    expect(formatNamePossessive("İREM")).toBe("İREM'in");
+    expect(formatNamePossessive("")).toBe("");
   });
 });
 

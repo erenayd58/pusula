@@ -100,6 +100,32 @@ export function formatPossessive(value: number): string {
   return `${formatCount(value)}'${suffix}`;
 }
 
+const BACK_VOWELS = "aıou";
+const FRONT_VOWELS = "eiöü";
+const VOWELS = BACK_VOWELS + FRONT_VOWELS;
+
+/**
+ * Ada 3. tekil iyelik eki (ilgi hali), kesme işaretiyle: `Ayşe'nin`, `Mehmet'in`, `Can'ın`,
+ * `Ömer'in`, `Buğra'nın`, `Umut'un`, `Gül'ün`. Son harf ünlüyse kaynaştırma "n"; ek son ünlüye göre
+ * (a/ı → ın, e/i → in, o/u → un, ö/ü → ün). Ünlü yoksa "in". Boş ad olduğu gibi döner.
+ */
+export function formatNamePossessive(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed === "") return name;
+  const lower = trimmed.toLocaleLowerCase("tr-TR");
+  const last = lower.at(-1) ?? "";
+  const lastVowel = [...lower].reverse().find((ch) => VOWELS.includes(ch)) ?? "i";
+  const vowel = "aı".includes(lastVowel)
+    ? "ı"
+    : "ou".includes(lastVowel)
+      ? "u"
+      : "öü".includes(lastVowel)
+        ? "ü"
+        : "i";
+  const buffer = VOWELS.includes(last) ? "n" : "";
+  return `${trimmed}'${buffer}${vowel}n`;
+}
+
 /**
  * Süre (dakika): `860` → `14 sa 20 dk`, `45` → `45 dk`, `120` → `2 sa`, `0` → `0 dk`.
  * Tüm boşluklar bölünmeyen boşluktur; süre tek satırda kalır.

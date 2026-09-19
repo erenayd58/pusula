@@ -22,6 +22,7 @@ const t: AlertThresholds = {
   neglected_subject_days: 10,
   setup_account_days: 7,
   school_lag_weeks: 2,
+  mock_exams: { recent_count: 3, weak_min_marks: 2, weak_min_mistakes: 3 },
 };
 
 /** Bugünden n gün önce (İstanbul öğle saati; gün hesapları takvim günüdür). */
@@ -57,6 +58,9 @@ function fact(over: Partial<TopicAlertFacts> = {}): TopicAlertFacts {
     studentFirstLogDate: dateAgo(30),
     isNextTopic: false,
     schoolFinishOn: null,
+    mockRecentCount: 0,
+    mockWrongRecent: 0,
+    mistakesWindow: 0,
     ...over,
   };
 }
@@ -342,6 +346,94 @@ describe("evaluateTopicAlerts", () => {
       TODAY,
     );
     expect(alerts.map((a) => a.topicId)).toEqual(["d", "c", "b", "a"]);
+  });
+});
+
+describe("evaluateTopicAlerts: mock_weak (Faz 6b, karar C11)", () => {
+  it("son 3 denemenin 2'sinde işaret → mock_weak; 1'inde → üretilmez (pencere sınırı)", () => {
+    const [a] = evaluateTopicAlerts([fact({ mockRecentCount: 3, mockWrongRecent: 2 })], t, TODAY);
+    expect(a?.kind).toBe("mock_weak");
+    expect(a?.mockWrong).toEqual({ marks: 2, exams: 3 });
+    expect(a?.mistakes).toBe(0);
+    expect(a?.threshold).toBeNull();
+    expect(a?.delayDays).toBe(0);
+    expect(alertReason(a!)).toBe(`Son 3${NBSP}denemenin 2'sinde yanlış`);
+    expect(
+      evaluateTopicAlerts([fact({ mockRecentCount: 3, mockWrongRecent: 1 })], t, TODAY),
+    ).toEqual([]);
+  });
+
+  it("yalnızca defter sinyali: pencerede 3 kayıt → mock_weak, sebep 'Yanlış defterinde 3 soru'", () => {
+    const [a] = evaluateTopicAlerts([fact({ mistakesWindow: 3 })], t, TODAY);
+    expect(a?.kind).toBe("mock_weak");
+    expect(a?.mockWrong).toEqual({ marks: 0, exams: 0 });
+    expect(alertReason(a!)).toBe(`Yanlış defterinde 3${NBSP}soru`);
+    expect(evaluateTopicAlerts([fact({ mistakesWindow: 2 })], t, TODAY)).toEqual([]);
+  });
+
+  it("ikisi birlikte: sebepler ' · ' ile birleşir", () => {
+    const [a] = evaluateTopicAlerts(
+      [fact({ mockRecentCount: 3, mockWrongRecent: 3, mistakesWindow: 4 })],
+      t,
+      TODAY,
+    );
+    expect(alertReason(a!)).toBe(
+      `Son 3${NBSP}denemenin 3'ünde yanlış · yanlış defterinde 4${NBSP}soru`,
+    );
+  });
+
+  it("bitmiş konuda da üretilir; sebep 'Oturdu / Tamamlandı işaretli ama …'", () => {
+    const [m] = evaluateTopicAlerts(
+      [fact({ status: "mastered", completedAt: ago(3), mockRecentCount: 3, mockWrongRecent: 2 })],
+      t,
+      TODAY,
+    );
+    expect(m?.kind).toBe("mock_weak");
+    expect(m?.topicStatus).toBe("mastered");
+    expect(alertReason(m!)).toBe(`Oturdu işaretli ama son 3${NBSP}denemenin 2'sinde yanlış`);
+    const [c] = evaluateTopicAlerts(
+      [fact({ status: "completed", completedAt: ago(3), mockRecentCount: 3, mockWrongRecent: 2 })],
+      t,
+      TODAY,
+    );
+    expect(alertReason(c!)).toBe(`Tamamlandı işaretli ama son 3${NBSP}denemenin 2'sinde yanlış`);
+  });
+
+  it("öncelik: başarı kuralı kazanır, mock_weak okulun gerisinde ve bakımın önünde", () => {
+    const [gap] = evaluateTopicAlerts(
+      [fact({ questionsWindow: 40, correctWindow: 10, mockRecentCount: 3, mockWrongRecent: 3 })],
+      t,
+      TODAY,
+    );
+    expect(gap?.kind).toBe("knowledge_gap");
+    expect(gap?.mockWrong).toBeNull();
+    const alerts = evaluateTopicAlerts(
+      [
+        fact({ topicId: "s", topicSortOrder: 1, status: "studying", statusChangedAt: ago(50) }),
+        fact({ topicId: "b", topicSortOrder: 2, schoolFinishOn: dateAgo(21) }),
+        fact({ topicId: "m", topicSortOrder: 3, mockRecentCount: 3, mockWrongRecent: 2 }),
+      ],
+      t,
+      TODAY,
+    );
+    expect(alerts.map((a) => [a.topicId, a.kind])).toEqual([
+      ["m", "mock_weak"],
+      ["b", "behind_school"],
+      ["s", "stale"],
+    ]);
+    // Eşikler kurum ayarından: weak_min_marks 3 → 2 işaret yetmez.
+    expect(
+      evaluateTopicAlerts(
+        [fact({ mockRecentCount: 3, mockWrongRecent: 2 })],
+        { ...t, mock_exams: { ...t.mock_exams, weak_min_marks: 3 } },
+        TODAY,
+      ),
+    ).toEqual([]);
+  });
+
+  it("groupAlerts: mock_weak zayıf grubunda", () => {
+    const [a] = evaluateTopicAlerts([fact({ mistakesWindow: 3 })], t, TODAY);
+    expect(groupAlerts([a!]).weak.map((x) => x.kind)).toEqual(["mock_weak"]);
   });
 });
 

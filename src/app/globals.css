@@ -83,6 +83,9 @@
   /* ölçüler */
   --touch-min: 44px;
   --nav-rail: 104px; /* öğrenci masaüstü yan menü */
+  /* telefon/tablet alt menüsünün kapladığı yükseklik: çubuk (py-2 + 44 px öğe) + taşan (+) düğmesi (18 px)
+     + alt boşluk (safe-area ya da 12 px). Sayfa alt boşluğu ve yapışkan alt öğeler bunun üstünde durur. */
+  --nav-bottom: calc(60px + 18px + max(env(safe-area-inset-bottom), 12px));
   --coach-sidebar: 232px;
   --content-max-student: 1240px;
   --content-max: 1320px;

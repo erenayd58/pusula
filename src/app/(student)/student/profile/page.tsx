@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarClockIcon, ChevronRightIcon, PencilLineIcon } from "lucide-react";
+import { CalendarClockIcon, ChevronRightIcon, CircleXIcon, PencilLineIcon } from "lucide-react";
 import { LogoutButton, getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 import { formatDateTr } from "@/lib/format";
@@ -8,7 +8,7 @@ import { getEnabledModules } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Ben" };
 
-/** Ben: ad, kullanıcı adı, sınav tarihi, kayıt geçmişi bağlantısı ve çıkış (telefonda çıkışın tek yeri). */
+/** Ben: ad, kullanıcı adı, sınav tarihi, kayıt geçmişi / yanlış defteri bağlantıları ve çıkış (telefonda çıkışın tek yeri). */
 export default async function ProfilePage() {
   const { userId, profile } = await requireRole("student");
   const [student, enabled] = await Promise.all([
@@ -66,6 +66,17 @@ export default async function ProfilePage() {
         >
           <PencilLineIcon aria-hidden="true" className="size-5 text-ink-700" />
           <span className="flex-1">Kayıtlarım</span>
+          <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
+        </Link>
+      ) : null}
+
+      {enabled.has("mistakes") ? (
+        <Link
+          href="/student/mistakes"
+          className="flex clay-press items-center gap-3 rounded-card clay-md p-4 text-body font-medium text-ink-900"
+        >
+          <CircleXIcon aria-hidden="true" className="size-5 text-ink-700" />
+          <span className="flex-1">Yanlış defterim</span>
           <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
         </Link>
       ) : null}

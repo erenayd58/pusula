@@ -204,6 +204,9 @@ describe("alertsToPoolItems", () => {
     threshold: null,
     idleDays: null,
     delayDays: 0,
+    topicStatus: null,
+    mockWrong: null,
+    mistakes: null,
   };
 
   it("uyarı türünü görev türü ve kategoriye eşler; süre ve başlık üretilir", () => {

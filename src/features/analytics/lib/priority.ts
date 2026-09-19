@@ -20,6 +20,7 @@ export const DELAY_SATURATION_DAYS = 30;
 /** Tür taban puanı (zayıflık derecesi). */
 export const KIND_BASE_SCORE: Record<TopicAlertKind, number> = {
   knowledge_gap: 1,
+  mock_weak: 0.85,
   low_accuracy: 0.8,
   forgetting_risk: 0.7,
   stale: 0.6,

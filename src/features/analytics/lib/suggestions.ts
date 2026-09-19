@@ -31,7 +31,7 @@ export type Suggestion = {
   task: SuggestionTask;
   /** 0–100 (`priorityScore`). */
   score: number;
-  /** Strateji notu (Faz 5c): "hedef tarihi 2 hafta geçti" · "bu derste soru hedefinin gerisinde". */
+  /** Strateji notu (Faz 5c/6b): "hedef tarihi 2 hafta geçti" · "son 3 denemede 7 yanlış" · "bu derste soru hedefinin gerisinde". */
   strategyNote?: string;
 };
 
@@ -40,17 +40,23 @@ export const SUBJECT_GAP_NOTE_MIN = 0.2;
 
 /**
  * Strateji notu: önce konu hedef gecikmesi ("hedef tarihi 2 hafta geçti", 7 günden azsa gün),
- * yoksa ders soru açığı (`SUBJECT_GAP_NOTE_MIN` ve üstü). İkisi de yoksa undefined.
+ * sonra dersin deneme yanlışı ("son 3 denemede 7 yanlış"; Faz 6b, `wrong > 0` ve `exams >= 1`),
+ * yoksa ders soru açığı (`SUBJECT_GAP_NOTE_MIN` ve üstü). Hiçbiri yoksa undefined.
  */
 export function strategyNoteFor(input: {
   targetDelayDays: number | undefined;
   subjectGap: number | undefined;
+  mockWrong?: { wrong: number; exams: number } | undefined;
 }): string | undefined {
   const delay = input.targetDelayDays ?? 0;
   if (delay > 0) {
     const text =
       delay >= 7 ? formatCount(Math.round(delay / 7), "hafta") : formatCount(delay, "gün");
     return `hedef tarihi ${text} geçti`;
+  }
+  const mock = input.mockWrong;
+  if (mock && mock.exams >= 1 && mock.wrong > 0) {
+    return `son ${formatCount(mock.exams, "denemede")} ${formatCount(mock.wrong, "yanlış")}`;
   }
   if ((input.subjectGap ?? 0) >= SUBJECT_GAP_NOTE_MIN) return "bu derste soru hedefinin gerisinde";
   return undefined;
@@ -74,6 +80,7 @@ export function plannedKey(studentId: string, id: string): string {
 /** Uyarı türü → görev türü (08 §2 Parça 4; planner `alert-pool.ts` ile aynı eşleme). */
 const TASK_KIND: Record<TopicAlertKind, PlanItemKind> = {
   knowledge_gap: "topic_study",
+  mock_weak: "topic_study",
   not_started: "topic_study",
   behind_school: "topic_study",
   low_accuracy: "questions",
@@ -150,7 +157,13 @@ export function buildSuggestions(input: {
     const st = input.strategy?.get(a.studentId);
     const targetDelayDays = st && a.topicId ? st.topicDelayDays.get(a.topicId) : undefined;
     const subjectGap = st?.subjectGap.get(a.subject.id);
-    const strategyNote = st ? strategyNoteFor({ targetDelayDays, subjectGap }) : undefined;
+    const strategyNote = st
+      ? strategyNoteFor({
+          targetDelayDays,
+          subjectGap,
+          mockWrong: st.subjectMockWrong.get(a.subject.id),
+        })
+      : undefined;
 
     scored.push({
       studentId: a.studentId,

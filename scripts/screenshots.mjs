@@ -362,6 +362,124 @@ const SHOTS = [
       await page.getByRole("dialog").waitFor();
     },
   },
+
+  // Faz 6 Parça 1: denemeler (seed: Ayşe 4 genel deneme → grafik; katalog denemesi Ayşe + Mehmet)
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-denemeler-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams",
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-deneme-giris-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams/new",
+    before: async (page) => {
+      // 2. adım (netler): serbest deneme adıyla ilerlenir; kaydedilmez.
+      await page.getByRole("radio", { name: "Başka bir deneme" }).click();
+      await page.getByLabel("Deneme adı").fill("Kafa Dengi Deneme 4");
+      await page.getByRole("button", { name: "Devam" }).click();
+      await page.getByRole("list", { name: "Ders netleri" }).waitFor();
+      const rows = page.getByTestId("subject-entry-row");
+      await rows.nth(0).getByLabel("Doğru", { exact: true }).fill("16");
+      await rows.nth(0).getByLabel("Yanlış", { exact: true }).fill("2");
+      await rows.nth(1).getByLabel("Doğru", { exact: true }).fill("13");
+      await rows.nth(1).getByLabel("Yanlış", { exact: true }).fill("4");
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-deneme-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams/e1000000-0000-4000-8000-000000000004",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-denemeler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/exams`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-deneme-katalog-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/exams",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-deneme-karsilastirma-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/exams/e0000000-0000-4000-8000-000000000001",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
+
+  // Faz 6 Parça 2: yanlış defteri (seed: Ayşe 3 fotoğrafsız kayıt), veli, konu hücresi deneme satırı
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-yanlislar-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/mistakes",
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-yanlis-ekle-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/mistakes/new",
+    before: async (page) => {
+      // Fotoğraf seçilmiş hali (önizleme + "Not ekle" katlanır); kaydedilmez.
+      await page.getByLabel("Fotoğraf seç").setInputFiles("e2e/fixtures/soru.jpg");
+      await page.getByTestId("mistake-photo-preview").waitFor();
+      await page.getByRole("radio", { name: "Mat", exact: true }).click();
+      await page.getByRole("radio", { name: "İşlem hatası" }).click();
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-konu-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/topics",
+    before: async (page) => {
+      await page.getByRole("button", { name: /^Üslü İfadeler:/ }).click();
+      await page.getByRole("dialog").getByTestId("topic-mock").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-yanlislar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/mistakes`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "veli-ozet-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "veli-denemeler-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}/exams`,
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */
@@ -416,6 +534,12 @@ for (const shot of shots) {
     await page.evaluate(() => document.fonts.ready);
     if (shot.before) await shot.before(page);
     await page.waitForTimeout(400); // giriş animasyonları
+    // Tam sayfa yakalamada sabit alt menü görünüm konumunda (sayfanın ortasında) boyanır ve içeriği
+    // kapatıyormuş gibi görünür; belge görüntüsünde belge altına sabitlenir (gerçekte içerik
+    // `--nav-bottom` kadar boşluk bırakır). Yalnızca görüntü için; uygulamada değişiklik yok.
+    await page.addStyleTag({
+      content: "body { position: relative } nav.fixed { position: absolute !important }",
+    });
     await page.screenshot({ path: resolve(outDir, shot.file), fullPage: true });
     console.log(`✓ ${shot.dir}/${shot.file}`);
   } catch (error) {

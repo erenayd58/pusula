@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /**
- * `organizations.settings` şeması (08-faz4-plan-sistemi.md §1.2, 09-faz5-strateji.md §1.2).
- * Değerler veritabanında durur (migration `faz4a_org_settings` / `faz5a_strategy_settings`
- * varsayılanları yazar); buradaki `.default()` yalnızca eksik anahtar güvencesidir, eşikler koda
+ * `organizations.settings` şeması (08-faz4-plan-sistemi.md §1.2, 09-faz5-strateji.md §1.2,
+ * 10-faz6-denemeler.md §1.2). Değerler veritabanında durur (migration `faz4a_org_settings` /
+ * `faz5a_strategy_settings` / `faz6a_mock_settings` varsayılanları yazar); buradaki `.default()` yalnızca eksik anahtar güvencesidir, eşikler koda
  * gömülmez. Owner formu (`orgSettingsFormSchema`) bu yapıyı yazar.
  */
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "SS:DD biçiminde saat gir.");
@@ -81,6 +81,18 @@ export const orgSettingsSchema = z.object({
       topic_minutes_default: z.number().int().min(1).default(90),
       pace_window_days: z.number().int().min(7).default(28),
       topics_finish_weeks_before_exam: z.number().int().min(0).default(8),
+    })
+    .prefault({}),
+  mock_exams: z
+    .object({
+      /** "Son N deneme" penceresi (konu işareti sayımı, ders yanlış toplamı, deneme açığı). */
+      recent_count: z.number().int().min(1).default(3),
+      /** Son N genel denemenin en az bu kadarında işaretlenen konu `mock_weak` üretir (Parça 2). */
+      weak_min_marks: z.number().int().min(1).default(2),
+      /** Yanlış defterinde pencere içinde bu kadar kayıt açılan konu da `mock_weak` üretir (Parça 2). */
+      weak_min_mistakes: z.number().int().min(1).default(3),
+      /** `subjectGap = (1 − w) × soruAçığı + w × denemeAçığı` (Parça 2). */
+      gap_weight: z.number().min(0).max(1).default(0.5),
     })
     .prefault({}),
 });

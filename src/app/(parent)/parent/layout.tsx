@@ -20,7 +20,7 @@ export default async function Layout({ children }: LayoutProps<"/parent">) {
         <p className="text-small font-semibold text-ink-900">{siteConfig.name}</p>
         <LogoutButton variant="ghost" />
       </header>
-      <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-32 md:px-8">
+      <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-[calc(var(--nav-bottom)+24px)] md:px-8">
         {children}
       </main>
     </SurfaceRoot>

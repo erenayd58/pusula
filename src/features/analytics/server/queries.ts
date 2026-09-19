@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { getOrgSettings } from "@/features/core";
 import { daysSince, daysUntil, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { combineGap, mockSubjectGap } from "@/lib/strategy/gap";
 import { periodFor } from "@/lib/strategy/periods";
 import { createClient } from "@/lib/supabase/server";
 import { alertThresholds, evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
@@ -22,7 +23,7 @@ import type {
  */
 
 const FACT_SELECT =
-  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on" as const;
+  "student_id, organization_id, coach_id, subject_id, subject_name, subject_short_name, subject_color, subject_sort_order, exam_question_count, topic_id, topic_name, topic_sort_order, status, status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window, last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on, mock_recent_count, mock_wrong_recent, mistakes_window" as const;
 
 /** Görünen öğrencilerin kapalı modülleri (student_modules.enabled = false): öğrenci → modül kümesi. */
 const listDisabledModules = cache(async (): Promise<Map<string, Set<string>>> => {
@@ -99,6 +100,9 @@ const fetchTopicAlertFacts = cache(async (key: string): Promise<TopicAlertFacts[
             studentFirstLogDate: r.student_first_log_date,
             isNextTopic: r.is_next_topic ?? false,
             schoolFinishOn: r.school_finish_on,
+            mockRecentCount: r.mock_recent_count ?? 0,
+            mockWrongRecent: r.mock_wrong_recent ?? 0,
+            mistakesWindow: r.mistakes_window ?? 0,
           },
         ]
       : [],
@@ -123,9 +127,12 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
  * Strateji bağlamı (09 §2 Parça 3): kurum dönemleri (`periodFor` → karışım) + `students.exam_date`
  * (sınava kalan gün) + `v_student_pace_facts` (hedef tarihi geçmiş bitmemiş konular → gecikme günü)
  * + `v_student_subject_targets` (ders soru açığı: (bugüne kadar beklenen − gerçekleşen) / beklenen;
- * beklenen = hedef × geçen gün / toplam gün, `target_starts_on` → `exam_date`). Görünümler
- * security_invoker; hedefi olmayan öğrencide boş Map'ler. `getSuggestions` çağıran her yerde
- * (K1, K2, plan havuzu, "Önerilen planı hazırla") aynı bağlam; aynı istekte tek sorgu (React `cache`).
+ * beklenen = hedef × geçen gün / toplam gün, `target_starts_on` → `exam_date`) +
+ * `v_student_mock_subject_stats` (Faz 6b: deneme açığı `mockSubjectGap`, `combineGap` ile
+ * `mock_exams.gap_weight` ağırlığında; `subjectMockWrong` "son 3 denemede 7 yanlış" notu için).
+ * Görünümler security_invoker; hedefi ve denemesi olmayan öğrencide boş Map'ler. `getSuggestions`
+ * çağıran her yerde (K1, K2, plan havuzu, "Önerilen planı hazırla") aynı bağlam; aynı istekte tek
+ * sorgu (React `cache`).
  */
 const fetchStrategyContext = cache(async (key: string): Promise<Map<string, StudentStrategy>> => {
   const studentIds = key === "*" ? undefined : key.split(",");
@@ -148,22 +155,31 @@ const fetchStrategyContext = cache(async (key: string): Promise<Map<string, Stud
     .select("student_id, subject_id, questions_target, questions_done")
     .not("questions_target", "is", null);
   if (studentIds) subjectQuery = subjectQuery.in("student_id", studentIds);
+  let mockQuery = supabase
+    .from("v_student_mock_subject_stats")
+    .select("student_id, subject_id, exams_count, avg_net, wrong_total, exam_question_count")
+    .gt("exams_count", 0);
+  if (studentIds) mockQuery = mockQuery.in("student_id", studentIds);
 
-  const [settings, students, pace, subjects] = await Promise.all([
+  const [settings, students, pace, subjects, mocks] = await Promise.all([
     getOrgSettings(),
     studentQuery,
     paceQuery,
     subjectQuery,
+    mockQuery,
   ]);
   if (students.error) throw students.error;
   if (pace.error) throw pace.error;
   if (subjects.error) throw subjects.error;
+  if (mocks.error) throw mocks.error;
 
   const mix = periodFor(settings.strategy.periods, today)?.mix ?? null;
   const topicDelay = new Map<string, Map<string, number>>();
-  const subjectGap = new Map<string, Map<string, number>>();
-  const bucket = (store: Map<string, Map<string, number>>, studentId: string) =>
-    store.get(studentId) ?? store.set(studentId, new Map()).get(studentId)!;
+  const questionGap = new Map<string, Map<string, number>>();
+  const mockGap = new Map<string, Map<string, number>>();
+  const mockWrong = new Map<string, Map<string, { wrong: number; exams: number }>>();
+  const bucket = <T>(store: Map<string, Map<string, T>>, studentId: string) =>
+    store.get(studentId) ?? store.set(studentId, new Map<string, T>()).get(studentId)!;
 
   for (const r of pace.data) {
     if (!r.student_id || !r.topic_id || !r.target_on) continue;
@@ -179,19 +195,43 @@ const fetchStrategyContext = cache(async (key: string): Promise<Map<string, Stud
     const elapsedDays = daysSince(student.target_starts_on, today);
     if (totalDays <= 0 || elapsedDays <= 0) continue;
     const expected = (r.questions_target * Math.min(elapsedDays, totalDays)) / totalDays;
-    bucket(subjectGap, r.student_id).set(
+    bucket(questionGap, r.student_id).set(
       r.subject_id,
       clamp01((expected - (r.questions_done ?? 0)) / expected),
     );
   }
+  for (const r of mocks.data) {
+    if (!r.student_id || !r.subject_id) continue;
+    const gap = mockSubjectGap({
+      avgNet: Number(r.avg_net ?? 0),
+      questionCount: r.exam_question_count,
+    });
+    if (gap !== undefined) bucket(mockGap, r.student_id).set(r.subject_id, gap);
+    bucket(mockWrong, r.student_id).set(r.subject_id, {
+      wrong: r.wrong_total ?? 0,
+      exams: r.exams_count ?? 0,
+    });
+  }
 
   const out = new Map<string, StudentStrategy>();
   for (const r of students.data) {
+    const q = questionGap.get(r.profile_id) ?? new Map<string, number>();
+    const m = mockGap.get(r.profile_id) ?? new Map<string, number>();
+    const combined = new Map<string, number>();
+    for (const subjectId of new Set([...q.keys(), ...m.keys()])) {
+      const gap = combineGap({
+        questionGap: q.get(subjectId),
+        mockGap: m.get(subjectId),
+        weight: settings.mock_exams.gap_weight,
+      });
+      if (gap !== undefined) combined.set(subjectId, gap);
+    }
     out.set(r.profile_id, {
       daysToExam: r.exam_date ? daysUntil(r.exam_date) : null,
       mix,
       topicDelayDays: topicDelay.get(r.profile_id) ?? new Map(),
-      subjectGap: subjectGap.get(r.profile_id) ?? new Map(),
+      subjectGap: combined,
+      subjectMockWrong: mockWrong.get(r.profile_id) ?? new Map(),
     });
   }
   return out;

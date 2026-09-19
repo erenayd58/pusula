@@ -1,7 +1,8 @@
 import type { OrgSettings } from "@/features/core";
 import { daysSince } from "@/lib/dates";
 import { accuracyPercent } from "@/lib/exam/net";
-import { formatCount, formatPercent } from "@/lib/format";
+import { formatCount, formatPercent, formatPossessive } from "@/lib/format";
+import { topicStatusLabels } from "@/content/labels";
 import { schoolLagWeeks } from "@/lib/strategy/school-calendar";
 import type { TopicAlertKind, TopicStatus } from "@/types";
 import type {
@@ -15,25 +16,40 @@ import type {
 
 /**
  * Kurum ayarındaki `alerts` anahtarı + `strategy.school_lag_weeks` (Faz 5a `behind_school`
- * toleransı); eşikler koda gömülmez, parametre gelir. Sorgu katmanı `alertThresholds` ile kurar.
+ * toleransı) + `mock_exams` eşikleri (Faz 6b `mock_weak`); eşikler koda gömülmez, parametre gelir.
+ * Sorgu katmanı `alertThresholds` ile kurar.
  */
 export type AlertThresholds = OrgSettings["alerts"] &
-  Pick<OrgSettings["strategy"], "school_lag_weeks">;
+  Pick<OrgSettings["strategy"], "school_lag_weeks"> & {
+    mock_exams: Pick<
+      OrgSettings["mock_exams"],
+      "recent_count" | "weak_min_marks" | "weak_min_mistakes"
+    >;
+  };
 
 export function alertThresholds(settings: OrgSettings): AlertThresholds {
-  return { ...settings.alerts, school_lag_weeks: settings.strategy.school_lag_weeks };
+  return {
+    ...settings.alerts,
+    school_lag_weeks: settings.strategy.school_lag_weeks,
+    mock_exams: {
+      recent_count: settings.mock_exams.recent_count,
+      weak_min_marks: settings.mock_exams.weak_min_marks,
+      weak_min_mistakes: settings.mock_exams.weak_min_mistakes,
+    },
+  };
 }
 
-/** Listeleme sırası: önce zayıflık, okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
+/** Listeleme sırası: önce zayıflık (soru, deneme), okulun gerisinde, sonra ihmal, bakım, en sonda başlanmamış. */
 const KIND_PRIORITY: Record<TopicAlertKind, number> = {
   knowledge_gap: 0,
   low_accuracy: 1,
-  behind_school: 2,
-  neglected_subject: 3,
-  forgetting_risk: 4,
-  review_due: 5,
-  stale: 6,
-  not_started: 7,
+  mock_weak: 2,
+  behind_school: 3,
+  neglected_subject: 4,
+  forgetting_risk: 5,
+  review_due: 6,
+  stale: 7,
+  not_started: 8,
 };
 
 const DONE: readonly TopicStatus[] = ["completed", "mastered"];
@@ -59,6 +75,14 @@ function idleDaysOf(f: TopicAlertFacts, today: string): number | null {
 }
 
 type RuleHit = Pick<TopicAlert, "kind" | "threshold" | "idleDays" | "delayDays">;
+
+/** `mock_weak` (C11): son N genel denemenin ≥ weak_min_marks'ında işaret VEYA pencerede ≥ weak_min_mistakes defter kaydı. */
+function isMockWeak(f: TopicAlertFacts, t: AlertThresholds): boolean {
+  return (
+    f.mockWrongRecent >= t.mock_exams.weak_min_marks ||
+    f.mistakesWindow >= t.mock_exams.weak_min_mistakes
+  );
+}
 
 /** Konu düzeyi kurallar, öncelik sırasıyla; ilk eşleşen döner (konu başına en fazla bir). */
 function evaluateTopic(f: TopicAlertFacts, t: AlertThresholds, today: string): RuleHit | null {
@@ -87,6 +111,11 @@ function evaluateTopic(f: TopicAlertFacts, t: AlertThresholds, today: string): R
       idleDays: null,
       delayDays: 0,
     };
+  }
+  // Denemede tekrarlayan yanlış (Faz 6b, C11): konu durumu fark etmez — bitmiş konuda da üretilir
+  // ("oturdu" sanılan konuda deneme yanlışı koç için en değerli sinyal; sebep metni bunu söyler).
+  if (isMockWeak(f, t)) {
+    return { kind: "mock_weak", threshold: null, idleDays: null, delayDays: 0 };
   }
   // Okulun gerisinde (karar B8): bitmemiş konuların hepsi (`studying` dahil); okul bitişinden
   // `school_lag_weeks` hafta geçtiyse. idleDays = okulun bitirmesinden bu yana gün (sebep metni).
@@ -152,9 +181,10 @@ function compareAlerts(a: TopicAlert, b: TopicAlert): number {
 }
 
 /**
- * Uyarı kuralları (08 §2 Parça 3, 09 §2 Parça 1; saf, eşikler parametre). Konu başına en fazla
- * bir uyarı, öncelik sırası: knowledge_gap → low_accuracy → behind_school → stale →
- * forgetting_risk → review_due → not_started. Ders düzeyi (topicId null): neglected_subject.
+ * Uyarı kuralları (08 §2 Parça 3, 09 §2 Parça 1, 10 §2 Parça 2; saf, eşikler parametre). Konu
+ * başına en fazla bir uyarı, öncelik sırası: knowledge_gap → low_accuracy → mock_weak →
+ * behind_school → stale → forgetting_risk → review_due → not_started. Ders düzeyi (topicId null):
+ * neglected_subject.
  * `today` İstanbul günü (YYYY-MM-DD). Sonuç öncelik, gecikme ve ders/konu sırasına göre sıralıdır.
  */
 export function evaluateTopicAlerts(
@@ -178,6 +208,10 @@ export function evaluateTopicAlerts(
         questions: f.questionsWindow,
         accuracy,
         ...hit,
+        topicStatus: f.status,
+        mockWrong:
+          hit.kind === "mock_weak" ? { marks: f.mockWrongRecent, exams: f.mockRecentCount } : null,
+        mistakes: hit.kind === "mock_weak" ? f.mistakesWindow : null,
       });
     }
 
@@ -201,6 +235,9 @@ export function evaluateTopicAlerts(
         threshold: null,
         idleDays: days,
         delayDays: days - t.neglected_subject_days,
+        topicStatus: null,
+        mockWrong: null,
+        mistakes: null,
       });
     }
   }
@@ -210,7 +247,7 @@ export function evaluateTopicAlerts(
 
 /**
  * Ekran grupları: weak = başarı kuralları, behind = okulun gerisinde, maintenance = bakım,
- * subjects = ders düzeyi. `not_started` gruplanmaz (dikkat gerektirmez).
+ * subjects = ders düzeyi; `mock_weak` (Faz 6b) zayıflık grubunda. `not_started` gruplanmaz.
  */
 export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
   const g: AlertGroup = { weak: [], behind: [], maintenance: [], subjects: [] };
@@ -218,6 +255,7 @@ export function groupAlerts(alerts: TopicAlert[]): AlertGroup {
     switch (a.kind) {
       case "knowledge_gap":
       case "low_accuracy":
+      case "mock_weak":
         g.weak.push(a);
         break;
       case "behind_school":
@@ -271,6 +309,32 @@ export function evaluateSetupAlerts(
   return out;
 }
 
+const DONE_STATUS: readonly TopicStatus[] = ["completed", "mastered"];
+
+/**
+ * `mock_weak` sebebi (C11 eki, 10 §3.4): deneme sinyali "Son 3 denemenin 2'sinde yanlış" (konu bitmişse
+ * "Oturdu işaretli ama …" / "Tamamlandı işaretli ama …"), defter sinyali "Yanlış defterinde 3 soru";
+ * ikisi de varsa " · " ile. Aynı metin K1/K2 listeleri, öneri sebebi ve havuz satırında.
+ */
+function mockWeakReason(a: TopicAlert): string {
+  const parts: string[] = [];
+  if (a.mockWrong && a.mockWrong.marks > 0) {
+    // "3 denemenin 2'sinde" (`top-mistake-topics` ile aynı kalıp: iyelik eki + nde).
+    const core = `son ${formatCount(a.mockWrong.exams, "denemenin")} ${formatPossessive(a.mockWrong.marks)}nde yanlış`;
+    const done = a.topicStatus !== null && DONE_STATUS.includes(a.topicStatus);
+    parts.push(
+      done
+        ? `${topicStatusLabels[a.topicStatus!]} işaretli ama ${core}`
+        : core.charAt(0).toLocaleUpperCase("tr-TR") + core.slice(1),
+    );
+  }
+  if (a.mistakes !== null && a.mistakes > 0) {
+    const text = `Yanlış defterinde ${formatCount(a.mistakes, "soru")}`;
+    parts.push(parts.length > 0 ? text.charAt(0).toLocaleLowerCase("tr-TR") + text.slice(1) : text);
+  }
+  return parts.length > 0 ? parts.join(" · ") : "Denemede tekrarlayan yanlış";
+}
+
 /** Kısa sebep metni (koç dili, nötr): "40 soruda %52 başarı" · "12 gündür bakılmadı". */
 export function alertReason(a: TopicAlert): string {
   const days = a.idleDays === null ? null : formatCount(a.idleDays, "gün");
@@ -294,5 +358,7 @@ export function alertReason(a: TopicAlert): string {
     }
     case "neglected_subject":
       return days ? `${days}dür bu derste kayıt yok` : "Bu derste kayıt yok";
+    case "mock_weak":
+      return mockWeakReason(a);
   }
 }

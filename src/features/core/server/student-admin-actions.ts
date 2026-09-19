@@ -32,9 +32,37 @@ export const resetStudentPassword = createAction({
   },
 });
 
+/** Yanlış defteri fotoğrafları (03 §8); bucket adı `features/mistakes` ile aynı, modül importu yok. */
+const MISTAKE_IMAGES_BUCKET = "mistake-images";
+const STORAGE_PAGE = 100;
+
 /**
- * Öğrenci silme: sadece owner (`can_delete_student`). Auth kullanıcısı silinir; profiles →
- * students → bağlı tablolar cascade ile gider (pgTAP 110). Depo temizliği Faz 6 (fotoğraflar).
+ * Öğrencinin depo klasörünü temizler (KVKK): `mistake-images/{org}/{öğrenci}/` altındaki nesneler
+ * sayfa sayfa listelenir ve silinir; klasör boşsa hiçbir şey yapmaz. Admin istemcisi (RLS yok),
+ * öncesinde yetki veritabanında doğrulandı.
+ */
+async function removeStudentImages(
+  admin: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+  studentId: string,
+): Promise<void> {
+  const prefix = `${organizationId}/${studentId}`;
+  for (;;) {
+    const { data, error } = await admin.storage
+      .from(MISTAKE_IMAGES_BUCKET)
+      .list(prefix, { limit: STORAGE_PAGE });
+    if (error) throw new ActionError("Fotoğraflar silinemedi. Tekrar dene.");
+    const names = data.filter((o) => o.id !== null).map((o) => `${prefix}/${o.name}`);
+    if (names.length === 0) return;
+    const { error: removeError } = await admin.storage.from(MISTAKE_IMAGES_BUCKET).remove(names);
+    if (removeError) throw new ActionError("Fotoğraflar silinemedi. Tekrar dene.");
+    if (data.length < STORAGE_PAGE) return;
+  }
+}
+
+/**
+ * Öğrenci silme: sadece owner (`can_delete_student`). Önce depo klasörü (Faz 6b fotoğraflar), sonra
+ * Auth kullanıcısı silinir; profiles → students → bağlı tablolar cascade ile gider (pgTAP 110).
  */
 export const deleteStudent = createAction({
   name: "deleteStudent",
@@ -48,6 +76,7 @@ export const deleteStudent = createAction({
     if (!allowed) throw new ActionError(NOT_ALLOWED);
 
     const admin = createAdminClient();
+    await removeStudentImages(admin, ctx.profile.organization_id, input.studentId);
     const { error } = await admin.auth.admin.deleteUser(input.studentId);
     if (error) throw new ActionError("Öğrenci silinemedi. Tekrar dene.");
     return { studentId: input.studentId };

@@ -62,8 +62,9 @@ create type goal_period          as enum ('daily', 'weekly');     -- Faz 3 sade;
 create type plan_status          as enum ('draft', 'published');
 create type plan_item_kind       as enum ('topic_study', 'questions', 'review', 'link', 'custom');   -- Faz 4b (karar A13); Faz 7: add value 'section', 'video'
 create type topic_alert_kind     as enum ('knowledge_gap', 'low_accuracy', 'review_due', 'forgetting_risk', 'stale', 'not_started', 'neglected_subject', 'behind_school');   -- Faz 4c; 4d suggestion_dismissals.kind; Faz 5a add value 'behind_school'
-create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');
-create type mistake_status       as enum ('open', 'reviewing', 'solved');
+create type mistake_reason       as enum ('knowledge_gap', 'attention', 'time', 'misread_question', 'calculation', 'unknown');   -- Faz 6b ✅
+-- topic_alert_kind: Faz 6b add value 'mock_weak' ✅ (10 §1.1; faz6b_mistakes)
+create type mistake_status       as enum ('open', 'solved');           -- Faz 6b ✅; 'reviewing' tekrar sistemiyle add value (Faz 6b sonra)
 create type note_visibility      as enum ('coach_only', 'student', 'parent', 'student_and_parent');
 create type session_kind         as enum ('pomodoro', 'free', 'video', 'review', 'reading');
 ```
@@ -508,76 +509,81 @@ student_video_progress (
 
 ### 4.6 Denemeler, Yanlış Defteri (Faz 6)
 
+Tasarım: `10-faz6-denemeler.md` §1.3–1.5, kararlar C3–C7, C9. **Parça 1 (denemeler) ✅**, **Parça 2 (yanlış defteri, uyarı olguları) ✅** (2026-09-19).
+
 ```sql
-mock_exams (
+mock_exams (                                   -- deneme kataloğu (kurum düzeyi) ✅
   id uuid pk,
-  organization_id uuid not null references organizations(id),
-  template_id uuid not null references curriculum_templates(id),
-  title text not null,                    -- 'X Yayınları Türkiye Geneli 3'
-  publisher text,
+  organization_id uuid not null references organizations(id) on delete cascade,
+  template_id uuid not null references curriculum_templates(id) on delete cascade,
+  subject_id uuid references subjects(id) on delete restrict,    -- null = genel deneme; dolu = branş (is_full_exam yerine)
+  title text not null,                          -- 1–80
+  publisher text,                               -- ≤ 60
   exam_date date,
-  is_full_exam boolean not null default true,   -- false = branş denemesi
-  created_by uuid references profiles(id),
+  created_by uuid references profiles(id) on delete set null,
   created_at, updated_at
 )
+-- index (organization_id, exam_date desc), (template_id), (subject_id), (created_by)
 
-mock_exam_results (
+mock_exam_results (                            -- ✅
   id uuid pk,
   student_id uuid not null references students(profile_id) on delete cascade,
-  mock_exam_id uuid references mock_exams(id) on delete set null,  -- katalog dışı deneme: null
-  custom_title text,
-  taken_on date not null,
-  duration_minutes int,
-  score numeric(6,3),                     -- yayınevinin verdiği puan (isteğe bağlı, elle)
-  percentile numeric(5,2),                -- yayınevinin verdiği yüzdelik (isteğe bağlı)
-  note text,
+  mock_exam_id uuid references mock_exams(id) on delete restrict,   -- sonucu olan katalog denemesi silinemez (C5)
+  custom_title text,                            -- katalog dışı: ≤ 80
+  subject_id uuid references subjects(id) on delete restrict,      -- katalog dışı branş denemesi; katalogdan geliyorsa null
+  taken_on date not null,                       -- check: <= İstanbul bugünü
+  duration_minutes int check (1..600),
+  score numeric(6,3), percentile numeric(5,2),  -- yayınevinin puanı/yüzdeliği, elle, isteğe bağlı; LGS puanı hesaplanmaz
+  note text,                                    -- ≤ 300
+  created_by uuid references profiles(id) on delete set null,
   created_at, updated_at,
-  check (mock_exam_id is not null or custom_title is not null)
+  check (mock_exam_id is not null or custom_title is not null),
+  check (mock_exam_id is null or subject_id is null)
 )
+-- index (student_id, taken_on desc), (mock_exam_id), (subject_id), (created_by)
+-- unique (student_id, mock_exam_id) where mock_exam_id is not null   -- öğrenci başına bir kez; yeniden giriş = düzenleme (C6)
 
-mock_exam_subject_results (
+mock_exam_subject_results (                    -- ✅
   result_id uuid references mock_exam_results(id) on delete cascade,
-  subject_id uuid references subjects(id),
-  correct_count smallint not null default 0,
-  wrong_count smallint not null default 0,
-  blank_count smallint not null default 0,
-  wrong_penalty smallint not null,        -- kayıt anında şablondan kopyalanır (0 = ceza yok)
-  net numeric(5,2) generated always as (
-    correct_count - coalesce(wrong_count::numeric / nullif(wrong_penalty, 0), 0)
-  ) stored,
+  subject_id uuid references subjects(id) on delete cascade,
+  correct_count smallint not null default 0, wrong_count smallint not null default 0, blank_count smallint not null default 0,
+  wrong_penalty smallint not null,              -- kayıt anında şablon scoring'inden; 0 = ceza yok
+  net numeric(6,2) generated always as
+    (correct_count - case when wrong_penalty > 0 then wrong_count::numeric / wrong_penalty else 0 end) stored,
   primary key (result_id, subject_id)
 )
+-- index (subject_id)
 
-mock_exam_topic_mistakes (
+mock_exam_topic_mistakes (                     -- "bu konuda yanlış yaptım" işareti; sayı yok ✅
   result_id uuid references mock_exam_results(id) on delete cascade,
-  topic_id uuid references topics(id),
-  wrong_count smallint not null default 0,
-  blank_count smallint not null default 0,
+  topic_id uuid references topics(id) on delete cascade,
   primary key (result_id, topic_id)
 )
+-- index (topic_id)
 
-mistakes (
+mistakes (                                     -- Parça 2 (10 §1.4) ✅
   id uuid pk,
   student_id uuid not null references students(profile_id) on delete cascade,
-  subject_id uuid not null references subjects(id),
-  topic_id uuid references topics(id),
+  subject_id uuid not null references subjects(id) on delete cascade,
+  topic_id uuid references topics(id) on delete set null,
   mock_result_id uuid references mock_exam_results(id) on delete set null,
-  section_id uuid references resource_sections(id) on delete set null,
-  question_image_path text,
-  solution_image_path text,
+  image_path text,                              -- storage yolu; null = fotoğrafsız kayıt (C7)
   reason mistake_reason not null default 'unknown',
-  note text,
+  note text,                                    -- ≤ 300
   status mistake_status not null default 'open',
-  review_stage smallint not null default 0,
-  last_reviewed_at timestamptz,
-  next_review_at date,
+  solved_at timestamptz,                        -- check ((status = 'solved') = (solved_at is not null))
+  created_by uuid references profiles(id) on delete set null,
   created_at, updated_at
 )
+-- index (student_id, created_at desc), (subject_id), (topic_id), (mock_result_id), (created_by)
+-- Faz 7: section_id; tekrar sistemi: review_stage, next_review_at
 ```
 
-LGS puanı standart sapmaya dayalı olarak ÖSYM/MEB tarafından hesaplandığı için uygulama **puan hesaplamaz**; sadece net hesaplar. Yayınevinin verdiği puan ve yüzdelik isteğe bağlı olarak elle girilir.
+Yanlış defteri (Faz 6b ✅): fotoğraf isteğe bağlı (C7), neden varsayılan `unknown` (C9), `image_path` ≤ 200 ve `{org}/{student}/{uuid}.webp|jpg` (eylem kurum/öğrenci önekini doğrular); `solved_at` ↔ `status = 'solved'` check. Yardımcı `private.can_read_mistakes(p_student_id)` = kendisi **veya** `is_coach_of` **veya** `is_parent_of(p_student_id, true)` (veli kapısı `can_view_details`; C10 — veli arayüzü Faz 8). Politikalar: öğrenci S I U D (kendi; insert `student_id = auth.uid()` ve `created_by` kendisi — **koç kayıt açamaz**, fotoğraf öğrencinin telefonundan), koç/owner S U D (`can_write_student`), veli S (`can_read_mistakes`). Deneme sonucu silinince `mock_result_id` set null (kayıt kalır). Deneme kısayolu yalnızca URL parametresi (`/student/mistakes/new?subjectId=&topicId=&mockResultId=`); `mistakes` → `mock-exams` importu yok.
 
-Deneme sonucu kaydı (sonuç + ders sonuçları + konu yanlışları) `public.save_mock_exam_result(payload jsonb)` fonksiyonuyla tek transaction'da yapılır.
+Tanımlar (`lib/exam/mock.ts` ile tek yerde): **genel deneme** = `subject_id` (sonuç ya da katalog) boş; **toplam net** yalnızca genel denemede (Σ ders neti); **değişim** = önceki genel denemeye göre; **son N** = `taken_on desc, created_at desc` ilk N genel deneme (ders istatistiğinde o dersin branşı da sayılır; N = kurum ayarı `mock_exams.recent_count`). Yardımcı: `private.mock_result_student(p_result_id)` (security definer; `plan_student` kalıbı) alt tabloların politikalarını öğrenciye bağlar. Silme RPC gerektirmez: sonuç satırı RLS ile silinir, alt satırlar cascade. Kurum ayarı `mock_exams` (`recent_count 3, weak_min_marks 2, weak_min_mistakes 3, gap_weight 0.5`; `faz6a_mock_settings`, üst düzey anahtar, `defaults || settings`).
+
+LGS puanı standart sapmaya dayalı olarak ÖSYM/MEB tarafından hesaplandığı için uygulama **puan hesaplamaz**; sadece net hesaplar. Yayınevinin verdiği puan ve yüzdelik isteğe bağlı olarak elle girilir ve yalnızca detayda gösterilir.
 
 ### 4.7 Bildirimler (Faz 8)
 
@@ -730,6 +736,17 @@ as $$
       or private.is_coach_of(p_student_id)
 $$;
 
+-- Yanlış defteri kapısı (Faz 6b): veli yalnızca can_view_details ile (can_read_student'tan farkı).
+-- Hem mistakes tablosu hem storage.objects (mistake-images) politikaları bunu kullanır.
+create or replace function private.can_read_mistakes(p_student_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select p_student_id = (select auth.uid())
+      or private.is_coach_of(p_student_id)
+      or private.is_parent_of(p_student_id, true)
+$$;
+
 -- Profil görünürlüğü: kendisi; owner kendi kurumundaki herkes; koç kendi
 -- öğrencileri ve onların velileri; öğrenci kendi koçu ve kendi velileri;
 -- veli kendi çocuğu ve çocuğun koçu.
@@ -804,11 +821,14 @@ S: select, I: insert, U: update, D: delete. "Kendi" = kendi öğrenci satırı.
 | student_topic_targets (Faz 5b) | S | S I U D (`is_coach_of`; `created_by` kendisi) | S | Tümü |
 | coach_notes | S (visibility ∈ student, student_and_parent) | S I U D | S (visibility ∈ parent, student_and_parent) | Tümü |
 | announcements | S (hedef kitlede ise) | S I (kendi) | S (hedef kitlede ise) | Tümü |
-| resources, resource_sections, video_playlists, videos, mock_exams, schools | S (kurum) | S I U | – | Tümü |
+| resources, resource_sections, video_playlists, videos, schools | S (kurum) | S I U | – | Tümü |
+| mock_exams (Faz 6a) | S (`organization_id = my_org()`) | S I U D (kurum; insert `created_by` kendisi) | S (kurum; rapor başlığı) | Tümü |
 | student_resources, student_playlists | S | S I U D | S | Tümü |
 | student_video_progress | S I U | S | S | Tümü |
-| mock_exam_results (+ alt tablolar) | S I U D | S I U D | S | Tümü |
-| mistakes | S I U D | S U | S (can_view_details) | Tümü |
+| mock_exam_results (Faz 6a) | S I U D (kendi; insert `created_by` kendisi) | S I U D (`is_coach_of`) | S | Tümü |
+| mock_exam_subject_results, mock_exam_topic_mistakes (Faz 6a) | S I U D (`can_write_student(mock_result_student(result_id))`) | S I U D | S (`can_read_student(…)`) | Tümü |
+| mistakes (Faz 6b) ✅ | S I U D (kendi; insert `student_id = auth.uid()`, `created_by` kendisi) | S U D (`can_write_student`; kayıt açmaz) | S (`can_read_mistakes`: can_view_details) | S U D |
+| storage.objects `mistake-images` (Faz 6b) ✅ | S I D (kendi klasörü `{org}/{student}/`, kurum kendi kurumu) | S I D (`can_write_student` — uygulama koçtan yükleme yapmaz) | S (`can_read_mistakes`) | S I D; update yok |
 | notifications | S U (kendi) | S U (kendi) | S U (kendi) | S U (kendi) |
 | study_sessions, reading_logs, school_exam_grades | S I U D | S | S | Tümü |
 | daily_checkins | S I U | S | S (can_view_details) | Tümü |
@@ -827,7 +847,7 @@ Her tablo için en az şu testler yazılır:
 
 Ek testler (Faz 1a): öğrenci `profiles.role/username/organization_id` kolonlarını güncelleyemez (owner da); öğrenci `students` satırını güncelleyemez; koç `students.organization_id/coach_id/profile_id` değiştiremez; başka kurumun koçu öğrenciyi hiç göremez; `anon` `private` fonksiyonlarını çağıramaz; veli `can_view_details=false` iken `is_parent_of(…, true)` false; `can_see_profile` sınırları. `090_schema_guards.test.sql` katalogdan döngüyle her `public` tablosunda RLS'nin açık ve `anon` yetkisinin sıfır olduğunu, `authenticated`'ın tam olarak beklenen yetkilere (matris; kolon düzeyi dahil) ve `service_role`'ün tam yetkiye sahip olduğunu, `public`/`private` fonksiyonlarında `anon`/PUBLIC execute olmadığını doğrular (yeni tablolar otomatik kapsanır; matriste tanımsız tablo testi düşürür).
 
-Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. Faz 5a: `200_strategy_settings` (`strategy` varsayılanları, `periods` boş, `defaults || settings` ile mevcut değer kazanır, owner dönem yazar/koç okur), `205_topic_school_dates` (koç sistem şablonunda `school_finish_on` yazar ve RPC ile toplu yazar/temizler, atomiklik: başka kurumun konusu payload'da → 42501 ve hiçbir satır yazılmaz, dizi olmayan payload 22023, görünümde `school_finish_on` dolu, öğrenci/veli/başka kurum koçu RPC 42501 ve doğrudan 0 satır, anon 42501). Faz 5b: `210_student_targets` (iki tablo 5 senaryo; RPC: koç kurar, yeniden üretimde payload dışı satırlar silinir, geçersiz konu `invalid_target` ve atomik, `invalid_dates`, başka koç / öğrenci 42501; `topics_finish_by` doğrudan UPDATE 42501, `wake_*` koç yazar, check kısıtı), `215_pace_views` (pace facts durum/hedef/okul, hedefsiz öğrencide null; ders hedefi sayımları `target_starts_on`'dan; overview `topics_expected / topics_behind / topics_ahead` net konum; `v_topic_alert_facts.target_on`; RLS koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501); `090` (`students` kolon listesi + `wake_start`, `wake_end`), `110` (hedef satırları öğrenciyle silinir, `created_by` koç silinince `set null`). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
+Test altyapısı: `supabase/tests/000_test_helpers.sql` `tests` şemasını **commit eder** (transaction yok); sabit kimlikli fixture (`tests.id('student_a')`, `tests.seed_fixture()`: 2 kurum, koçlar X/Y/Z, öğrenciler A/B/C/Z, veliler P1/P2/P3/PZ), `tests.create_auth_user(name)` (profilsiz Auth kullanıcısı), `tests.authenticate_as(name)`, `tests.authenticate_as_anon()`, `tests.authenticate_as_service_role()`, `tests.clear_authentication()`, `tests.row_count(sql)`. Faz 1b dosyaları: `095_access_token_hook`, `100_student_rpcs`, `105_assign_coach`, `110_cascade`, `120_accept_invitation`. Faz 2: `130_curriculum` (şablon/ders/konu RLS + `move_topic`), `140_topic_progress`; fixture'a `tests.seed_templates()` (tpl_system, tpl_org_a, tpl_org_b) eklendi; `100` tek imza kontrolü yapar. Faz 3: `150_question_logs` (5 senaryo + İstanbul günü: oturum `UTC` iken `log_date` varsayılanı ve görünümler İstanbul'a göre; gelecek tarih 23514; görünümler security_invoker ve anon'a kapalı), `160_goals` (öğrenci/veli yazamaz, dönem başına tek aktif hedef 23505, owner yazar). Faz 4a: `170_schedule` (iki tablo 5 senaryo, saat kısıtları, `created_by` oturum sahibi, ayar varsayılanları); `110_cascade` program satırlarını kapsar. Faz 4b: `180_weekly_plans` (öğrenci taslağı göremez/yayınlananı görür, doğrudan UPDATE 0 satır, link URL ve pazartesi kısıtları, `plan_item_id` bağı, görünümler), `185_plan_rpcs` (complete log'lu/log'suz/idempotent, uncomplete bağ koparma, postpone kuralları, note, reflection `week_closed`, move sıralama ve yetki, copy yetki/only_incomplete/ekleme). Faz 4c: `190_topic_alert_facts` (görünüm RLS: koç kendi öğrencisi, owner kurumu, öğrenci kendisi, veli çocuğu, anon 42501; satır yoksa `not_started`; soru penceresi kurum ayarından; son kayıt tarihleri; `is_next_topic` ilerlemeyle kayar). Faz 4 kapanışı: `180` sonuna bugüne kadar uyumu (pazartesi görevi sayılır, tamamlanmamış gün atanmamış sayılmaz, tamamlanmış sayılır, geçmiş hafta = hafta geneli, gelecek hafta null), `197_student_setup_facts` (koç kendi öğrencileri, bayraklar olguyla döner, taslak plan yayınlanmış sayılmaz, anon 42501). Faz 4d: `195_suggestion_dismissals` (koç S I U D kendi öğrencisi, `dismissed_by` oturum sahibi, başka koç 0 satır, owner kurum / başka kurum 0, öğrenci ve veli 0 satır + 42501, anon 42501; `unique nulls not distinct` 23505 ve upsert yenileme); `110_cascade` reddetme satırını kapsar. Faz 5a: `200_strategy_settings` (`strategy` varsayılanları, `periods` boş, `defaults || settings` ile mevcut değer kazanır, owner dönem yazar/koç okur), `205_topic_school_dates` (koç sistem şablonunda `school_finish_on` yazar ve RPC ile toplu yazar/temizler, atomiklik: başka kurumun konusu payload'da → 42501 ve hiçbir satır yazılmaz, dizi olmayan payload 22023, görünümde `school_finish_on` dolu, öğrenci/veli/başka kurum koçu RPC 42501 ve doğrudan 0 satır, anon 42501). Faz 5b: `210_student_targets` (iki tablo 5 senaryo; RPC: koç kurar, yeniden üretimde payload dışı satırlar silinir, geçersiz konu `invalid_target` ve atomik, `invalid_dates`, başka koç / öğrenci 42501; `topics_finish_by` doğrudan UPDATE 42501, `wake_*` koç yazar, check kısıtı), `215_pace_views` (pace facts durum/hedef/okul, hedefsiz öğrencide null; ders hedefi sayımları `target_starts_on`'dan; overview `topics_expected / topics_behind / topics_ahead` net konum; `v_topic_alert_facts.target_on`; RLS koç kendi öğrencisi, öğrenci kendisi, veli çocuğu, anon 42501); `090` (`students` kolon listesi + `wake_start`, `wake_end`), `110` (hedef satırları öğrenciyle silinir, `created_by` koç silinince `set null`). Faz 6a: `220_mock_exams` (4 tablo 5 senaryo: katalog kurum içi herkes okur, başka kurum 0, öğrenci/veli yazamaz; sonuç öğrenci kendi / koç kendi öğrencisi / veli çocuğu / anon 42501; check'ler: başlık ya da katalog, branş + katalog çelişkisi, gelecek tarih 23514; tekil katalog sonucu 23505; `on delete restrict` 23503; RPC: öğrenci yazar ve düzenler (alt satırlar yenilenir), koç yazar, başka koç 42501, geçersiz ders/konu/aşan sayı/başlık 22023 ve atomiklik, `wrong_penalty` şablondan, `net` hesaplanmış (3 yanlış = −1,00), ceza 0 → net = doğru; overview `last_net / prev_net / net_delta` — tek deneme delta null, branş sayılmaz), `225_mock_settings` (`mock_exams` varsayılanları, `defaults || settings`), `090` (4 tablo × 4 satır), `110` (sonuç + alt satırlar öğrenciyle silinir; katalog kalır, `created_by` set null). Faz 6b: `230_mistakes` (5 senaryo: öğrenci kendi S I U D, koç okur/günceller ama INSERT 42501, başka koç ve başka öğrenci 0 satır, detaysız veli 0 / detaylı veli görür, anon 42501; `solved_at` check 23514; depo: bucket private ve 2 MB, `storage.objects` öğrenci kendi klasörüne yazar, başka öğrenci klasörü / başka kurum 42501, koç ve detaylı veli okur, detaysız veli ve başka öğrenci 0; silme politikası varlıkla denetlenir — yerel `storage.protect_delete` doğrudan DELETE'i engeller, gerçek silme e2e'de), `235_mock_alert_facts` (üç yeni kolon: işaret sayımı son `recent_count` genel denemeye göre, N+1. deneme ve branş sayılmaz, defter penceresi `lookback_days`, `recent_count` ayarı değişince pencere değişir; `v_student_mock_subject_stats` RLS, `exams_count / avg_net / last_net / wrong_total`, sonuçsuz öğrencide 0 / null, branş yalnızca kendi dersinin penceresine girer), `090` (`mistakes` 4 satır), `110` (defter kayıtları öğrenciyle silinir; deneme sonucu silinince `mock_result_id` set null). `090` ayrıca her `public` görünümünde `security_invoker` açık, anon yetkisiz ve `authenticated` yalnızca select olduğunu denetler. Diğer dosyalar `begin … rollback`. Fixture fonksiyonlarına `anon`/`authenticated` execute verilmez. Sadece yerel ve CI; uzak projede `supabase test db --linked` çalıştırılmaz.
 
 ## 6. Görünümler (Views)
 
@@ -843,16 +863,17 @@ Tüm görünümler `with (security_invoker = true)` ile oluşturulur, böylece a
 | `v_topic_mastery` | student_id, topic_id, subject_id, status, confidence, questions, accuracy, mock_wrong_total, mistakes_open, mastery_score | **Konu haritası** |
 | `v_student_resource_progress` | student_id, resource_id, sections_total, sections_done, questions_done, percent | Kaynak ilerlemesi |
 | `v_student_playlist_progress` | student_id, playlist_id, videos_total, videos_done, percent | Video ilerlemesi |
-| `v_mock_exam_trend` | student_id, result_id, taken_on, total_net, subject nets (jsonb) | Net grafiği |
+| ~~`v_mock_exam_trend`~~ | — | Faz 6a: yapılmadı; trend uygulamada `mock_exam_results` + alt tablolardan (`lib/exam/mock`) hesaplanır |
+| `v_student_mock_subject_stats` ✅ | student_id, organization_id, coach_id, subject_id, exams_count, avg_net, last_net, wrong_total, exam_question_count (son `recent_count`: genel + dersin branşı) | Faz 6b: strateji deneme açığı, "son 3 denemede 7 yanlış" |
 | `v_review_queue` | student_id, item_type ('topic'/'mistake'), item_id, due_on, overdue_days | Tekrar listesi |
 | `v_plan_completion` ✅ | student_id, plan_id, week_start, status, items_total, items_completed, postponed_count, percent (öğe yoksa null), to_date_total, to_date_completed, to_date_percent ("bugüne kadar": İstanbul gününe göre bugün ve öncesindeki günlerin görevleri + tamamlanmış gün atanmamış görevler; geçmiş haftada hafta geneliyle eşit, gelecek haftada yalnızca tamamlanmış gün atanmamışlar) | Plan uyumu (K1 sütunu bugüne kadar öne / hafta geneli ikincil, K2 kutusu ikisi de, koç Planlar listesi) |
 | `v_student_setup_facts` ✅ | student_id, organization_id, coach_id, status, created_at, has_schedule (busy_slots ya da schedule_exceptions var), has_active_goal, has_published_plan_week (İstanbul haftası), question_log_count | Kurulum uyarıları (yalnızca koç; karar `features/analytics/lib/alerts.ts: evaluateSetupAlerts`, eşik `alerts.setup_account_days`) |
 | `v_student_subject_pace` ✅ | student_id, subject_id, questions, minutes, minutes_per_question (son `alerts.lookback_days`, süresi girilmiş kayıtlar) | Görev formunda tahmini süre önerisi |
 | `v_week_plan_topics` ✅ | student_id, week_start, subject_id, topic_id | Öneri motoru "bu hafta zaten planlı" (Faz 4d) |
-| `v_topic_alert_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), topic_* (id, name, sort_order), status (satır yoksa `not_started`), status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window (son `alerts.lookback_days`), last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on (Faz 5a), target_on (Faz 5b; ikisi de sona eklendi) | Konu uyarıları (Faz 4c; karar TS'te), görev havuzu kategorileri, öğrenci Bugün kartı |
+| `v_topic_alert_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), topic_* (id, name, sort_order), status (satır yoksa `not_started`), status_changed_at, completed_at, last_reviewed_at, questions_window, correct_window (son `alerts.lookback_days`), last_topic_log_date, subject_last_log_date, student_first_log_date, is_next_topic, school_finish_on (Faz 5a), target_on (Faz 5b; ikisi de sona eklendi), mock_recent_count, mock_wrong_recent, mistakes_window (Faz 6b, sona) | Konu uyarıları (Faz 4c; karar TS'te), görev havuzu kategorileri, öğrenci Bugün kartı |
 | `v_student_pace_facts` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order), topic_* (id, name, sort_order), status (satır yoksa `not_started`), completed_at, target_on, school_finish_on | Gidişat hesabı (Faz 5b; `topicPace` saf): öğrenci Bugün kartı, K2 tablo, "Hedef" sekmesi, strateji bağlamı |
 | `v_student_subject_targets` ✅ | student_id, organization_id, coach_id, subject_* (id, name, short_name, color, sort_order, exam_question_count), questions_target (hedef yoksa null), questions_done (`question_logs`, `log_date >= target_starts_on`), topics_total, topics_done, topics_expected (`target_on <= bugün`) | K2 "Ders bazlı gidişat", strateji ders açığı (Faz 5b; şablonun her dersi için satır) |
-| `v_coach_student_overview` ✅ | student_id, coach_id, organization_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_items_week, plan_done_week, plan_percent_last_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_expected, topics_behind, topics_ahead (Faz 5b, net konum; last_net, net_delta, overdue_reviews, alerts ilgili fazlarda eklenir) | **Koç ana ekranı** (tek sorgu; K1 "Takvim" sütunu) |
+| `v_coach_student_overview` ✅ | student_id, coach_id, organization_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_items_week, plan_done_week, plan_percent_last_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_expected, topics_behind, topics_ahead (Faz 5b, net konum), last_net, prev_net, net_delta (= last − prev; tek deneme → null), last_mock_on (Faz 6a; yalnızca **genel** denemeler, `taken_on desc, created_at desc`; overdue_reviews, alerts ilgili fazlarda eklenir) | **Koç ana ekranı** (tek sorgu; K1 "Takvim" ve "Son net" sütunları; Faz 8 "Net düşüşü" uyarısı aynı kolonlardan) |
 
 `mastery_score` (0-100) başlangıç formülü, kurum ayarlarından ağırlıklandırılabilir:
 
@@ -867,7 +888,7 @@ mastery_score = 0.4 * durum_puanı          (not_started 0, studying 30, complet
 | Fonksiyon | Tür | Ne yapar |
 |---|---|---|
 | ~~`private.goal_progress`~~, ~~`public.student_streak`~~ | — | Faz 3'te veritabanı fonksiyonu yerine uygulamada (`getGoalProgress`, `lib/dates/streak`) hesaplanır (karar #36) |
-| `public.save_mock_exam_result(payload jsonb)` | security invoker | Sonuç + ders + konu yanlışlarını tek transaction'da yazar |
+| `public.save_mock_exam_result(p_result jsonb, p_subjects jsonb, p_topic_ids uuid[] default '{}')` ✅ | **security invoker** (RLS uygulanır); ilk satır `can_write_student(student_id)` değilse `not_allowed` 42501 | Faz 6a: tek transaction. `p_result = {id?, student_id, mock_exam_id?, custom_title?, subject_id?, taken_on, duration_minutes?, score?, percentile?, note?}`; `p_subjects = [{subject_id, correct, wrong, blank}]`. Doğrulama (22023): katalog denemesi öğrencinin kurumu ve şablonunda (`invalid_exam`), ders şablonda ve tekrarsız, branşta tek satır ve o ders (`invalid_subject`), `correct+wrong+blank <= exam_question_count` (null ise sınırsız; `count_exceeded`), konu şablonda ve ders satırı olan derse ait (`invalid_topic`), katalog dışı kayıtta başlık (`title_required`); `wrong_penalty` şablonun `scoring->>'wrong_penalty'` değerinden (yoksa 0). `id` boşsa insert (`created_by` çağıran), doluysa update + alt satırlar silinip yeniden yazılır (RLS 0 satır → `not_found`). Döner `uuid` |
 | `public.complete_plan_item(p_item_id, p_note, p_log jsonb)` ✅ | security definer (`can_act_on_plan`) | Görevi tamamlar; `p_log` doluysa `question_logs` kaydını `plan_item_id` + `source='plan'` ile aynı transaction'da açar; idempotent |
 | `public.uncomplete_plan_item(p_item_id)` ✅ | security definer | Tamamlamayı geri alır; bağlı kayıtların `plan_item_id`'sini boşaltır (kayıt silinmez), sayısını döner |
 | `public.postpone_plan_item(p_item_id)` ✅ | security definer | Bir kez; hedef `greatest(gün+1, bugün)` (bu haftaysa), 7'yi aşarsa null; gün yoksa/tamamlanmışsa `cannot_postpone` |
@@ -893,24 +914,15 @@ Security definer fonksiyonların tamamı: `set search_path = ''`, ilk satırda y
 
 | Bucket | Erişim | Yol kalıbı | Sınır |
 |---|---|---|---|
-| `mistake-images` | private | `{organization_id}/{student_id}/{uuid}.webp` | 2 MB, sadece image/webp, image/jpeg |
+| `mistake-images` ✅ (Faz 6b, `faz6b_mistakes`) | private | `{organization_id}/{student_id}/{uuid}.webp` (webp üretilemezse `.jpg`) | 2 MB, sadece image/webp, image/jpeg |
 | `avatars` | private | `{organization_id}/{profile_id}.webp` | 512 KB |
 | `resource-covers` | private | `{organization_id}/{resource_id}.webp` | 512 KB |
 
-Politika örneği:
+Politikalar (`storage.objects`, Faz 6b ✅): select `bucket_id = 'mistake-images' and private.can_read_mistakes(((storage.foldername(name))[2])::uuid)`; insert ve delete `can_write_student(foldername[2]) and foldername[1] = my_org()`; update yok.
 
-```sql
-create policy mistake_images_read on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'mistake-images'
-    and private.can_read_student(((storage.foldername(name))[2])::uuid)
-  );
-```
-
-Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevrilir (hedef ~150 KB). Öğrenci silindiğinde klasörü bir Server Action ile temizlenir.
+Yüklemeden önce istemcide en uzun kenar 1600 px'e indirilir ve WebP'ye çevrilir (`lib/image/compress.ts`, bağımlılıksız canvas, q 0,8; tarayıcı webp üretemezse JPEG; karar C8). Yükleme tarayıcı istemcisiyle doğrudan bucket'a, ardından `createMistake` eylemi satırı yazar (yol öneki doğrulanır); satır yazılamazsa istemci nesneyi siler. Gösterim kısa süreli imzalı URL (liste 10 dk, detay 60 dk). Kayıt silme: eylem önce satırı (RLS), sonra nesneyi siler. Öğrenci silme (KVKK): `deleteStudent` admin istemcisiyle `mistake-images/{org}/{studentId}/` altındaki nesneleri sayfa sayfa listeleyip siler, sonra Auth kullanıcısını siler (e2e `mistakes.spec.ts` klasörün boşaldığını doğrular).
 
 ## 9. Seed Verisi
 
-- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); demo kurumun sezon dönemleri dolu (Faz 5a ✅); Ayşe'nin sınava kadar hedefi kurulu (9.000 soru derslere orantılı, konuları bitirme tarihi sınav − 8 hafta, başlangıç 20 gün önce, tüm ünite konuları okul kelepçesiyle eşit yayılmış, bitmişlerin hedefi `completed_at` günü → takvimle uyumlu) ve sistem şablonunda okul takvimi bu haftadan itibaren haftada bir konu (gelecek tarihler, `behind_school` üretmez; Faz 5b ✅); Mehmet takvimin gerisinde örnek: hedef 6 hafta önce kurulu (6.000 soru), Türkçe/Matematik/Fen'in ilk iki konusu koçça öne alınmış (3 ve 1 hafta önce) ve başlanmamış → 6 konu "Hedef geçti", K1/K2 geride, soru kaydı yok → her derste soru hedefinin gerisinde (Faz 5c ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi, 4 deneme sonucu (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`.
+- `supabase/seed.sql` (sadece yerel): 1 kurum, 1 owner, 1 koç, 3 öğrenci (farklı performans profilleri), 2 veli (Faz 1a ✅); Ayşe için son 14 günde soru kayıtları (3 boş gün, İstanbul gününe göre) ve günlük 60 / haftalık 300 hedef (Faz 3 ✅); demo kurumun sezon dönemleri dolu (Faz 5a ✅); Ayşe'nin sınava kadar hedefi kurulu (9.000 soru derslere orantılı, konuları bitirme tarihi sınav − 8 hafta, başlangıç 20 gün önce, tüm ünite konuları okul kelepçesiyle eşit yayılmış, bitmişlerin hedefi `completed_at` günü → takvimle uyumlu) ve sistem şablonunda okul takvimi bu haftadan itibaren haftada bir konu (gelecek tarihler, `behind_school` üretmez; Faz 5b ✅); Mehmet takvimin gerisinde örnek: hedef 6 hafta önce kurulu (6.000 soru), Türkçe/Matematik/Fen'in ilk iki konusu koçça öne alınmış (3 ve 1 hafta önce) ve başlanmamış → 6 konu "Hedef geçti", K1/K2 geride, soru kaydı yok → her derste soru hedefinin gerisinde (Faz 5c ✅); 1 katalog denemesi ("Demo Yayınları Türkiye Geneli 1", genel, 3 hafta önce) + Ayşe için 4 genel sonuç (8, 5, 3 hafta önce — 3 hafta önceki katalog denemesi — ve 1 hafta önce serbest; 52,00 → 58,33 → 55,67 → 63,33; konu işaretleri Üslü İfadeler 4 denemenin 3'ünde, Paragrafta Anlam 2'sinde) ve Mehmet aynı katalog denemesinde 1 sonuç (karşılaştırma iki satır), Zeynep yok (Faz 6a ✅); LGS 2027 şablonu migration'da; 2 kaynak, 1 oynatma listesi (ilgili fazlarda). `auth.users` + `auth.identities` satırları doğrudan yazılır (GoTrue token kolonları `''`). Demo şifre (`pusula-demo`) yalnızca yerel olduğu notuyla `seed.sql` başında ve README "Geliştirme" bölümündedir; öğrenci sentetik e-postası yerelde `<kullaniciadi>@ogrenci.pusula.local`. Ayşe için 3 fotoğrafsız yanlış defteri kaydı (Üslü İfadeler dikkat hatası, çözüldü; Paragrafta Anlam süre; Basınç bilgi eksiği; ikisi deneme bağlı) — dağılım ve filtre görüntüleri; fotoğraf seed'de yok (Faz 6b ✅).
 - `supabase/seeds/lgs-2027-template.sql`: Üretimde bir kez çalıştırılan sistem şablonu (`05-lgs-2027-sablonu.md` içeriği).

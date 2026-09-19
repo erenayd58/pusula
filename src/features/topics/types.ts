@@ -15,6 +15,11 @@ export type TopicMapCell = {
   schoolFinishOn: string | null;
   /** Koçun hedef tarihi (`student_topic_targets.target_on`); hedef kurulmadıysa null (Faz 5b). */
   targetOn: string | null;
+  /**
+   * Son `mock_exams.recent_count` genel denemede "yanlış" işareti sayısı ve pencere (Faz 6b, C13
+   * eki); öğrencinin genel denemesi yoksa null. Haritada görsel işaret yok, yalnızca hücre detayı.
+   */
+  mockWrongRecent: { marks: number; exams: number } | null;
 };
 
 export type TopicMapSubject = {

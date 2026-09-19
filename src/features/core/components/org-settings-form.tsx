@@ -233,6 +233,37 @@ export function OrgSettingsForm({
         />
       </Section>
 
+      <Section
+        title="Denemeler ve yanlış defteri"
+        hint="Deneme penceresi, denemede tekrarlayan yanlış eşikleri ve öneri sırasındaki deneme ağırlığı."
+      >
+        <NumberField
+          {...field}
+          name="mock_exams.recent_count"
+          label="Son deneme sayısı"
+          hint="Konu yanlış birikimi ve ders istatistiği bu kadar denemeden"
+        />
+        <NumberField
+          {...field}
+          name="mock_exams.weak_min_marks"
+          label="Tekrarlayan yanlış: en az deneme"
+          hint="Son denemelerin bu kadarında işaretlenen konu uyarı üretir"
+        />
+        <NumberField
+          {...field}
+          name="mock_exams.weak_min_mistakes"
+          label="Tekrarlayan yanlış: en az defter kaydı"
+          hint="Soru penceresi içinde bu kadar yanlış defteri kaydı"
+        />
+        <NumberField
+          {...field}
+          name="mock_exams.gap_weight"
+          label="Deneme ağırlığı"
+          step="0.05"
+          hint="Ders açığında deneme netinin payı (0–1)"
+        />
+      </Section>
+
       <FormError message={formError} />
       {canEdit ? (
         <div className="flex flex-wrap gap-2">

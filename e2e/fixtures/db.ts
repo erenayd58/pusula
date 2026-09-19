@@ -35,6 +35,16 @@ export async function deleteE2ETopics(name?: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Testlerin kataloğa eklediği denemeleri siler ("E2E Deneme" ile başlayan; sonuçları öğrenciyle gitmiş olmalı). */
+export async function deleteE2EMockExams(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("mock_exams")
+    .delete({ count: "exact" })
+    .like("title", "E2E Deneme%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
 export async function clearSchoolDates(): Promise<number> {
   const { count, error } = await adminClient()
@@ -68,3 +78,15 @@ export async function deleteE2EStudents(): Promise<number> {
 
 /** uniqueUsername çıktısı: `<harf ön eki>.<base36 zaman damgası + rastgele>`; seed adları eşleşmez. */
 const E2E_USERNAME = /^[a-z0-9]+\.[a-z0-9]{9,}$/;
+
+/** Seed kurumu (Demo Dershane); yanlış defteri fotoğrafları `mistake-images/{org}/{öğrenci}/` altında. */
+const SEED_ORG_ID = "a0000000-0000-4000-8000-000000000001";
+
+/** Öğrencinin depo klasöründeki nesne adları (Storage API; RLS'siz). Klasör yoksa boş dizi. */
+export async function listMistakeImages(studentId: string): Promise<string[]> {
+  const { data, error } = await adminClient()
+    .storage.from("mistake-images")
+    .list(`${SEED_ORG_ID}/${studentId}`, { limit: 100 });
+  if (error) throw error;
+  return data.filter((o) => o.id !== null).map((o) => o.name);
+}

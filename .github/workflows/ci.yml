@@ -42,17 +42,20 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      # Sürüm package.json'daki `supabase` ile aynı tutulur; `latest` GitHub API'den çözülür ve paylaşımlı
+      # runner IP'sinde "rate limit exceeded" ile düşebilir (npm'den sabit sürüm çekilir).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
       - run: pnpm install --frozen-lockfile
       # 5432x portları Linux'un geçici port aralığındadır; ayrılmazsa docker pull
       # sırasında rastgele dolup "address already in use" verir (bkz. script).
       - name: Supabase portlarını ayır
         run: bash scripts/ci-reserve-supabase-ports.sh
-      # Auth, REST, Mailpit ve seed gerekir; ağır servisler kapalı.
+      # Auth, REST, Storage (Faz 6b yanlış defteri fotoğrafları; storage-api kapalıyken deleteStudent
+      # depo temizliği düşer), Mailpit ve seed gerekir; ağır servisler kapalı.
       - name: Yerel Supabase'i başlat (migration + seed)
-        run: supabase start -x studio,imgproxy,logflare,vector,edge-runtime,supavisor,realtime,storage-api,postgres-meta
+        run: supabase start -x studio,imgproxy,logflare,vector,edge-runtime,supavisor,realtime,postgres-meta
       # .env.local runner'da supabase status çıktısından üretilir; gizli değer depoda yok.
       - name: Ortam değişkenlerini üret
         run: node scripts/write-local-env.mjs --force
@@ -72,9 +75,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Sürüm package.json'daki `supabase` ile aynı tutulur; `latest` GitHub API'den çözülür ve paylaşımlı
+      # runner IP'sinde "rate limit exceeded" ile düşebilir (npm'den sabit sürüm çekilir).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
       # 5432x portları Linux'un geçici port aralığındadır; ayrılmazsa docker pull
       # sırasında rastgele dolup "address already in use" verir (bkz. script).
       - name: Supabase portlarını ayır

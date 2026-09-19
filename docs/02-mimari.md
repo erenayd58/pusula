@@ -15,10 +15,10 @@
 | Supabase istemcisi | **@supabase/ssr** + **@supabase/supabase-js** | Çerezle oturum yönetimi |
 | Doğrulama | **Zod** | Aynı şema hem formda hem Server Action'da |
 | Formlar | **react-hook-form** + `@hookform/resolvers` | |
-| Grafikler | **Recharts** | |
+| Grafikler | ~~Recharts~~ → kullanılmadı | Faz 6a: saf SVG `LineChart` (`components/shared/line-chart`, karar #48); gerekirse karar kaydıyla |
 | Tarih | **date-fns** + `date-fns/locale/tr` + `@date-fns/tz` | Tüm gün hesapları `Europe/Istanbul` saat diliminde |
 | Sürükle-bırak | **dnd-kit** | Plan oluşturucu için |
-| Görsel sıkıştırma | **browser-image-compression** | Yanlış defteri fotoğrafları |
+| Görsel sıkıştırma | ~~browser-image-compression~~ → bağımlılıksız canvas | Faz 6b: `lib/image/compress.ts` (10 karar C8) |
 | Bildirim (toast) | **sonner** | |
 | PWA | **Serwist** (`@serwist/next`) | Faz 9 |
 | Test | **Vitest** (birim), **Playwright** (uçtan uca), **pgTAP** (RLS, `supabase test db`) | |
@@ -102,7 +102,7 @@ pusula/
     │   │       ├── resources/…
     │   │       ├── videos/…
     │   │       ├── exams/…
-    │   │       ├── mistakes/…
+    │   │       ├── mistakes/…       # Yanlış defteri: liste, new, [mistakeId] (Faz 6b)
     │   │       ├── review/page.tsx
     │   │       ├── stats/page.tsx
     │   │       └── profile/page.tsx
@@ -138,8 +138,9 @@ pusula/
     │           ├── page.tsx         # Çocuk seçimi (tek çocuksa doğrudan yönlendirir)
     │           └── [studentId]/
     │               ├── layout.tsx   # Çocuk başlığı + alt menü (Özet · Denemeler · Notlar, registry'den)
-    │               ├── page.tsx     # Özet
-    │               └── [tab]/page.tsx   # Yer tutucu sekmeler
+    │               ├── page.tsx     # Özet (parentSummary widget'ları registry'den; Faz 6b)
+    │               ├── exams/page.tsx   # Denemeler (Faz 6b; salt okunur)
+    │               └── [tab]/page.tsx   # Yer tutucu sekmeler (Notlar)
     ├── features/                    # MODÜLLER (bkz. Bölüm 3)
     │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay, kabuk başlıkları
     │   ├── topics/
@@ -172,8 +173,8 @@ pusula/
     ├── components/
     │   ├── ui/                      # shadcn/ui bileşenleri (sadece burada)
     │   ├── layout/                  # SurfaceRoot (data-surface + useSurface), NavLink, BottomNav, StudentRail, CoachSidebar (+ CoachMobileMenu), TabNav
-    │   ├── charts/                  # Ortak grafik sarmalayıcıları
     │   └── shared/                  # EmptyState, ComingSoon, SubjectBadge, subjectVars, StatTile, GoalRing, NumberStepper…
+    │       └── line-chart/          # LineChart (saf SVG; Faz 6a, karar #48) + scale.ts (niceCeil, yTicks, linePath)
     ├── lib/
     │   ├── supabase/
     │   │   ├── client.ts            # Tarayıcı istemcisi
@@ -197,7 +198,11 @@ pusula/
     │   ├── format/
     │   │   └── index.ts             # formatPercent, formatNet, formatCount, formatDuration, formatDateTr
     │   ├── exam/
-    │   │   └── net.ts               # calculateNet(correct, wrong, penalty)
+    │   │   ├── net.ts               # calculateNet(correct, wrong, penalty)
+    │   │   ├── mock.ts              # autoBlank, totalNet, netDeltas, trendSummary, topicMarkCounts, recentSubjectWrong (Faz 6a)
+    │   │   └── mistakes.ts          # reasonDistribution, dominantReasonSentence (Faz 6b)
+    │   ├── strategy/                # periods, school-calendar, back-plan, split, feasibility, pace, mix (Faz 5); gap (Faz 6b)
+    │   ├── image/                   # compress.ts (Faz 6b; bağımlılıksız canvas)
     │   ├── result.ts                # Result<T> tipi
     │   └── utils.ts                 # cn() vb.
     ├── config/
@@ -407,7 +412,7 @@ export type Result<T> =
 
 - Öğrenci Auth hesabı oluşturma (sentetik e-posta ile) → ardından `create_student_account` RPC (sadece `service_role`; aktör yetkisi, profil + öğrenci satırı tek transaction); RPC düşerse Auth kullanıcısı silinir (telafi)
 - Öğrenci şifresi sıfırlama (`can_manage_student` ile önce yetki)
-- Öğrenci silme (`can_delete_student`, sadece owner; cascade ile tüm veri; depo temizliği Faz 6)
+- Öğrenci silme (`can_delete_student`, sadece owner; önce `mistake-images/{org}/{öğrenci}/` depo klasörü temizlenir (Faz 6b), sonra cascade ile tüm veri)
 - Veli kaydında davet kodunun salt okunur ön kontrolü (signUp'tan önce)
 
 Her kullanımdan önce çağıranın o öğrencinin koçu veya kurum sahibi olduğu **veritabanı fonksiyonuyla** doğrulanır.
@@ -574,6 +579,7 @@ Her önemli teknik karar buraya bir satır olarak eklenir.
 | 38 | 2026-09 | Faz 4 plan sistemi kararları `08-faz4-plan-sistemi.md` §6'da (A1–A13): dnd-kit (`@dnd-kit/core`, `sortable`, `utilities`) eklendi; uyarı kuralları TS'te olgu görünümü üzerinden; kopyalamada hedefte plan varsa sona eklenir; yayınlanmış plan canlı düzenlenir; erteleme `max(gün+1, bugün)`; değerlendirme cumartesi→hafta sonu; koç plan ekranı sekme + `/coach/plans`; `plan_item_kind` 5 değer | Tek belgede, parça oturumları verili kabul eder | Belgede listelenen alternatifler |
 | 39 | 2026-09 | Öğrencinin plan yazmaları (tamamla, geri al, ertele, not, değerlendirme) yalnızca security definer RPC ile; tabloda öğrenci UPDATE politikası yok (03 §5.3 seçenek (a)). Soru türü görev hızlı kayıt sheet'inden `complete_plan_item(p_log)` ile tek transaction'da tamamlanır; `useQuickLog` context'i `components/shared`'a taşındı | Koşula bağlı kolon kısıtı (yalnızca yayınlanmış plan, bir kez erteleme) politikayla ifade edilemez; planner istemci bileşeni question-log index'ini import edemez (karar #31 kalıbı) | Tetikleyiciyle kolon denetimi; iki ayrı yazma |
 | 40 | 2026-09 | Plan oluşturucu: yerel arabellek yok, her değişiklik kendi Server Action'ı (otomatik kayıt = son başarılı eylem); 8 sütun (7 gün + "Bu hafta içinde") havuz kapalıyken 1440 px'e kaydırmasız sığar, havuz açıkken yatay kayar; havuz ilk açılışta kapalı, tercih `localStorage`'da; < 768 salt okunur. `created_by` kolonları (program, plan) nullable + `on delete set null` | Koç yan menüsüyle 1440 px'te 8 sütun sığmıyor; öğrenci kendi satırını yazınca `not null` FK cascade silmeyi engelliyordu | Toplu kaydet düğmesi; 04 §8.4'teki 1280/1440 eşikleri |
+| 48 | 2026-09 | Faz 6a denemeler: trend grafiği **saf SVG `LineChart`** (`components/shared/line-chart/`: `viewBox` ile ölçeklenir, eşit aralıklı x, `niceCeil` y, seri çipleri en az biri açık, nokta seçimi dokunma/klavye, `aria-live` detay, sr-only tablo; Recharts kullanılmadı, 0 KB); deneme hesapları saf `lib/exam/mock.ts` (genel deneme / toplam net / değişim / son N tanımları tek yerde); `mock_exams.subject_id` ile genel/branş (is_full_exam yerine), işaret tablosu sayısız, katalog denemesi öğrenci başına tek sonuç (kısmi tekil indeks) ve `on delete restrict` (koç önce sonuçları siler); `save_mock_exam_result` **security invoker** (RLS uygulanır; tek transaction, doğrulamalar 22023); Boş otomatik (`autoBlank`, düzenlenebilir); K1 "Son net" overview görünümünden, K2 yalnızca "Son deneme neti" kutusu; kurum ayarı `mock_exams` üst düzey anahtar (sığ birleştirme). Parça 2 (2026-09-19): `mistakes` tablosu + `mistake-images` bucket, `private.can_read_mistakes` (veli yalnızca `can_view_details`; C10), koç kayıt açmaz; fotoğraf isteğe bağlı (C7), bağımlılıksız canvas sıkıştırma (`lib/image/compress`; C8), doğrudan bucket'a yükleme + eylemde yol öneki doğrulaması, kısa süreli imzalı URL; `mock_weak` uyarı türü (işaret ≥ `weak_min_marks` VEYA defter ≥ `weak_min_mistakes`, bitmiş konuda da; C11) ve `subjectGap = combineGap(soru, deneme, gap_weight)` (C12); `v_student_mock_subject_stats` yalnızca analytics için; `parentSummary` widget kalıbı (`ModuleWidgets`, `getParentSummaryWidgets`; C15); `deleteStudent` depo klasörünü temizler | 10 §3.2 karşılaştırma tablosu (SSR, erişilebilirlik, token uyumu), kararlar C1–C6, C14 | Recharts (~100 kB gz, `ResponsiveContainer` hidrasyon boşluğu); `is_full_exam` boolean; branşı toplam trende dahil; katalog silmede `set null` + başlık kopyalayan tetikleyici |
 | 47 | 2026-09 | e2e paylaşımlı durum izolasyonu: kurum ayarını (`/coach/settings`) ya da sistem şablonunu (konu ekleme, okul takvimi) değiştiren spec'ler `e2e/shared/` altında (`alert-thresholds`, `curriculum-calendar`, `strategy-suggestions`, `template-topics`) ve `shared-desktop` projesinde `workers: 1` + `fullyParallel: false` ile seri koşar; `desktop-chromium` / `mobile-chromium` bu projeye `dependencies` ile bağlı (paylaşımlı faz önce biter ve durumu `finally` ile geri alır; okuyan testler değişmiş ayarı görmez). Tek dosya koşarken `--no-deps` bağımlılığı atlar. Yalnızca okuyan testler (`alerts.spec` öğrenci kartı, `topics.spec` öğrenci durumu) iki projede kalır | Kurum tek satır, şablon paylaşımlı: dönem / eşik / konu sayısı yarışları (curriculum-calendar ↔ strategy-suggestions dönemleri, alerts eşiği ↔ Ayşe'nin bakım uyarıları, topics ↔ 54 konu sayımı) 4 işçide gerçek kararsızlık kaynağıydı; Playwright 1.63 proje düzeyi `workers` bunu izole eder | İşçi sayısını düşürmek (tüm paketi yavaşlatır); her spec'in kendi kurumunu açması (kurum + owner + koç + öğrenci + kayıt kurulumu, RPC yok); dosya kilidi fixture'ı (okuyanları korumaz) |
 | 46 | 2026-09 | Faz 5c strateji farkındalığı: öneri motoru imzaları değişmedi, strateji isteğe bağlı parametre (`buildSuggestions.strategy`, `priorityScore` ek alanlar; verilmezse Faz 4 sonucu birebir); strateji bağlamı (`StudentStrategy`) sorgu katmanında kurum ayarı + `students.exam_date` + gidişat görünümlerinden kurulur (`getStrategyContext`, React `cache`; `getSuggestions` çağıran her yer aynı bağlamı alır), tablo/görünüm eklenmedi; dönem karışımı kotası `lib/strategy/mix.ts: allocateByMix` (en büyük kalan; dolmayan kota puana açılır, dönem yoksa kota yok); sınav yakınlığı çarpanı `1 ± 0,25 × yakınlık` (yeni konu −, zayıf/bakım +), gecikme `max(uyarı, hedef)`, ders `× (1 + soru açığı)`; `distributeTasks` ders çeşitliliği (aynı dersten en az olan gün, sonra kapasite) ve `date` anahtarı (çok haftalık ufuk için kanca, tek hafta kullanımı sürer); `strategyNote` satır metni saf katmanda üretilir, arayüz ve havuz aynı metni gösterir; dönem satırı `SuggestionList`'e `period` prop'uyla gelir | 09 §2 Parça 3, karar B9; 08 §5 kancaları imza değiştirmeden dolduruldu; karar #42 saf katman kalıbı | Strateji bağlamı için yeni görünüm; ağırlıkları dönemle değiştirmek; dönem satırını bileşenin kendisinin okuması (analytics → core çalışma zamanı bağı) |
 | 45 | 2026-09 | Faz 5b hedef ve geri planlama: konu hedef tarihleri `student_topic_targets`'ta saklı çıpa (her açılışta hesaplanmaz), `set_student_targets` security definer tek transaction (`students.topics_finish_by / target_starts_on` kolon grant'sız → niyet RPC'de); geri planlama / dağıtım / gerçekçilik / gidişat saf (`src/lib/strategy/back-plan, split, feasibility, pace`), `backPlanTopics` istemcide hesaplanıp önizlemeden sonra RPC'ye gider; "Hedef" sekmesi `goals` modülünün `coachStudentTabs` girdisi (`dependsOn` + topics); uyanık aralık `students.wake_*` nullable, `getWakeWindow` kurum ayarına düşer (imza aynı); öğrenci Bugün kartı topics'te genişler ve `v_student_pace_facts` ile okur (goals'u import etmez); K1 "Takvim" sütunu overview görünümünden; `lib/format.formatPossessive` ("9'u") | 09 §1.4, kararlar B4–B7, B10, B13, B16; görünümle modüller arası okuma (#37); saf katman iki modülün ortak malı | Her açılışta yeniden hesap; ayrı `strategy` modülü; haftalık hedefin otomatik güncellenmesi |
