@@ -51,6 +51,7 @@ export function LineChart({
   yLabel,
   renderDetail,
   secondaryToggle,
+  hint = "Bir noktaya dokun ya da ok tuşlarıyla gez; o denemenin ayrıntısı burada görünür.",
   height = 240,
   className,
 }: {
@@ -61,6 +62,8 @@ export function LineChart({
   renderDetail: (key: string) => React.ReactNode;
   /** < md: `defaultOn` olmayan serilerin çipleri bu düğmenin arkasında (ör. "Dersleri göster"). */
   secondaryToggle?: { show: string; hide: string };
+  /** Detay kutusunun boş hali; yüzeye göre "sen" / "siz" (varsayılan öğrenci dili). */
+  hint?: string;
   height?: number;
   className?: string;
 }) {
@@ -315,9 +318,7 @@ export function LineChart({
         {selectedPoint ? (
           renderDetail(selectedPoint.key)
         ) : (
-          <span className="text-ink-500">
-            Bir noktaya dokun ya da ok tuşlarıyla gez; o denemenin ayrıntısı burada görünür.
-          </span>
+          <span className="text-ink-500">{hint}</span>
         )}
       </div>
 

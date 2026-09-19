@@ -71,14 +71,24 @@ export type StudentTodayWidget = {
 };
 
 /**
+ * Veli Özet kartı (Faz 6b, karar C15): tek sütun, `order` sırasıyla; prop `{ studentId }` (seçili
+ * çocuk). Faz 8 plan uyumu / soru / gidişat kartlarını ekler.
+ */
+export type ParentSummaryWidget = {
+  component: ComponentType<ModuleWidgetProps>;
+  order: number;
+};
+
+/**
  * Panel kartları manifestten AYRI (02 karar #13): bileşen import eder, `src/modules/widgets.ts`
- * toplar. Şimdilik yalnızca `studentToday` (bir modül birden fazla kart verebilir); koç/veli
- * kartları ilk ihtiyaçla eklenir.
+ * toplar. `studentToday` (Bugün) ve `parentSummary` (veli Özet); bir modül birden fazla kart
+ * verebilir. Koç kartları ilk ihtiyaçla eklenir.
  */
 export type ModuleWidgets = {
   /** manifest.id ile aynı. */
   moduleId: string;
   studentToday?: StudentTodayWidget[];
+  parentSummary?: ParentSummaryWidget[];
 };
 
 export function defineWidgets(w: ModuleWidgets): ModuleWidgets {

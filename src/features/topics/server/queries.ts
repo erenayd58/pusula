@@ -57,7 +57,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
   if (error) throw error;
   if (!student?.curriculum_template_id || !student.template) return null;
 
-  const [subjects, progress, stats, targets] = await Promise.all([
+  const [subjects, progress, stats, targets, mocks, settings] = await Promise.all([
     listSubjectsWithTopics(student.curriculum_template_id),
     supabase
       .from("student_topic_progress")
@@ -85,10 +85,32 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
         if (error) throw error;
         return data;
       }),
+    // Deneme konu işaretleri (Faz 6b, C13 eki): yeniden eskiye; genel denemeler TS'de süzülür
+    // (görünüm gerekmez, RLS ile öğrenci/koç/veli okur).
+    supabase
+      .from("mock_exam_results")
+      .select(
+        "id, subject_id, exam:mock_exams(subject_id), topic_mistakes:mock_exam_topic_mistakes(topic_id)",
+      )
+      .eq("student_id", studentId)
+      .order("taken_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      }),
+    getOrgSettings(),
   ]);
   const byTopic = new Map(progress.map((p) => [p.topic_id, p]));
   const statsByTopic = new Map(stats.map((r) => [r.topic_id, r]));
   const targetByTopic = new Map(targets.map((t) => [t.topic_id, t.target_on]));
+  const recentMocks = mocks
+    .filter((r) => r.subject_id === null && r.exam?.subject_id === null)
+    .slice(0, settings.mock_exams.recent_count);
+  const marksByTopic = new Map<string, number>();
+  for (const r of recentMocks)
+    for (const t of r.topic_mistakes)
+      marksByTopic.set(t.topic_id, (marksByTopic.get(t.topic_id) ?? 0) + 1);
 
   const mapped: TopicMapSubject[] = subjects.map((s) => ({
     subjectId: s.id,
@@ -112,6 +134,10 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
           accuracy: accuracyPercent(st?.correct ?? 0, questions),
           schoolFinishOn: t.school_finish_on,
           targetOn: targetByTopic.get(t.id) ?? null,
+          mockWrongRecent:
+            recentMocks.length > 0
+              ? { marks: marksByTopic.get(t.id) ?? 0, exams: recentMocks.length }
+              : null,
         };
       }),
   }));

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type * as React from "react";
 import { SubjectBadge } from "@/components/shared/subject-badge";
 import { formatDateTr, formatNet, formatSigned } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -6,30 +7,38 @@ import type { MockResultDetail } from "../types";
 
 /**
  * Son genel denemenin kartı (toplam net, değişim, tarih, ad) ve ders kartları (net + değişim,
- * `SubjectBadge`; değişim ders rengi değil ink). Öğrenci ve koç yüzeyinde aynı bileşen.
+ * `SubjectBadge`; değişim ders rengi değil ink). Öğrenci, koç ve veli yüzeyinde aynı bileşen;
+ * `href` yoksa (veli: detay rotası yok) kart bağlantısızdır.
  */
-export function LastResultCards({ result, href }: { result: MockResultDetail; href: string }) {
+export function LastResultCards({ result, href }: { result: MockResultDetail; href?: string }) {
+  const cardClass = cn(
+    "flex flex-col gap-1 rounded-sm border border-line bg-bg-paper px-4 py-3",
+    "clay:rounded-card clay:border-0 clay:clay-md clay:bg-bg-raised clay:p-5",
+  );
+  const card: React.ReactNode = (
+    <>
+      <span className="text-micro-lg text-ink-500">
+        {`Son deneme · ${formatDateTr(result.takenOn)} · ${result.title}`}
+      </span>
+      <span className="flex items-baseline gap-3">
+        <span className="text-display font-semibold text-ink-900 tabular-nums">
+          {formatNet(result.totalNet)}
+        </span>
+        <span className="text-small text-ink-700 tabular-nums">
+          {result.delta === null ? "net · ilk deneme" : `net · ${formatSigned(result.delta)}`}
+        </span>
+      </span>
+    </>
+  );
   return (
     <section data-testid="last-result" aria-label="Son deneme" className="flex flex-col gap-3">
-      <Link
-        href={href}
-        className={cn(
-          "flex flex-col gap-1 rounded-sm border border-line bg-bg-paper px-4 py-3 underline-offset-4 hover:underline",
-          "clay:rounded-card clay:border-0 clay:clay-md clay:bg-bg-raised clay:p-5",
-        )}
-      >
-        <span className="text-micro-lg text-ink-500">
-          {`Son deneme · ${formatDateTr(result.takenOn)} · ${result.title}`}
-        </span>
-        <span className="flex items-baseline gap-3">
-          <span className="text-display font-semibold text-ink-900 tabular-nums">
-            {formatNet(result.totalNet)}
-          </span>
-          <span className="text-small text-ink-700 tabular-nums">
-            {result.delta === null ? "net · ilk deneme" : `net · ${formatSigned(result.delta)}`}
-          </span>
-        </span>
-      </Link>
+      {href ? (
+        <Link href={href} className={cn(cardClass, "underline-offset-4 hover:underline")}>
+          {card}
+        </Link>
+      ) : (
+        <div className={cardClass}>{card}</div>
+      )}
       <ul
         className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
         aria-label="Ders netleri"

@@ -3,6 +3,7 @@
  * (sunucu dosyaları da dışa açılır).
  */
 export { mockExamsModule } from "./module";
+export { mockExamsWidgets } from "./widgets";
 export { ResultWizard } from "./components/result-wizard";
 export { NetTrendChart } from "./components/net-trend-chart";
 export { ResultCardList } from "./components/result-card-list";

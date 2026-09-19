@@ -17,7 +17,13 @@ import {
 import { topicStatusLabels } from "@/content/labels";
 import { FormError } from "@/components/shared/form-error";
 import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
-import { formatCount, formatDateTr, formatPercent, formatWeekRange } from "@/lib/format";
+import {
+  formatCount,
+  formatDateTr,
+  formatPercent,
+  formatPossessive,
+  formatWeekRange,
+} from "@/lib/format";
 import { schoolLagWeeks } from "@/lib/strategy/school-calendar";
 import { cn } from "@/lib/utils";
 import type { TopicStatus } from "@/types";
@@ -49,10 +55,17 @@ export function schoolText(schoolFinishOn: string, today: string): string {
   return `Okulda: ${week} · ${formatCount(lag, "hafta")} önce`;
 }
 
+/** Deneme satırı: "Deneme: 3 denemenin 2'sinde yanlış" · işaret yoksa "Deneme: son 3 denemede yanlış işareti yok". */
+export function mockText(m: { marks: number; exams: number }): string {
+  if (m.marks === 0) return `Deneme: son ${formatCount(m.exams, "denemede")} yanlış işareti yok`;
+  return `Deneme: ${formatCount(m.exams, "denemenin")} ${formatPossessive(m.marks)}nde yanlış`;
+}
+
 /**
  * Hücre detayı: telefonda alt panel, masaüstünde diyalog (ResponsiveSheet; 02 karar #30).
  * Üstte çözülen soru ve başarı (Faz 3, görünümden); durum ve 1-5 güven puanı seçilir,
- * kaydedilir. Okul takvimi doluysa nötr "Okulda" satırı. Bağlı kaynaklar Faz 7'de eklenir.
+ * kaydedilir. Okul takvimi doluysa nötr "Okulda" satırı; genel deneme varsa "Deneme: 3 denemenin
+ * 2'sinde yanlış" satırı (Faz 6b, C13 eki). Bağlı kaynaklar Faz 7'de eklenir.
  */
 export function TopicDetailSheet({
   selection,
@@ -150,7 +163,7 @@ function DetailForm({
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 
-      {cell.schoolFinishOn || cell.targetOn ? (
+      {cell.schoolFinishOn || cell.targetOn || cell.mockWrongRecent ? (
         <div className="flex flex-col gap-0.5 text-small text-ink-700">
           {cell.targetOn ? (
             <p data-testid="topic-target">{`Hedef: ${formatWeekRange(weekStart(cell.targetOn))} haftası`}</p>
@@ -159,6 +172,9 @@ function DetailForm({
             <p data-testid="topic-school">
               {schoolText(cell.schoolFinishOn, toDateKey(todayInIstanbul()))}
             </p>
+          ) : null}
+          {cell.mockWrongRecent ? (
+            <p data-testid="topic-mock">{mockText(cell.mockWrongRecent)}</p>
           ) : null}
         </div>
       ) : null}

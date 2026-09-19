@@ -19,9 +19,12 @@ const TOTAL = "total";
 export function NetTrendChart({
   points,
   subjects,
+  audience = "student",
 }: {
   points: readonly MockPoint[];
   subjects: readonly MockSubject[];
+  /** Veli yüzeyinde "siz" dili (ipucu metni). */
+  audience?: "student" | "coach" | "parent";
 }) {
   const deltas = netDeltas(points);
   const chartPoints: LineChartPoint[] = points.map((p) => ({
@@ -50,6 +53,11 @@ export function NetTrendChart({
       summary={trendSummary(points)}
       yLabel="Net"
       secondaryToggle={{ show: "Dersleri göster", hide: "Dersleri gizle" }}
+      hint={
+        audience === "parent"
+          ? "Bir noktaya dokunun ya da ok tuşlarıyla gezin; o denemenin ayrıntısı burada görünür."
+          : undefined
+      }
       renderDetail={(key) => {
         const p = byKey.get(key);
         if (!p) return null;
