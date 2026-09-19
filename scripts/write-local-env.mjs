@@ -6,7 +6,7 @@
 //   pnpm env:local --force    # her durumda yeniden yazar (CI)
 
 import { execSync } from "node:child_process";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const force = process.argv.includes("--force");
@@ -29,6 +29,21 @@ for (const key of required) {
   }
 }
 
+// --force ile yeniden yazarken elle eklenen ek anahtarlar (ör. YOUTUBE_API_KEY) korunur.
+const KNOWN = new Set([
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_SECRET_KEY",
+  "STUDENT_EMAIL_DOMAIN",
+  "NEXT_PUBLIC_SITE_URL",
+  "MAILPIT_URL",
+]);
+const extra = existsSync(target)
+  ? readFileSync(target, "utf8")
+      .split(/\r?\n/)
+      .filter((l) => /^[A-Z0-9_]+=/.test(l) && !KNOWN.has(l.slice(0, l.indexOf("="))))
+  : [];
+
 const lines = [
   "# pnpm env:local ile üretildi; commit'lenmez. Kaynak: supabase status",
   `NEXT_PUBLIC_SUPABASE_URL=${status.API_URL}`,
@@ -37,6 +52,7 @@ const lines = [
   "STUDENT_EMAIL_DOMAIN=ogrenci.pusula.local", // koddaki varsayılanla aynı (config/constants)
   "NEXT_PUBLIC_SITE_URL=http://localhost:3000",
   `MAILPIT_URL=${status.MAILPIT_URL}`,
+  ...extra,
   "",
 ];
 
