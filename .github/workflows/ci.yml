@@ -50,9 +50,10 @@ jobs:
       # sırasında rastgele dolup "address already in use" verir (bkz. script).
       - name: Supabase portlarını ayır
         run: bash scripts/ci-reserve-supabase-ports.sh
-      # Auth, REST, Mailpit ve seed gerekir; ağır servisler kapalı.
+      # Auth, REST, Storage (Faz 6b yanlış defteri fotoğrafları; storage-api kapalıyken deleteStudent
+      # depo temizliği düşer), Mailpit ve seed gerekir; ağır servisler kapalı.
       - name: Yerel Supabase'i başlat (migration + seed)
-        run: supabase start -x studio,imgproxy,logflare,vector,edge-runtime,supavisor,realtime,storage-api,postgres-meta
+        run: supabase start -x studio,imgproxy,logflare,vector,edge-runtime,supavisor,realtime,postgres-meta
       # .env.local runner'da supabase status çıktısından üretilir; gizli değer depoda yok.
       - name: Ortam değişkenlerini üret
         run: node scripts/write-local-env.mjs --force

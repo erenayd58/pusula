@@ -206,9 +206,15 @@ function SubjectCalendar({
                   onChange={(e) => {
                     const next = e.target.value || null;
                     setDates((prev) => ({ ...prev, [topic.id]: next }));
-                    // Tarih seçicide tam tarih girilince (ya da alan temizlenince) kaydedilir.
+                    // Tarih seçicide tam tarih girilince (ya da alan temizlenince) kaydedilir;
+                    // kısa onay bildirimi (kayıt bitmeden sayfadan ayrılmayı da görünür kılar).
                     if (next === null || /^\d{4}-\d{2}-\d{2}$/.test(next)) {
-                      save([{ topicId: topic.id, schoolFinishOn: next }]);
+                      save(
+                        [{ topicId: topic.id, schoolFinishOn: next }],
+                        next === null
+                          ? `${topic.name}: tarih silindi.`
+                          : `${topic.name}: tarih kaydedildi.`,
+                      );
                     }
                   }}
                 />

@@ -64,5 +64,9 @@ export async function deleteStudentAsOwner(page: Page, username: string) {
   const row = studentRow(page, username);
   await row.getByRole("button", { name: "Sil", exact: true }).click();
   await page.getByRole("button", { name: "Öğrenciyi sil" }).click();
-  await expect(page.getByText("silindi.")).toBeVisible();
+  // Başarı bildirimi (sonner; metne değil türe bağlı) ve satırın listeden düşmesi.
+  await expect(
+    page.locator("[data-sonner-toast][data-type='success']").filter({ hasText: "silindi." }),
+  ).toBeVisible();
+  await expect(row).toHaveCount(0);
 }

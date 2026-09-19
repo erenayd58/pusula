@@ -63,6 +63,9 @@ test.describe("müfredat takvimi ve sezon dönemleri", () => {
       const turkish = page.getByRole("region", { name: "Türkçe" });
       await turkish.getByLabel(BEHIND_TOPIC, { exact: true }).fill(daysAgo(28));
       await expect(turkish.getByLabel(BEHIND_TOPIC, { exact: true })).toHaveValue(daysAgo(28));
+      // Satır kaydı sunucu eylemidir; onay gelmeden sayfadan ayrılmak isteği iptal eder
+      // ("destination stream closed early") ve yeniden açılınca dağıtılan tarih görünür (CI'da flaky).
+      await expect(page.getByText(`${BEHIND_TOPIC}: tarih kaydedildi.`)).toBeVisible();
 
       // Yeniden açılınca 54 tarih dolu; elle girilen satır kalır.
       await page.goto("/coach/templates?view=calendar");
