@@ -350,7 +350,7 @@ Hepsi yapısal tip alır (`features/*` import etmez), tarih hesapları `lib/date
 
 | Yapı | Faz 5 | Sonraki ek |
 |---|---|---|
-| `topics.school_finish_on` | Şablon düzeyi tek takvim | `students.school_calendar_offset_days` (öğrenci bazlı kaydırma: `schoolLagWeeks` girdisine eklenir, imza aynı); `copy_curriculum_template` tarihleri yıl farkı kadar kaydırır |
+| `topics.school_finish_on` | Şablon düzeyi tek takvim | `students.school_calendar_offset_days` (öğrenci bazlı kaydırma: `schoolLagWeeks` girdisine eklenir, imza aynı); `copy_curriculum_template` (Faz 7 ✅) tarihleri **boş bırakır**, owner "Sıradan dağıt" ile yeniden doldurur (11 karar D7) |
 | `StudentStrategy.subjectGap` | Soru hedefi açığı | Deneme yanlışları (`mock_wrong_total`, Faz 6) ders açığına ikinci bileşen olarak; ağırlık kurum ayarına |
 | `v_topic_alert_facts.target_on` | `behind_school` yalnızca okul tarihi | Tekrar modülü (`v_review_queue`) gelince `review_due` oradan; hedef gecikmesi `TopicAlert.delayDays`'e taşınabilir |
 | `paceSentence` | Öğrenci Bugün | Veli özeti (Faz 8, "siz" dili: "Elif 54 konunun 9'unu bitirdi"); haftalık özet üretimi |

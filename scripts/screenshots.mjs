@@ -23,6 +23,8 @@ const SEED = {
   ayse: "b0000000-0000-4000-8000-000000000011",
   mehmet: "b0000000-0000-4000-8000-000000000012",
   zeynep: "b0000000-0000-4000-8000-000000000013",
+  resource: "f0000000-0000-4000-8000-000000000001",
+  playlist: "f2000000-0000-4000-8000-000000000001",
 };
 const VIEWPORTS = {
   390: {
@@ -479,6 +481,126 @@ const SHOTS = [
     as: "parent",
     width: 390,
     path: `/parent/${SEED.ayse}/exams`,
+  },
+
+  // Faz 7: kaynaklar ve videolar (11-faz7-kaynaklar.md §2). Seed: Ayşe Demo Mat SB %30, 2 video izlemiş;
+  // Mehmet'in özel "Fen Fasikülü" koç kataloğunda "Öğrenci ekledi" bölümünde.
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-kaynaklar-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/resources",
+  },
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-kaynak-detay-390.png",
+    as: "student",
+    width: 390,
+    path: `/student/resources/${SEED.resource}`,
+  },
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-kaynak-ekle-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/resources/new",
+    before: async (page) => {
+      await page.getByLabel("Kitap adı").fill("Demo Matematik");
+      await page.getByTestId("resource-suggestions").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-kaynak-katalog-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/resources",
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-kaynak-detay-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/resources/${SEED.resource}`,
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-kaynaklar-sekmesi-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/resources`,
+    before: async (page) => {
+      await page.locator("summary").first().click();
+    },
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-plan-havuz-kaynaklar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/plan`,
+    before: async (page) => {
+      const open = page.getByRole("button", { name: "Görev havuzunu aç" });
+      if (await open.isVisible()) await open.click();
+      await page.getByRole("complementary", { name: "Görev havuzu" }).waitFor();
+    },
+  },
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-videolar-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/videos",
+  },
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-video-oynatici-390.png",
+    as: "student",
+    width: 390,
+    path: `/student/videos/${SEED.playlist}`,
+  },
+  {
+    dir: "uygulama-7",
+    file: "ogrenci-video-ekle-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/videos/new",
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-video-katalog-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/videos",
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-video-detay-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/videos/${SEED.playlist}`,
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-videolar-sekmesi-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/videos`,
+    before: async (page) => {
+      await page.locator("summary").first().click();
+    },
+  },
+  {
+    dir: "uygulama-7",
+    file: "koc-sablon-kopyala-1440.png",
+    as: "owner",
+    width: 1440,
+    path: "/coach/templates",
+    before: async (page) => {
+      await page.getByRole("button", { name: "Şablonu kopyala" }).click();
+      await page.getByRole("dialog").waitFor();
+    },
   },
 ];
 
