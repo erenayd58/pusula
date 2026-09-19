@@ -6,6 +6,7 @@ import {
   ChevronRightIcon,
   CircleXIcon,
   PencilLineIcon,
+  VideoIcon,
 } from "lucide-react";
 import { LogoutButton, getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
@@ -83,6 +84,17 @@ export default async function ProfilePage() {
         >
           <BookOpenIcon aria-hidden="true" className="size-5 text-ink-700" />
           <span className="flex-1">Kaynaklarım</span>
+          <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
+        </Link>
+      ) : null}
+
+      {enabled.has("videos") ? (
+        <Link
+          href="/student/videos"
+          className="flex clay-press items-center gap-3 rounded-card clay-md p-4 text-body font-medium text-ink-900"
+        >
+          <VideoIcon aria-hidden="true" className="size-5 text-ink-700" />
+          <span className="flex-1">Videolarım</span>
           <ChevronRightIcon aria-hidden="true" className="size-5 text-ink-500" />
         </Link>
       ) : null}
