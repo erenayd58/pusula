@@ -74,7 +74,7 @@ test.describe("denemeler", () => {
         [6, 3],
       ]);
       // Boş otomatik: Türkçe 20 − 15 − 3 = 2; özet toplam 90 soru, net 52,67 (ceza 3).
-      await expect(rows.nth(0).getByLabel("Boş (otomatik)", { exact: true })).toHaveValue("2");
+      await expect(rows.nth(0).getByRole("button", { name: "Boş 2" })).toBeVisible();
       await expect(page.getByTestId("wizard-summary")).toContainText(`Toplam 90 soru · Net 52,67`);
       await page.getByRole("button", { name: "Devam" }).click();
       await page.getByRole("checkbox", { name: "Sözcükte Anlam" }).click();
@@ -175,6 +175,9 @@ test.describe("denemeler", () => {
     await expect(figure).toBeVisible();
     await expect(figure.getByRole("row")).toHaveCount(5); // başlık + 4 deneme
     await expect(figure.getByRole("checkbox", { name: "Toplam net" })).toBeChecked();
+    // Telefon/tablette ders çipleri "Dersleri göster" arkasında; masaüstünde düğme yok.
+    const showSubjects = figure.getByRole("button", { name: "Dersleri göster" });
+    if (await showSubjects.isVisible()) await showSubjects.click();
     await figure.getByRole("checkbox", { name: "Mat", exact: true }).click();
     await expect(figure.getByRole("checkbox", { name: "Mat", exact: true })).toBeChecked();
     await expect(page.getByTestId("last-result")).toContainText("63,33");

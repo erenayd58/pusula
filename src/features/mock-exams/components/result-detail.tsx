@@ -17,6 +17,8 @@ const CARD = cn(
   "rounded-sm border border-line bg-bg-paper",
   "clay:rounded-card clay:border-0 clay:clay-sm clay:bg-bg-raised",
 );
+const NUM_HEAD = "px-2 py-2.5 text-right font-medium sm:px-3";
+const NUM_CELL = "px-2 py-2.5 text-right text-ink-900 tabular-nums sm:px-3";
 
 /**
  * Deneme detayı: başlık satırı (ad, tarih, tür rozeti), toplam net + değişim, ders tablosu
@@ -71,31 +73,30 @@ export function ResultDetail({
         {result.note ? <p className="text-small text-ink-900">“{result.note}”</p> : null}
       </section>
 
+      {/* Telefonda (358 px) sütunlar dar dolguyla sığar; taşarsa kart yatay kayar. */}
       <section className={cn(CARD, "overflow-x-auto")} aria-label="Ders netleri">
         <table className="w-full text-small">
           <thead className="text-left text-micro-lg text-ink-500">
             <tr className="border-b border-line">
-              <th className="px-4 py-2.5 font-medium">Ders</th>
-              <th className="px-3 py-2.5 text-right font-medium">D</th>
-              <th className="px-3 py-2.5 text-right font-medium">Y</th>
-              <th className="px-3 py-2.5 text-right font-medium">B</th>
-              <th className="px-3 py-2.5 text-right font-medium">Net</th>
-              <th className="px-4 py-2.5 text-right font-medium">Değişim</th>
+              <th className="px-3 py-2.5 font-medium sm:px-4">Ders</th>
+              <th className={NUM_HEAD}>D</th>
+              <th className={NUM_HEAD}>Y</th>
+              <th className={NUM_HEAD}>B</th>
+              <th className={NUM_HEAD}>Net</th>
+              <th className="px-3 py-2.5 text-right font-medium sm:px-4">Değişim</th>
             </tr>
           </thead>
           <tbody>
             {result.subjects.map((s) => (
               <tr key={s.subjectId} className="border-b border-line last:border-b-0">
-                <td className="px-4 py-2.5">
+                <td className="px-3 py-2.5 sm:px-4">
                   <SubjectBadge color={s.color} shortName={s.shortName} />
                 </td>
-                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.correct}</td>
-                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.wrong}</td>
-                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.blank}</td>
-                <td className="px-3 py-2.5 text-right font-semibold text-ink-900 tabular-nums">
-                  {formatNet(s.net)}
-                </td>
-                <td className="px-4 py-2.5 text-right text-ink-700 tabular-nums">
+                <td className={NUM_CELL}>{s.correct}</td>
+                <td className={NUM_CELL}>{s.wrong}</td>
+                <td className={NUM_CELL}>{s.blank}</td>
+                <td className={cn(NUM_CELL, "font-semibold")}>{formatNet(s.net)}</td>
+                <td className="px-3 py-2.5 text-right text-ink-700 tabular-nums sm:px-4">
                   {s.delta === null ? "—" : formatSigned(s.delta)}
                 </td>
               </tr>

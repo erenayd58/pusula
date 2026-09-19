@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDownIcon } from "lucide-react";
 import { formatCount, formatNet } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { subjectVars, type SubjectColorToken } from "../subject-scope";
@@ -25,14 +26,19 @@ export type LineChartSeries = {
   defaultOn?: boolean;
 };
 
-const W = 640;
+/** Sunucuda ve ölçüm öncesi genişlik; bağlandıktan sonra kabın gerçek genişliği (metin 11 px kalır). */
+const DEFAULT_W = 640;
+const MIN_W = 280;
 const PAD = { top: 14, right: 20, bottom: 30, left: 44 } as const;
-const MAX_X_LABELS = 6;
 
 /**
- * Çizgi grafiği (10 §3.2, karar C1): saf SVG, `viewBox` ile ölçeklenir (genişlik %100). Yatay eksen
- * noktalar **eşit aralıklı** (zaman ölçeği değil), dikey eksen 0 → `niceCeil(görünür serilerin en
- * büyüğü)`. Seri çipleri (`checkbox`) açar/kapar, en az bir seri açık kalır. Noktaya dokunma/tıklama
+ * Çizgi grafiği (10 §3.2, karar C1): saf SVG; `viewBox` genişliği kabın ölçülen genişliği
+ * (`ResizeObserver`), yükseklik sabit — telefonda metin ve noktalar küçülmez, sunucuda 640 ile
+ * çizilip bağlanınca ölçülür. Yatay eksen noktalar **eşit aralıklı** (zaman ölçeği değil; dar
+ * grafikte 3, genişte en fazla 6 etiket), dikey eksen 0 → `niceCeil(görünür serilerin en büyüğü)`.
+ * Seri çipleri (`checkbox`) açar/kapar, en az bir seri açık kalır. `secondaryToggle` verilirse
+ * `defaultOn` olmayan seriler telefon/tablette (< md) "Dersleri göster" düğmesinin arkasında,
+ * ≥ md her zaman görünür (grafik ilk ekranda kalır). Noktaya dokunma/tıklama
  * seçer; klavye: kap `tabindex=0`, ←/→ nokta, Home/End; seçili nokta büyür + dikey kılavuz;
  * `renderDetail` altta `aria-live="polite"` kutuda. Ekran okuyucu: `<figure aria-label={summary}>` +
  * sr-only tablo (satır = nokta, sütun = seri); görsel SVG `aria-hidden`. Hareket yok.
@@ -44,6 +50,7 @@ export function LineChart({
   summary,
   yLabel,
   renderDetail,
+  secondaryToggle,
   height = 240,
   className,
 }: {
@@ -52,10 +59,24 @@ export function LineChart({
   summary: string;
   yLabel: string;
   renderDetail: (key: string) => React.ReactNode;
+  /** < md: `defaultOn` olmayan serilerin çipleri bu düğmenin arkasında (ör. "Dersleri göster"). */
+  secondaryToggle?: { show: string; hide: string };
   height?: number;
   className?: string;
 }) {
   const id = React.useId();
+  const frameRef = React.useRef<HTMLDivElement>(null);
+  const [W, setW] = React.useState(DEFAULT_W);
+  React.useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(MIN_W, Math.round(el.getBoundingClientRect().width)));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const [expanded, setExpanded] = React.useState(false);
   const [on, setOn] = React.useState<ReadonlySet<string>>(() => {
     const initial = series.filter((s) => s.defaultOn).map((s) => s.id);
     return new Set(initial.length > 0 ? initial : series.slice(0, 1).map((s) => s.id));
@@ -71,7 +92,9 @@ export function LineChart({
   const n = points.length;
   const x = (i: number) => PAD.left + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW);
   const y = (v: number) => PAD.top + innerH - (v / top) * innerH;
-  const stride = Math.max(1, Math.ceil(n / MAX_X_LABELS));
+  // Etiket başına ~80 px ("15 Ağustos"); dar grafikte 3, genişte en fazla 6 etiket.
+  const maxXLabels = Math.min(6, Math.max(2, Math.floor(innerW / 80)));
+  const stride = Math.max(1, Math.ceil(n / maxXLabels));
   const showLabel = (i: number) => (n - 1 - i) % stride === 0;
 
   function toggle(seriesId: string) {
@@ -113,6 +136,7 @@ export function LineChart({
         {series.map((s) => {
           const checked = on.has(s.id);
           const isSubject = s.color !== "ink";
+          const secondary = secondaryToggle !== undefined && !s.defaultOn;
           return (
             <button
               key={s.id}
@@ -122,7 +146,8 @@ export function LineChart({
               onClick={() => toggle(s.id)}
               style={isSubject ? subjectVars(s.color) : undefined}
               className={cn(
-                "inline-flex min-h-9 items-center gap-2 rounded-xs border px-3 text-micro-lg font-medium",
+                "min-h-9 items-center gap-2 rounded-xs border px-3 text-micro-lg font-medium",
+                secondary && !expanded ? "hidden md:inline-flex" : "inline-flex",
                 "clay:min-h-11 clay:rounded-pill clay:border-0 clay:px-4 clay:text-small clay:font-semibold",
                 checked
                   ? isSubject
@@ -143,10 +168,28 @@ export function LineChart({
             </button>
           );
         })}
+        {secondaryToggle && series.some((s) => !s.defaultOn) ? (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((v) => !v)}
+            className={cn(
+              "inline-flex min-h-9 items-center gap-1 rounded-xs border border-line bg-bg-paper px-3 text-micro-lg font-medium text-ink-700 hover:bg-bg-surface md:hidden",
+              "clay:min-h-11 clay:rounded-pill clay:border-0 clay:clay-sm clay:bg-bg-raised clay:px-4 clay:text-small clay:font-semibold",
+            )}
+          >
+            {expanded ? secondaryToggle.hide : secondaryToggle.show}
+            <ChevronDownIcon
+              aria-hidden="true"
+              className={cn("size-4", expanded && "rotate-180")}
+            />
+          </button>
+        ) : null}
       </div>
 
       {/* Görsel: klavye gezinmesi kapta; SVG ekran okuyucuya kapalı (tablo aşağıda). */}
       <div
+        ref={frameRef}
         tabIndex={0}
         role="group"
         aria-label={`${yLabel} grafiği; ok tuşlarıyla noktalar arasında gez`}
@@ -156,8 +199,8 @@ export function LineChart({
         <svg
           aria-hidden="true"
           viewBox={`0 0 ${W} ${height}`}
-          className="block h-auto w-full"
-          style={{ maxHeight: height }}
+          className="block w-full"
+          style={{ height }}
         >
           {ticks.map((t) => (
             <g key={t}>

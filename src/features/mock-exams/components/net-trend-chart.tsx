@@ -13,7 +13,7 @@ const TOTAL = "total";
 
 /**
  * Net trend grafiği: `LineChart` sarmalayıcısı. Seriler toplam net (ink, kalın, açık) + dersler
- * (ders rengi, kapalı; karar C2). Nokta detayı: deneme adı, tarih, toplam net ve değişim, ders
+ * (ders rengi, kapalı; karar C2; telefon/tablette "Dersleri göster" arkasında). Nokta detayı: deneme adı, tarih, toplam net ve değişim, ders
  * netleri. Dört noktadan azsa sayfa `ResultCardList` çizer.
  */
 export function NetTrendChart({
@@ -49,6 +49,7 @@ export function NetTrendChart({
       series={series}
       summary={trendSummary(points)}
       yLabel="Net"
+      secondaryToggle={{ show: "Dersleri göster", hide: "Dersleri gizle" }}
       renderDetail={(key) => {
         const p = byKey.get(key);
         if (!p) return null;

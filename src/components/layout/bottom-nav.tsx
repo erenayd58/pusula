@@ -8,7 +8,8 @@ export type ShellNavItem = { href: string; label: string; icon: LucideIcon };
 /**
  * Telefon ve tablet alt menüsü (04 Bölüm 8.2, 8.3): clay-lg kap, 44 px dokunma hedefi,
  * ikon + etiket. `center` verilirse ortada çubuktan taşan (+) düğmesi yer alır (öğrenci);
- * veli menüsünde yok. Masaüstünde (`lg:`) gizlenir; sayfa içeriği `pb` ile boşluk bırakır.
+ * veli menüsünde yok. Masaüstünde (`lg:`) gizlenir; sayfa içeriği ve yapışkan alt öğeler
+ * `--nav-bottom` token'ı (çubuk + taşan düğme + safe-area) kadar boşluk bırakır.
  * Sunucu bileşenidir; aktiflik `NavLink` içinde hesaplanır.
  */
 export function BottomNav({

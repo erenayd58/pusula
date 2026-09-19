@@ -68,6 +68,7 @@ Renk paleti, ders renkleri, Lexend yazı tipi, lucide ikonları ve yazım dili t
   /* ölçüler */
   --touch-min:44px;
   --nav-rail:104px;          /* öğrenci masaüstü yan menü (tasarımdaki gerçek değer) */
+  --nav-bottom: calc(60px + 18px + max(env(safe-area-inset-bottom), 12px)); /* telefon/tablet alt menüsünün kapladığı yükseklik: çubuk + taşan (+) + safe-area; sayfa alt boşluğu ve yapışkan alt öğeler bunun üstünde */
   --coach-sidebar:232px;
   --content-max-student:1240px;
   --content-max:1320px;
@@ -313,7 +314,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 |---|---|---|
 | `Button` (primary, secondary, ghost) | `components/ui` | Durumlar: normal, hover, basılı, odak, devre dışı. Tasarım dosyasında koç ghost düğmesi `--subject-math-ink` (mavi) kullanır; Bölüm 4.2 gereği uygulamada `--ink-700` + altı çizili (öğrenci ghost ile aynı). |
 | `Input`, `Select` | `components/ui` | Clay'de kap clay, alan içi `clay-well` |
-| `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı |
+| `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı; `dense` (deneme sihirbazı): etiket solda, 36 px düğme + 44 px dokunma alanı, iki adımlayıcı telefonda yan yana (< 390 px etiket üstte) |
 | `SubjectBadge`, `SubjectStripe` | `components/shared` | `subjectVars()` ile |
 | `GoalRing`, `ProgressBar` | `components/shared` | Hedefe ulaşınca fosforlu + "hedef tamam" metni |
 | `PlanTaskCard` | `features/planner` | Bekliyor / tamamlandı; koç sürümü sürüklenebilir + "Buraya bırak" hedefi |
@@ -327,7 +328,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 | `Toast` | sonner teması | Başarı: "Kaydedildi. Bugün 34 soru kaldı." Hata: ikon + "Kaydedilemedi. Tekrar dene." + eylem |
 | `BottomSheet` / `Dialog` | `components/ui` | < 768 px alt panel, ≥ 768 px diyalog; aynı API (`ResponsiveSheet`) |
 | `StatTile` | `components/shared` | Büyük sayı + kısa açıklama (+ isteğe bağlı karşılaştırma satırı) |
-| `LineChart` | `components/shared/line-chart` | Faz 6a (karar C1): saf SVG çizgi grafiği; `viewBox` ile ölçeklenir, x eşit aralıklı, y `niceCeil`; seri çipleri (`checkbox`, en az biri açık; toplam `ink-900` 3 px, dersler `var(--s)` 1,5 px), nokta seçimi dokunma/←→/Home/End, `aria-live` detay kutusu, `<figure aria-label={özet}>` + sr-only tablo; hareket yok. Dört noktadan azsa çağıran kart listesi çizer |
+| `LineChart` | `components/shared/line-chart` | Faz 6a (karar C1): saf SVG çizgi grafiği; `viewBox` genişliği kabın ölçülen genişliği (`ResizeObserver`; metin telefonda küçülmez), x eşit aralıklı (etiket sayısı genişliğe göre 3–6), y `niceCeil`; seri çipleri (`checkbox`, en az biri açık; toplam `ink-900` 3 px, dersler `var(--s)` 1,5 px), `secondaryToggle` ile `defaultOn` olmayan seriler < md "Dersleri göster" arkasında (grafik ilk ekranda), nokta seçimi dokunma/←→/Home/End, `aria-live` detay kutusu, `<figure aria-label={özet}>` + sr-only tablo; hareket yok. Dört noktadan azsa çağıran kart listesi çizer |
 
 ## 11. Hareket
 

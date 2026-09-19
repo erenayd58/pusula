@@ -249,7 +249,8 @@ export function ResultWizard({
 
   const stickyFooter = cn(
     "sticky z-10 flex flex-col gap-3 border-t border-line bg-bg-app/95 pt-3 backdrop-blur-sm",
-    compact ? "bottom-0 bg-bg-paper/95" : "bottom-24 lg:bottom-4",
+    // Öğrenci: alt menünün (çubuk + (+) + safe-area) üstünde durur; masaüstünde ray var, menü yok.
+    compact ? "bottom-0 bg-bg-paper/95" : "bottom-[calc(var(--nav-bottom)+8px)] lg:bottom-4",
   );
 
   return (
@@ -515,7 +516,7 @@ export function ResultWizard({
           <p className="text-small text-ink-500">
             {`${title} · ${formatDateTr(takenOn)} · Doğru ve yanlışı gir; boş kendiliğinden hesaplanır.`}
           </p>
-          <ul className="flex flex-col gap-3" aria-label="Ders netleri">
+          <ul className="flex flex-col gap-2" aria-label="Ders netleri">
             {rows.map((r, i) => (
               <SubjectEntryRow
                 key={r.subject.subjectId}
