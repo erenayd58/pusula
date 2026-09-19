@@ -42,9 +42,11 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      # Sürüm package.json'daki `supabase` ile aynı tutulur; `latest` GitHub API'den çözülür ve paylaşımlı
+      # runner IP'sinde "rate limit exceeded" ile düşebilir (npm'den sabit sürüm çekilir).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
       - run: pnpm install --frozen-lockfile
       # 5432x portları Linux'un geçici port aralığındadır; ayrılmazsa docker pull
       # sırasında rastgele dolup "address already in use" verir (bkz. script).
@@ -73,9 +75,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Sürüm package.json'daki `supabase` ile aynı tutulur; `latest` GitHub API'den çözülür ve paylaşımlı
+      # runner IP'sinde "rate limit exceeded" ile düşebilir (npm'den sabit sürüm çekilir).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
       # 5432x portları Linux'un geçici port aralığındadır; ayrılmazsa docker pull
       # sırasında rastgele dolup "address already in use" verir (bkz. script).
       - name: Supabase portlarını ayır
