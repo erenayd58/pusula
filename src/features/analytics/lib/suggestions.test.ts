@@ -72,6 +72,9 @@ function alert(over: Partial<TopicAlert> = {}): TopicAlert {
     questions: 0,
     accuracy: null,
     threshold: null,
+    topicStatus: null,
+    mockWrong: null,
+    mistakes: null,
     idleDays: 12,
     delayDays: 5,
     ...over,
@@ -312,6 +315,13 @@ describe("buildSuggestions", () => {
     expect(
       build([alert({ kind: "stale" })], { dismissed: new Map([[key, "2026-10-02"]]) }),
     ).toHaveLength(1);
+    // Faz 6b: mock_weak de aynı enum'la reddedilir (14 gün gizlenir).
+    const mockKey = dismissalKey("s1", "mock_weak", "mat", "t1");
+    expect(
+      build([alert({ kind: "mock_weak", mockWrong: { marks: 2, exams: 3 }, mistakes: 0 })], {
+        dismissed: new Map([[mockKey, "2026-10-02"]]),
+      }),
+    ).toHaveLength(0);
     // Ders düzeyi anahtar konu boş.
     // Faz 5a: okulun gerisinde önerisi de aynı enum'la reddedilir (14 gün gizlenir).
     const behindKey = dismissalKey("s1", "behind_school", "mat", "t1");
@@ -365,6 +375,7 @@ describe("buildSuggestions (strateji, Faz 5c)", () => {
       mix: null,
       topicDelayDays: new Map(),
       subjectGap: new Map(),
+      subjectMockWrong: new Map(),
       ...over,
     };
   }
@@ -453,6 +464,48 @@ describe("buildSuggestions (strateji, Faz 5c)", () => {
     expect(strategyNoteFor({ targetDelayDays: undefined, subjectGap: 0.2 })).toBe(
       "bu derste soru hedefinin gerisinde",
     );
+  });
+
+  it("strategyNoteFor (Faz 6b): sıra hedef gecikmesi → deneme yanlışı → soru açığı", () => {
+    const mockWrong = { wrong: 7, exams: 3 };
+    expect(strategyNoteFor({ targetDelayDays: 14, subjectGap: 1, mockWrong })).toBe(
+      `hedef tarihi 2${NBSP}hafta geçti`,
+    );
+    expect(strategyNoteFor({ targetDelayDays: 0, subjectGap: 1, mockWrong })).toBe(
+      `son 3${NBSP}denemede 7${NBSP}yanlış`,
+    );
+    expect(
+      strategyNoteFor({ targetDelayDays: 0, subjectGap: 0.5, mockWrong: { wrong: 0, exams: 2 } }),
+    ).toBe("bu derste soru hedefinin gerisinde");
+    expect(
+      strategyNoteFor({ targetDelayDays: 0, subjectGap: 0, mockWrong: { wrong: 0, exams: 0 } }),
+    ).toBeUndefined();
+  });
+
+  it("buildSuggestions: mock_weak önerisi topic_study görevi, sebep ve deneme notu", () => {
+    const out = buildSuggestions({
+      alerts: [
+        alert({
+          kind: "mock_weak",
+          topicStatus: "mastered",
+          mockWrong: { marks: 2, exams: 3 },
+          mistakes: 0,
+          idleDays: null,
+          delayDays: 0,
+        }),
+      ],
+      plannedTopicIds: new Set(),
+      plannedSubjectIds: new Set(),
+      dismissed: new Map(),
+      settings: SETTINGS,
+      maxExamQuestionCount: 20,
+      today: TODAY,
+      strategy: new Map([["s1", strategy({ subjectMockWrong: new Map([["mat", { wrong: 7, exams: 3 }]]) })]]),
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0]!.task.kind).toBe("topic_study");
+    expect(out[0]!.reason).toBe(`Oturdu işaretli ama son 3${NBSP}denemenin 2'sinde yanlış`);
+    expect(out[0]!.strategyNote).toBe(`son 3${NBSP}denemede 7${NBSP}yanlış`);
   });
 });
 

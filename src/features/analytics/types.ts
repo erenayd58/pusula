@@ -34,6 +34,12 @@ export type TopicAlertFacts = {
   isNextTopic: boolean;
   /** Okulda tahmini bitiş (`topics.school_finish_on`); takvim doldurulmadıysa null (Faz 5a). */
   schoolFinishOn: string | null;
+  /** Öğrencinin son `mock_exams.recent_count` genel denemesi sayısı (Faz 6b). */
+  mockRecentCount: number;
+  /** Bu denemelerin kaçında konu "yanlış" işaretli. */
+  mockWrongRecent: number;
+  /** Son `alerts.lookback_days` içinde açılmış yanlış defteri kaydı (durum fark etmez). */
+  mistakesWindow: number;
 };
 
 export type AlertSubject = {
@@ -65,6 +71,12 @@ export type TopicAlert = {
   idleDays: number | null;
   /** Kuralın gün eşiğini aşan gün sayısı (0 = tam eşikte); başarı kurallarında 0. */
   delayDays: number;
+  /** Konu durumu (ders düzeyinde null); `mock_weak` sebep metni bitmiş konuyu açıkça söyler (C11). */
+  topicStatus: TopicStatus | null;
+  /** `mock_weak`: son N genel denemede işaret sayısı ve pencere; diğer türlerde null. */
+  mockWrong: { marks: number; exams: number } | null;
+  /** `mock_weak`: pencere içindeki defter kaydı; diğer türlerde null. */
+  mistakes: number | null;
 };
 
 /** `v_student_setup_facts` satırı + öğrencinin kapalı modülleri (sorgu katmanı ekler). */
@@ -115,6 +127,12 @@ export type StudentStrategy = {
   mix: PeriodMix | null;
   /** Konu → hedef tarihini aşan gün (`student_topic_targets`; yalnızca bitmemiş ve tarihi geçmiş). */
   topicDelayDays: ReadonlyMap<string, number>;
-  /** Ders → 0–1 soru açığı: (bugüne kadar beklenen − gerçekleşen) / beklenen; hedef yoksa boş. */
+  /**
+   * Ders → 0–1 açık: soru açığı ((bugüne kadar beklenen − gerçekleşen) / beklenen) ve deneme açığı
+   * (1 − ort. net / soru sayısı) `combineGap` ile `mock_exams.gap_weight` ağırlığında (Faz 6b, C12);
+   * ikisi de yoksa ders Map'te yok.
+   */
   subjectGap: ReadonlyMap<string, number>;
+  /** Ders → son N denemede toplam yanlış ve deneme sayısı (`v_student_mock_subject_stats`); yoksa boş. */
+  subjectMockWrong: ReadonlyMap<string, { wrong: number; exams: number }>;
 };
