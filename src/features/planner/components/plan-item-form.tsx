@@ -254,17 +254,24 @@ function Fields({
 
       <div>
         <Label htmlFor="item-kind">Tür</Label>
-        <NativeSelect
-          id="item-kind"
-          value={kind}
-          onChange={(e) => changeKind(e.target.value as PlanItemKind)}
-        >
-          {KIND_ORDER.map((k) => (
-            <option key={k} value={k}>
-              {planItemKindLabels[k]}
-            </option>
-          ))}
-        </NativeSelect>
+        {kind === "section" || kind === "video" ? (
+          // Bağlı tür: havuzdan/öneriden gelir, değiştirilmez (bağ kopmasın).
+          <NativeSelect id="item-kind" value={kind} disabled>
+            <option value={kind}>{planItemKindLabels[kind]}</option>
+          </NativeSelect>
+        ) : (
+          <NativeSelect
+            id="item-kind"
+            value={kind}
+            onChange={(e) => changeKind(e.target.value as PlanItemKind)}
+          >
+            {KIND_ORDER.map((k) => (
+              <option key={k} value={k}>
+                {planItemKindLabels[k]}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

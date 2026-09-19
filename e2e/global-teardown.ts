@@ -1,4 +1,9 @@
-import { deleteE2EMockExams, deleteE2EStudents, deleteE2ETopics } from "./fixtures/db";
+import {
+  deleteE2EMockExams,
+  deleteE2EResources,
+  deleteE2EStudents,
+  deleteE2ETopics,
+} from "./fixtures/db";
 
 /**
  * Güvenlik ağı: yarıda kalan testlerin şablonda bıraktığı "E2E Konu …" satırlarını ve
@@ -12,4 +17,6 @@ export default async function globalTeardown() {
   if (students > 0) console.log(`globalTeardown: ${students} artık e2e öğrencisi silindi.`);
   const exams = await deleteE2EMockExams();
   if (exams > 0) console.log(`globalTeardown: ${exams} artık "E2E Deneme" silindi.`);
+  const resources = await deleteE2EResources();
+  if (resources > 0) console.log(`globalTeardown: ${resources} artık "E2E Kaynak" silindi.`);
 }

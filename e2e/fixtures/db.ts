@@ -45,6 +45,16 @@ export async function deleteE2EMockExams(): Promise<number> {
   return count ?? 0;
 }
 
+/** Testlerin bıraktığı "E2E Kaynak …" kitaplarını siler (testler cascade; kayıt bağı set null). */
+export async function deleteE2EResources(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("resources")
+    .delete({ count: "exact" })
+    .like("title", "E2E Kaynak%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
 export async function clearSchoolDates(): Promise<number> {
   const { count, error } = await adminClient()
