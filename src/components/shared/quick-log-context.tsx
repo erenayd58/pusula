@@ -30,10 +30,27 @@ export type QuickLogPlanItem = {
   targetValue: number | null;
 };
 
-export type QuickLogRequest = { edit?: QuickLogEdit; planItem?: QuickLogPlanItem };
+/**
+ * Kaynak testinden açılış (Faz 7): ders/konu ön dolu, `questionCount` varsa Boş otomatik; kayıt
+ * `section_id` taşır. Testin yayınlanmış planda açık görevi varsa `planItem` da verilir (tek RPC).
+ */
+export type QuickLogSection = {
+  id: string;
+  title: string;
+  resourceTitle: string;
+  subjectId: string | null;
+  topicId: string | null;
+  questionCount: number | null;
+};
+
+export type QuickLogRequest = {
+  edit?: QuickLogEdit;
+  planItem?: QuickLogPlanItem;
+  section?: QuickLogSection;
+};
 
 export type QuickLogContextValue = {
-  /** Sheet'i açar; `edit` düzenleme modu, `planItem` plan görevi ön dolgusu. */
+  /** Sheet'i açar; `edit` düzenleme modu, `planItem` plan görevi, `section` kaynak testi ön dolgusu. */
   open: (request?: QuickLogRequest) => void;
 };
 
