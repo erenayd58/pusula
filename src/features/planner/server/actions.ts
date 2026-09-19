@@ -138,6 +138,7 @@ export const addPlanItems = createAction({
         target_unit: input.targetUnit,
         estimated_minutes: input.estimatedMinutes,
         section_id: input.kind === "section" ? (input.sectionId ?? null) : null,
+        video_id: input.kind === "video" ? (input.videoId ?? null) : null,
       };
     });
     const { data, error } = await ctx.supabase.from("plan_items").insert(rows).select("id");
@@ -165,6 +166,7 @@ export const updatePlanItem = createAction({
         target_unit: input.targetUnit,
         estimated_minutes: input.estimatedMinutes,
         section_id: input.kind === "section" ? (input.sectionId ?? null) : null,
+        video_id: input.kind === "video" ? (input.videoId ?? null) : null,
       })
       .eq("id", input.id)
       .select("id");
@@ -317,6 +319,7 @@ export const prepareSuggestedPlan = createAction({
         target_unit: s.task.targetUnit,
         estimated_minutes: s.task.estimatedMinutes,
         section_id: s.task.sectionId ?? null,
+        video_id: s.task.videoId ?? null,
       };
     });
     const { error } = await ctx.supabase.from("plan_items").insert(rows);

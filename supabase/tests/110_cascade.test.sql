@@ -5,9 +5,10 @@
 -- student_subject_targets, student_topic_targets (Faz 5b; created_by koç silinince set null),
 -- mock_exam_results + ders satırları + konu işaretleri (Faz 6a; katalog kalır, created_by set null),
 -- mistakes (Faz 6b; deneme sonucu silinince mock_result_id set null), özel kaynaklar + atamalar (Faz 7a;
--- katalog kalır, created_by set null; kaynak silinince question_logs.section_id set null). Veli profili silinmez.
+-- katalog kalır, created_by set null; kaynak silinince question_logs.section_id set null), özel video listesi +
+-- atama + izleme satırları (Faz 7b). Veli profili silinmez.
 begin;
-select plan(26);
+select plan(29);
 select tests.seed_fixture();
 select tests.seed_templates();
 
@@ -66,6 +67,18 @@ values
 insert into public.question_logs (id, student_id, subject_id, source, section_id, total_count, correct_count, wrong_count, blank_count)
 values (tests.id('log_cascade_c'), tests.id('student_c'), tests.id('subj_org_a'), 'resource', tests.id('sec_cascade_cat'), 20, 18, 2, 0);
 
+-- Videolar (Faz 7b): katalog listesi (A'ya atanmış, A izlemiş), A'nın özel listesi.
+insert into public.video_playlists (id, organization_id, template_id, title, created_by)
+values (tests.id('pl_cascade_cat'), tests.id('org_a'), tests.id('tpl_org_a'), 'Cascade Liste', tests.id('coach_w'));
+insert into public.videos (id, playlist_id, youtube_video_id, title)
+values (tests.id('vid_cascade_cat'), tests.id('pl_cascade_cat'), 'cascade0001', 'Video 1');
+insert into public.video_playlists (id, organization_id, template_id, student_id, title, created_by)
+values (tests.id('pl_cascade_priv'), tests.id('org_a'), tests.id('tpl_org_a'), tests.id('student_a'), 'Cascade Özel Liste', tests.id('student_a'));
+insert into public.student_playlists (student_id, playlist_id, assigned_by)
+values (tests.id('student_a'), tests.id('pl_cascade_cat'), tests.id('coach_w'));
+insert into public.student_video_progress (student_id, video_id, watched_at)
+values (tests.id('student_a'), tests.id('vid_cascade_cat'), now());
+
 select is(
   (select count(*) from public.student_parents where student_id = tests.id('student_a')),
   2::bigint,
@@ -94,6 +107,14 @@ select is((select count(*) from public.mistakes where student_id = tests.id('stu
 select is((select count(*) from public.resources where id = tests.id('res_cascade_priv')), 0::bigint, 'özel kaynak öğrenciyle silindi (testleri cascade)');
 select is((select count(*) from public.student_resources where student_id = tests.id('student_a')), 0::bigint, 'kaynak atamaları silindi');
 select is((select count(*) from public.resources where id = tests.id('res_cascade_cat')), 1::bigint, 'katalog kitabı kalır');
+select is((select count(*) from public.video_playlists where id = tests.id('pl_cascade_priv')), 0::bigint, 'özel video listesi öğrenciyle silindi');
+select is(
+  (select (select count(*) from public.student_playlists where student_id = tests.id('student_a'))
+        + (select count(*) from public.student_video_progress where student_id = tests.id('student_a'))),
+  0::bigint,
+  'liste atamaları ve izleme satırları silindi'
+);
+select is((select count(*) from public.video_playlists where id = tests.id('pl_cascade_cat')), 1::bigint, 'katalog listesi kalır');
 
 -- Koç W silinince öğrenci C'nin konu hedefi kalır, created_by boşalır.
 delete from auth.users where id = tests.id('coach_w');

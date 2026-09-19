@@ -22,7 +22,7 @@ import type {
  */
 
 const ITEM_SELECT =
-  "id, plan_id, day_of_week, sort_order, kind, title, subject_id, topic_id, url, target_value, target_unit, estimated_minutes, section_id, completed_at, student_note, postponed_from, postponed_at, subject:subjects(name, short_name, color), topic:topics(name)" as const;
+  "id, plan_id, day_of_week, sort_order, kind, title, subject_id, topic_id, url, target_value, target_unit, estimated_minutes, section_id, video_id, completed_at, student_note, postponed_from, postponed_at, subject:subjects(name, short_name, color), topic:topics(name)" as const;
 
 type ItemRaw = {
   id: string;
@@ -38,6 +38,7 @@ type ItemRaw = {
   target_unit: string | null;
   estimated_minutes: number;
   section_id: string | null;
+  video_id: string | null;
   completed_at: string | null;
   student_note: string | null;
   postponed_from: number | null;
@@ -65,7 +66,7 @@ function toItem(r: ItemRaw): PlanItem {
     targetUnit: r.target_unit === "questions" || r.target_unit === "minutes" ? r.target_unit : null,
     estimatedMinutes: r.estimated_minutes,
     sectionId: r.section_id,
-    videoId: null,
+    videoId: r.video_id,
     completedAt: r.completed_at,
     studentNote: r.student_note,
     postponedFrom: r.postponed_from,

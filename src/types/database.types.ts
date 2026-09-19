@@ -1116,6 +1116,7 @@ export type Database = {
           topic_id: string | null
           updated_at: string
           url: string | null
+          video_id: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -1137,6 +1138,7 @@ export type Database = {
           topic_id?: string | null
           updated_at?: string
           url?: string | null
+          video_id?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -1158,6 +1160,7 @@ export type Database = {
           topic_id?: string | null
           updated_at?: string
           url?: string | null
+          video_id?: string | null
         }
         Relationships: [
           {
@@ -1243,6 +1246,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_topic_alert_facts"
             referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "plan_items_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["video_id"]
+          },
+          {
+            foreignKeyName: "plan_items_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1355,6 +1372,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "plan_items"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_logs_plan_item_id_fkey"
+            columns: ["plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["open_plan_item_id"]
           },
           {
             foreignKeyName: "question_logs_plan_item_id_fkey"
@@ -1999,6 +2023,98 @@ export type Database = {
           },
         ]
       }
+      student_playlists: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          playlist_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          playlist_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          playlist_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
       student_resources: {
         Row: {
           assigned_at: string
@@ -2412,6 +2528,97 @@ export type Database = {
           },
         ]
       }
+      student_video_progress: {
+        Row: {
+          created_at: string
+          note: string | null
+          student_id: string
+          updated_at: string
+          video_id: string
+          watched_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          student_id: string
+          updated_at?: string
+          video_id: string
+          watched_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          student_id?: string
+          updated_at?: string
+          video_id?: string
+          watched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["video_id"]
+          },
+          {
+            foreignKeyName: "student_video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           class_section: string | null
@@ -2796,6 +3003,229 @@ export type Database = {
           },
         ]
       }
+      video_playlists: {
+        Row: {
+          channel_name: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          imported_at: string | null
+          organization_id: string
+          student_id: string | null
+          subject_id: string | null
+          template_id: string
+          title: string
+          updated_at: string
+          youtube_playlist_id: string | null
+        }
+        Insert: {
+          channel_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string | null
+          organization_id: string
+          student_id?: string | null
+          subject_id?: string | null
+          template_id: string
+          title: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Update: {
+          channel_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          imported_at?: string | null
+          organization_id?: string
+          student_id?: string | null
+          subject_id?: string | null
+          template_id?: string
+          title?: string
+          updated_at?: string
+          youtube_playlist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_playlists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          playlist_id: string
+          sort_order: number
+          title: string
+          topic_id: string | null
+          updated_at: string
+          youtube_video_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          playlist_id: string
+          sort_order?: number
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+          youtube_video_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          playlist_id?: string
+          sort_order?: number
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+          youtube_video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
       weekly_plans: {
         Row: {
           coach_message: string | null
@@ -3150,6 +3580,211 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_student_playlist_progress: {
+        Row: {
+          last_watched_at: string | null
+          minutes_remaining: number | null
+          minutes_total: number | null
+          percent: number | null
+          playlist_id: string | null
+          student_id: string | null
+          videos_total: number | null
+          videos_watched: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_playlist_videos"
+            referencedColumns: ["playlist_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      v_student_playlist_videos: {
+        Row: {
+          duration_seconds: number | null
+          note: string | null
+          open_plan_item_id: string | null
+          playlist_id: string | null
+          playlist_title: string | null
+          sort_order: number | null
+          student_id: string | null
+          subject_color: string | null
+          subject_id: string | null
+          subject_name: string | null
+          subject_short_name: string | null
+          title: string | null
+          topic_id: string | null
+          topic_name: string | null
+          video_id: string | null
+          watched_at: string | null
+          youtube_video_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "student_playlists_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_mock_subject_stats"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "video_playlists_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "videos_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
           },
         ]
       }
@@ -3871,6 +4506,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_playlist: {
+        Args: { p_assign_self?: boolean; p_playlist: Json; p_videos?: Json }
+        Returns: string
+      }
       create_resource: {
         Args: { p_assign_self?: boolean; p_resource: Json; p_sections?: Json }
         Returns: string
@@ -3889,6 +4528,14 @@ export type Database = {
         Returns: string
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      import_playlist_videos: {
+        Args: { p_playlist_id: string; p_videos: Json }
+        Returns: Json
+      }
+      mark_video_watched: {
+        Args: { p_student_id?: string; p_video_id: string; p_watched: boolean }
+        Returns: Json
+      }
       move_plan_item: {
         Args: { p_day: number; p_index: number; p_item_id: string }
         Returns: undefined
