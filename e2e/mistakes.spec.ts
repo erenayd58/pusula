@@ -137,7 +137,9 @@ test.describe("yanlış defteri", () => {
     await expect(page.getByTestId("result-row")).toHaveCount(4);
     // Satırlar bağlantısız (detay rotası yok), sıralama/karşılaştırma yok.
     await expect(page.getByTestId("result-row").first().getByRole("link")).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Veli menüsü" })).not.toContainText("Yanlışlar");
+    await expect(page.getByRole("navigation", { name: "Veli menüsü" })).not.toContainText(
+      "Yanlışlar",
+    );
     await page.goto(`/parent/${AYSE_ID}/mistakes`);
     await expect(page.getByRole("heading", { level: 1, name: "Bu sayfa yok" })).toBeVisible();
   });

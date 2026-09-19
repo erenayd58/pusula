@@ -500,7 +500,9 @@ describe("buildSuggestions (strateji, Faz 5c)", () => {
       settings: SETTINGS,
       maxExamQuestionCount: 20,
       today: TODAY,
-      strategy: new Map([["s1", strategy({ subjectMockWrong: new Map([["mat", { wrong: 7, exams: 3 }]]) })]]),
+      strategy: new Map([
+        ["s1", strategy({ subjectMockWrong: new Map([["mat", { wrong: 7, exams: 3 }]]) })],
+      ]),
     });
     expect(out).toHaveLength(1);
     expect(out[0]!.task.kind).toBe("topic_study");

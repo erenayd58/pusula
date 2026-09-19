@@ -180,6 +180,7 @@ export async function getTopicMistakeCounts(studentId: string): Promise<TopicMis
     else row.open++;
   }
   return [...out.values()].sort(
-    (a, b) => b.open - a.open || b.solved - a.solved || a.topicName.localeCompare(b.topicName, "tr"),
+    (a, b) =>
+      b.open - a.open || b.solved - a.solved || a.topicName.localeCompare(b.topicName, "tr"),
   );
 }

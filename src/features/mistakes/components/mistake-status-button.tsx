@@ -106,7 +106,12 @@ export function MistakeDeleteButton({
         </ResponsiveSheetHeader>
         <FormError message={error} />
         <ResponsiveSheetFooter>
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={pending}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setOpen(false)}
+            disabled={pending}
+          >
             Vazgeç
           </Button>
           <Button type="button" onClick={remove} disabled={pending}>

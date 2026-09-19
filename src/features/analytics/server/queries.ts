@@ -178,7 +178,7 @@ const fetchStrategyContext = cache(async (key: string): Promise<Map<string, Stud
   const questionGap = new Map<string, Map<string, number>>();
   const mockGap = new Map<string, Map<string, number>>();
   const mockWrong = new Map<string, Map<string, { wrong: number; exams: number }>>();
-  const bucket = <T,>(store: Map<string, Map<string, T>>, studentId: string) =>
+  const bucket = <T>(store: Map<string, Map<string, T>>, studentId: string) =>
     store.get(studentId) ?? store.set(studentId, new Map<string, T>()).get(studentId)!;
 
   for (const r of pace.data) {

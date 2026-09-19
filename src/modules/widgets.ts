@@ -37,7 +37,11 @@ export function getParentSummaryWidgets(enabled: ReadonlySet<string>): ResolvedP
   return widgets
     .filter((w) => enabled.has(w.moduleId))
     .flatMap((w) =>
-      (w.parentSummary ?? []).map((s, i) => ({ ...s, moduleId: w.moduleId, key: `${w.moduleId}-${i}` })),
+      (w.parentSummary ?? []).map((s, i) => ({
+        ...s,
+        moduleId: w.moduleId,
+        key: `${w.moduleId}-${i}`,
+      })),
     )
     .sort((a, b) => a.order - b.order);
 }

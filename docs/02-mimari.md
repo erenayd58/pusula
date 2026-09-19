@@ -102,7 +102,7 @@ pusula/
     │   │       ├── resources/…
     │   │       ├── videos/…
     │   │       ├── exams/…
-    │   │       ├── mistakes/…
+    │   │       ├── mistakes/…       # Yanlış defteri: liste, new, [mistakeId] (Faz 6b)
     │   │       ├── review/page.tsx
     │   │       ├── stats/page.tsx
     │   │       └── profile/page.tsx
@@ -138,8 +138,9 @@ pusula/
     │           ├── page.tsx         # Çocuk seçimi (tek çocuksa doğrudan yönlendirir)
     │           └── [studentId]/
     │               ├── layout.tsx   # Çocuk başlığı + alt menü (Özet · Denemeler · Notlar, registry'den)
-    │               ├── page.tsx     # Özet
-    │               └── [tab]/page.tsx   # Yer tutucu sekmeler
+    │               ├── page.tsx     # Özet (parentSummary widget'ları registry'den; Faz 6b)
+    │               ├── exams/page.tsx   # Denemeler (Faz 6b; salt okunur)
+    │               └── [tab]/page.tsx   # Yer tutucu sekmeler (Notlar)
     ├── features/                    # MODÜLLER (bkz. Bölüm 3)
     │   ├── core/                    # Çekirdek: giriş, öğrenci hesabı, veli daveti, onay, kabuk başlıkları
     │   ├── topics/
@@ -411,7 +412,7 @@ export type Result<T> =
 
 - Öğrenci Auth hesabı oluşturma (sentetik e-posta ile) → ardından `create_student_account` RPC (sadece `service_role`; aktör yetkisi, profil + öğrenci satırı tek transaction); RPC düşerse Auth kullanıcısı silinir (telafi)
 - Öğrenci şifresi sıfırlama (`can_manage_student` ile önce yetki)
-- Öğrenci silme (`can_delete_student`, sadece owner; cascade ile tüm veri; depo temizliği Faz 6)
+- Öğrenci silme (`can_delete_student`, sadece owner; önce `mistake-images/{org}/{öğrenci}/` depo klasörü temizlenir (Faz 6b), sonra cascade ile tüm veri)
 - Veli kaydında davet kodunun salt okunur ön kontrolü (signUp'tan önce)
 
 Her kullanımdan önce çağıranın o öğrencinin koçu veya kurum sahibi olduğu **veritabanı fonksiyonuyla** doğrulanır.

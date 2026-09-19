@@ -24,7 +24,11 @@ export function reasonDistribution(rows: readonly { reason: MistakeReason }[]): 
   const slices = [...counts]
     .map(([reason, count]) => ({ reason, count, exact: (count * 100) / total }))
     .sort((a, b) => b.count - a.count);
-  const out = slices.map((s) => ({ reason: s.reason, count: s.count, percent: Math.floor(s.exact) }));
+  const out = slices.map((s) => ({
+    reason: s.reason,
+    count: s.count,
+    percent: Math.floor(s.exact),
+  }));
   let remainder = 100 - out.reduce((a, s) => a + s.percent, 0);
   const order = slices
     .map((s, i) => ({ i, frac: s.exact - Math.floor(s.exact) }))

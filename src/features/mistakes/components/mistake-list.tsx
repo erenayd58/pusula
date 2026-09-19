@@ -85,7 +85,10 @@ export function MistakeList({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2" data-testid="mistake-filters">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Ders filtresi">
-          <Chip href={filterHref(basePath, filters, { subjectId: undefined })} on={!filters.subjectId}>
+          <Chip
+            href={filterHref(basePath, filters, { subjectId: undefined })}
+            on={!filters.subjectId}
+          >
             Tüm dersler
           </Chip>
           {subjects.map((s) => (
@@ -105,7 +108,10 @@ export function MistakeList({
           <Chip href={filterHref(basePath, filters, { status: undefined })} on={!filters.status}>
             Hepsi
           </Chip>
-          <Chip href={filterHref(basePath, filters, { status: "open" })} on={filters.status === "open"}>
+          <Chip
+            href={filterHref(basePath, filters, { status: "open" })}
+            on={filters.status === "open"}
+          >
             {mistakeStatusLabels.open}
           </Chip>
           <Chip
@@ -167,7 +173,9 @@ export function MistakeList({
                 <div className="flex flex-wrap items-center gap-2">
                   <SubjectBadge color={m.subjectColor} shortName={m.subjectShortName} />
                   {m.topicName ? (
-                    <span className="truncate text-small font-medium text-ink-900">{m.topicName}</span>
+                    <span className="truncate text-small font-medium text-ink-900">
+                      {m.topicName}
+                    </span>
                   ) : null}
                 </div>
                 {!m.imageUrl && m.note ? (

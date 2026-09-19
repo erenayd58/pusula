@@ -27,7 +27,10 @@ export function ReasonDistribution({ distribution }: { distribution: Distributio
         <>
           <ul className="flex flex-col gap-2">
             {slices.map((s) => (
-              <li key={s.reason} className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-small">
+              <li
+                key={s.reason}
+                className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-small"
+              >
                 <span className="truncate text-ink-700">{mistakeReasonLabels[s.reason]}</span>
                 <span className="h-2 overflow-hidden rounded-pill bg-bg-sunken">
                   <span

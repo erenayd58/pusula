@@ -102,7 +102,10 @@ export function NumberStepper({
     >
       <label
         htmlFor={id}
-        className={cn("font-medium text-ink-700", dense ? "text-micro-lg sm:text-small" : "text-small")}
+        className={cn(
+          "font-medium text-ink-700",
+          dense ? "text-micro-lg sm:text-small" : "text-small",
+        )}
       >
         {label}
       </label>

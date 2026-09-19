@@ -25,7 +25,9 @@ const NOTE_MAX = 300;
 const chipClass = (on: boolean) =>
   cn(
     "flex min-h-11 items-center gap-2 rounded-xs border px-3 text-small font-medium",
-    on ? "border-ink-900 bg-bg-surface text-ink-900" : "border-line bg-bg-paper text-ink-700 hover:bg-bg-surface",
+    on
+      ? "border-ink-900 bg-bg-surface text-ink-900"
+      : "border-line bg-bg-paper text-ink-700 hover:bg-bg-surface",
     "clay:min-h-12 clay:clay-press clay:rounded-md clay:border-0 clay:px-4",
     on ? "clay:clay-pressed" : "clay:clay-sm clay:bg-bg-raised",
   );
@@ -60,7 +62,9 @@ export function MistakeForm({
   const [subjectId, setSubjectId] = useState<string | null>(
     initial?.subjectId ?? prefill.subjectId ?? null,
   );
-  const [topicId, setTopicId] = useState<string | null>(initial?.topicId ?? prefill.topicId ?? null);
+  const [topicId, setTopicId] = useState<string | null>(
+    initial?.topicId ?? prefill.topicId ?? null,
+  );
   const [reason, setReason] = useState<MistakeReason>(initial?.reason ?? "unknown");
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState<string>();
@@ -234,14 +238,16 @@ export function MistakeForm({
               disabled={reading}
               className={cn(
                 "flex min-h-24 w-full flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-line-strong bg-bg-paper px-4 py-4 text-small text-ink-700 hover:bg-bg-surface",
-                "clay:rounded-card clay:border-0 clay:clay-press clay:clay-sm clay:bg-bg-raised clay:py-6",
+                "clay:clay-press clay:rounded-card clay:border-0 clay:clay-sm clay:bg-bg-raised clay:py-6",
               )}
             >
               <CameraIcon aria-hidden="true" className="size-6 text-ink-500" />
               <span className="font-medium text-ink-900">
                 {reading ? "Fotoğraf hazırlanıyor…" : "Fotoğraf çek ya da seç"}
               </span>
-              <span className="text-micro-lg text-ink-500">İsteğe bağlı · en fazla 2 MB’a küçültülür</span>
+              <span className="text-micro-lg text-ink-500">
+                İsteğe bağlı · en fazla 2 MB’a küçültülür
+              </span>
             </button>
           )}
         </div>

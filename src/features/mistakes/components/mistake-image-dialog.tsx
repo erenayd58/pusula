@@ -46,7 +46,11 @@ export function MistakeImageDialog({
           <DialogDescription>Soru fotoğrafı</DialogDescription>
         </DialogHeader>
         {/* eslint-disable-next-line @next/next/no-img-element -- imzalı kısa ömürlü URL */}
-        <img src={url} alt={`${title} soru fotoğrafı`} className="max-h-[70vh] w-full object-contain" />
+        <img
+          src={url}
+          alt={`${title} soru fotoğrafı`}
+          className="max-h-[70vh] w-full object-contain"
+        />
       </DialogContent>
     </Dialog>
   );

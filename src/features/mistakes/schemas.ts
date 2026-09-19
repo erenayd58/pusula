@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 /** Depo yolu: {organization_id}/{student_id}/{uuid}.webp|jpg (eylem kurum/öğrenci önekini ayrıca doğrular). */
-export const IMAGE_PATH_RE =
-  /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg)$/;
+export const IMAGE_PATH_RE = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg)$/;
 
 export const mistakeReasonValues = [
   "knowledge_gap",

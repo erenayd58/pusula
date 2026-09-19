@@ -20,7 +20,9 @@ const BASE = "/student/mistakes";
  * Öğrenci yanlış defteri (clay): başlık + "Yanlış ekle"; filtre çipleri; kart listesi. Tamamen
  * isteğe bağlı, zorlama yok; boş durum eylem önerir.
  */
-export default async function StudentMistakesPage({ searchParams }: PageProps<"/student/mistakes">) {
+export default async function StudentMistakesPage({
+  searchParams,
+}: PageProps<"/student/mistakes">) {
   const { userId } = await requireRole("student");
   await requireModule(userId, "mistakes");
   const filters = parseMistakeFilters(await searchParams);
@@ -34,7 +36,9 @@ export default async function StudentMistakesPage({ searchParams }: PageProps<"/
     <>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-title font-semibold tracking-tight lg:text-title-lg">Yanlış defterim</h1>
+          <h1 className="text-title font-semibold tracking-tight lg:text-title-lg">
+            Yanlış defterim
+          </h1>
           <p className="text-small text-ink-500">
             Yanlış yaptığın soruları fotoğrafla ya da notla sakla; çözünce işaretle.
           </p>

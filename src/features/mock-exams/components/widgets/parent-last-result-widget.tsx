@@ -32,7 +32,9 @@ export async function ParentLastResultWidget({ studentId }: ModuleWidgetProps) {
             {formatNet(last.totalNet)}
           </span>
           <span className="text-small text-ink-700 tabular-nums">
-            {last.delta === null ? "ilk deneme" : `önceki denemeye göre ${formatSigned(last.delta)}`}
+            {last.delta === null
+              ? "ilk deneme"
+              : `önceki denemeye göre ${formatSigned(last.delta)}`}
           </span>
         </span>
         <span className="text-small text-ink-700">

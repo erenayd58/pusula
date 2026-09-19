@@ -2,7 +2,7 @@
 
 > Faz 6'nın iki parçasının (denemeler ve analiz; yanlış defteri, veli net raporu ve öneri motoruna bağlama) ortak tasarım belgesi. 08 ve 09'un yapısını izler. Veri modeli bölümü parça oturumlarında `03-veri-modeli.md`'ye (§3, §4.6, §5.3, §5.4, §6, §7, §8, §9) işlenir; parça oturumları bu belgeyi okuyarak başlar. 09 §5'teki Faz 6 kancalarını **imza değiştirmeden** doldurur. Ölçek kuralı: tek koç, birkaç öğrenci; RLS tavizsiz, gerisi en basit çalışan çözüm. Belge ile kod çelişirse dur ve sor.
 >
-> **Durum:** tasarım onaylandı (2026-09-19, kararlar §6). Parçalar `faz-6-denemeler` dalında sırayla uygulanır; uygulama notları ilgili bölümlerin sonuna eklenir.
+> **Durum:** tasarım onaylandı (2026-09-19, kararlar §6); **iki parça da uygulandı ve faz kapatıldı (2026-09-19, dal `faz-6-denemeler`)**. Uygulama ve düzeltme notları ilgili bölümlerin sonundadır (§2 Parça 1 / Parça 2).
 
 ## 0. Özet ve parça sırası
 

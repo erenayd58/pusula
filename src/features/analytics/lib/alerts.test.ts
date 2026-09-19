@@ -351,20 +351,16 @@ describe("evaluateTopicAlerts", () => {
 
 describe("evaluateTopicAlerts: mock_weak (Faz 6b, karar C11)", () => {
   it("son 3 denemenin 2'sinde işaret → mock_weak; 1'inde → üretilmez (pencere sınırı)", () => {
-    const [a] = evaluateTopicAlerts(
-      [fact({ mockRecentCount: 3, mockWrongRecent: 2 })],
-      t,
-      TODAY,
-    );
+    const [a] = evaluateTopicAlerts([fact({ mockRecentCount: 3, mockWrongRecent: 2 })], t, TODAY);
     expect(a?.kind).toBe("mock_weak");
     expect(a?.mockWrong).toEqual({ marks: 2, exams: 3 });
     expect(a?.mistakes).toBe(0);
     expect(a?.threshold).toBeNull();
     expect(a?.delayDays).toBe(0);
     expect(alertReason(a!)).toBe(`Son 3${NBSP}denemenin 2'sinde yanlış`);
-    expect(evaluateTopicAlerts([fact({ mockRecentCount: 3, mockWrongRecent: 1 })], t, TODAY)).toEqual(
-      [],
-    );
+    expect(
+      evaluateTopicAlerts([fact({ mockRecentCount: 3, mockWrongRecent: 1 })], t, TODAY),
+    ).toEqual([]);
   });
 
   it("yalnızca defter sinyali: pencerede 3 kayıt → mock_weak, sebep 'Yanlış defterinde 3 soru'", () => {

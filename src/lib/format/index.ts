@@ -115,8 +115,13 @@ export function formatNamePossessive(name: string): string {
   const lower = trimmed.toLocaleLowerCase("tr-TR");
   const last = lower.at(-1) ?? "";
   const lastVowel = [...lower].reverse().find((ch) => VOWELS.includes(ch)) ?? "i";
-  const vowel =
-    "aı".includes(lastVowel) ? "ı" : "ou".includes(lastVowel) ? "u" : "öü".includes(lastVowel) ? "ü" : "i";
+  const vowel = "aı".includes(lastVowel)
+    ? "ı"
+    : "ou".includes(lastVowel)
+      ? "u"
+      : "öü".includes(lastVowel)
+        ? "ü"
+        : "i";
   const buffer = VOWELS.includes(last) ? "n" : "";
   return `${trimmed}'${buffer}${vowel}n`;
 }

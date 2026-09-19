@@ -40,8 +40,8 @@ export default async function CoachStudentMistakesPage({
   return (
     <div className="flex flex-col gap-6">
       <p className="text-small text-ink-500">
-        Öğrencinin yanlış defteri: fotoğraf ya da not, neden ve durum. Kayıtları öğrenci açar; burada
-        yalnızca okunur.
+        Öğrencinin yanlış defteri: fotoğraf ya da not, neden ve durum. Kayıtları öğrenci açar;
+        burada yalnızca okunur.
       </p>
       {mistakes.length === 0 && !filtered ? (
         <EmptyState
