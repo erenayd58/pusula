@@ -1,0 +1,141 @@
+import { SubjectBadge } from "@/components/shared/subject-badge";
+import { Badge } from "@/components/ui/badge";
+import { mockExamKindLabels } from "@/content/labels";
+import {
+  formatCount,
+  formatDateTr,
+  formatDuration,
+  formatNet,
+  formatPercent,
+  formatSigned,
+} from "@/lib/format";
+import { cn } from "@/lib/utils";
+import type { MockResultDetail } from "../types";
+import { ResultActions } from "./result-actions";
+
+const CARD = cn(
+  "rounded-sm border border-line bg-bg-paper",
+  "clay:rounded-card clay:border-0 clay:clay-sm clay:bg-bg-raised",
+);
+
+/**
+ * Deneme detayı: başlık satırı (ad, tarih, tür rozeti), toplam net + değişim, ders tablosu
+ * (D/Y/B/net/değişim), işaretli konular, isteğe bağlı süre / puan / yüzdelik / not, düzenle / sil.
+ * Puan ve yüzdelik yalnızca burada gösterilir (grafiğe girmez); LGS puanı hesaplanmaz.
+ * `topicsSlot`: Parça 2 "Deftere ekle" bağlantıları için yuva (bu parçada boş).
+ */
+export function ResultDetail({
+  result,
+  basePath,
+  canEdit,
+}: {
+  result: MockResultDetail;
+  basePath: string;
+  canEdit: boolean;
+}) {
+  const facts = [
+    result.durationMinutes !== null ? `Süre ${formatDuration(result.durationMinutes)}` : null,
+    result.score !== null ? `Puan ${formatNet(result.score)}` : null,
+    result.percentile !== null ? `Yüzdelik ${formatPercent(result.percentile, 2)}` : null,
+  ].filter((f): f is string => f !== null);
+
+  return (
+    <div className="flex flex-col gap-5" data-testid="result-detail">
+      <section className={cn(CARD, "flex flex-col gap-2 px-4 py-4 clay:p-5")}>
+        <div className="flex flex-wrap items-center gap-2 text-micro-lg text-ink-500">
+          <span>{formatDateTr(result.takenOn, { year: true, weekday: true })}</span>
+          <Badge>
+            {result.branchSubject
+              ? `${mockExamKindLabels.branch} · ${result.branchSubject.shortName}`
+              : mockExamKindLabels.general}
+          </Badge>
+        </div>
+        <div className="flex items-baseline gap-3">
+          <span
+            data-testid="result-total-net"
+            className="text-display font-semibold text-ink-900 tabular-nums"
+          >
+            {formatNet(result.totalNet)}
+          </span>
+          <span className="text-small text-ink-700 tabular-nums">
+            {result.isBranch
+              ? "net"
+              : result.delta === null
+                ? "net · ilk deneme"
+                : `net · önceki denemeye göre ${formatSigned(result.delta)}`}
+          </span>
+        </div>
+        {facts.length > 0 ? (
+          <p className="text-small text-ink-700 tabular-nums">{facts.join(" · ")}</p>
+        ) : null}
+        {result.note ? <p className="text-small text-ink-900">“{result.note}”</p> : null}
+      </section>
+
+      <section className={cn(CARD, "overflow-x-auto")} aria-label="Ders netleri">
+        <table className="w-full text-small">
+          <thead className="text-left text-micro-lg text-ink-500">
+            <tr className="border-b border-line">
+              <th className="px-4 py-2.5 font-medium">Ders</th>
+              <th className="px-3 py-2.5 text-right font-medium">D</th>
+              <th className="px-3 py-2.5 text-right font-medium">Y</th>
+              <th className="px-3 py-2.5 text-right font-medium">B</th>
+              <th className="px-3 py-2.5 text-right font-medium">Net</th>
+              <th className="px-4 py-2.5 text-right font-medium">Değişim</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.subjects.map((s) => (
+              <tr key={s.subjectId} className="border-b border-line last:border-b-0">
+                <td className="px-4 py-2.5">
+                  <SubjectBadge color={s.color} shortName={s.shortName} />
+                </td>
+                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.correct}</td>
+                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.wrong}</td>
+                <td className="px-3 py-2.5 text-right text-ink-900 tabular-nums">{s.blank}</td>
+                <td className="px-3 py-2.5 text-right font-semibold text-ink-900 tabular-nums">
+                  {formatNet(s.net)}
+                </td>
+                <td className="px-4 py-2.5 text-right text-ink-700 tabular-nums">
+                  {s.delta === null ? "—" : formatSigned(s.delta)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="flex flex-col gap-2" aria-labelledby="marked-topics-heading">
+        <h2 id="marked-topics-heading" className="text-heading font-semibold text-ink-900">
+          {`İşaretli konular · ${formatCount(result.topics.length)}`}
+        </h2>
+        {result.topics.length === 0 ? (
+          <p className="text-small text-ink-500">Bu denemede işaretli konu yok.</p>
+        ) : (
+          <ul
+            className={cn(CARD, "flex flex-col divide-y divide-line")}
+            data-testid="marked-topics"
+          >
+            {result.topics.map((t) => {
+              const s = result.subjects.find((x) => x.subjectId === t.subjectId);
+              return (
+                <li key={t.topicId} className="flex items-center gap-3 px-4 py-2.5">
+                  {s ? <SubjectBadge color={s.color} shortName={s.shortName} /> : null}
+                  <span className="min-w-0 flex-1 truncate text-small text-ink-900">{t.name}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {canEdit ? (
+        <ResultActions
+          resultId={result.id}
+          studentId={result.studentId}
+          title={result.title}
+          basePath={basePath}
+        />
+      ) : null}
+    </div>
+  );
+}

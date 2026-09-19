@@ -128,3 +128,9 @@ export const topicAlertKindLabels = {
   neglected_subject: "İhmal edilen ders",
   behind_school: "Okulun gerisinde",
 } as const;
+
+/** Deneme türü (Faz 6a): `subject_id` boş → genel, dolu → branş. */
+export const mockExamKindLabels = {
+  general: "Genel",
+  branch: "Branş",
+} as const;
