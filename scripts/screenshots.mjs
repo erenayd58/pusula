@@ -425,6 +425,61 @@ const SHOTS = [
     width: 1440,
     path: "/coach/students",
   },
+
+  // Faz 6 Parça 2: yanlış defteri (seed: Ayşe 3 fotoğrafsız kayıt), veli, konu hücresi deneme satırı
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-yanlislar-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/mistakes",
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-yanlis-ekle-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/mistakes/new",
+    before: async (page) => {
+      // Fotoğraf seçilmiş hali (önizleme + "Not ekle" katlanır); kaydedilmez.
+      await page.getByLabel("Fotoğraf seç").setInputFiles("e2e/fixtures/soru.jpg");
+      await page.getByTestId("mistake-photo-preview").waitFor();
+      await page.getByRole("radio", { name: "Mat", exact: true }).click();
+      await page.getByRole("radio", { name: "İşlem hatası" }).click();
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-konu-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/topics",
+    before: async (page) => {
+      await page.getByRole("button", { name: /^Üslü İfadeler:/ }).click();
+      await page.getByRole("dialog").getByTestId("topic-mock").waitFor();
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-yanlislar-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/mistakes`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "veli-ozet-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "veli-denemeler-390.png",
+    as: "parent",
+    width: 390,
+    path: `/parent/${SEED.ayse}/exams`,
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */

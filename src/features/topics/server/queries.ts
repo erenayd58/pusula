@@ -105,7 +105,7 @@ export async function getTopicMap(studentId: string): Promise<TopicMap | null> {
   const statsByTopic = new Map(stats.map((r) => [r.topic_id, r]));
   const targetByTopic = new Map(targets.map((t) => [t.topic_id, t.target_on]));
   const recentMocks = mocks
-    .filter((r) => r.subject_id === null && r.exam?.subject_id === null)
+    .filter((r) => r.subject_id === null && (r.exam?.subject_id ?? null) === null)
     .slice(0, settings.mock_exams.recent_count);
   const marksByTopic = new Map<string, number>();
   for (const r of recentMocks)

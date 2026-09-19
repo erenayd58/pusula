@@ -78,3 +78,15 @@ export async function deleteE2EStudents(): Promise<number> {
 
 /** uniqueUsername çıktısı: `<harf ön eki>.<base36 zaman damgası + rastgele>`; seed adları eşleşmez. */
 const E2E_USERNAME = /^[a-z0-9]+\.[a-z0-9]{9,}$/;
+
+/** Seed kurumu (Demo Dershane); yanlış defteri fotoğrafları `mistake-images/{org}/{öğrenci}/` altında. */
+const SEED_ORG_ID = "a0000000-0000-4000-8000-000000000001";
+
+/** Öğrencinin depo klasöründeki nesne adları (Storage API; RLS'siz). Klasör yoksa boş dizi. */
+export async function listMistakeImages(studentId: string): Promise<string[]> {
+  const { data, error } = await adminClient()
+    .storage.from("mistake-images")
+    .list(`${SEED_ORG_ID}/${studentId}`, { limit: 100 });
+  if (error) throw error;
+  return data.filter((o) => o.id !== null).map((o) => o.name);
+}
