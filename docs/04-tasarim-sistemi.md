@@ -314,6 +314,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 |---|---|---|
 | `Button` (primary, secondary, ghost) | `components/ui` | Durumlar: normal, hover, basılı, odak, devre dışı. Tasarım dosyasında koç ghost düğmesi `--subject-math-ink` (mavi) kullanır; Bölüm 4.2 gereği uygulamada `--ink-700` + altı çizili (öğrenci ghost ile aynı). |
 | `Input`, `Select` | `components/ui` | Clay'de kap clay, alan içi `clay-well` |
+| `formatNamePossessive` | `lib/format` | Faz 6b: ad + ilgi hali (`Ayşe'nin`, `Mehmet'in`, `Can'ın`); veli başlığı "…'nin bu haftası" — ek elle yazılmaz |
 | `NumberStepper` | `components/shared` | − / + düğmeli, doğrudan yazılabilir, ↑ ↓ destekli; koç için kompakt D/Y/B/Net satırı; `dense` (deneme sihirbazı): etiket solda, 36 px düğme + 44 px dokunma alanı, iki adımlayıcı telefonda yan yana (< 390 px etiket üstte) |
 | `SubjectBadge`, `SubjectStripe` | `components/shared` | `subjectVars()` ile |
 | `GoalRing`, `ProgressBar` | `components/shared` | Hedefe ulaşınca fosforlu + "hedef tamam" metni |

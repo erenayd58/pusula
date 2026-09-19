@@ -12,6 +12,7 @@ import {
   listStudentResults,
 } from "@/features/mock-exams";
 import { requireRole } from "@/lib/auth";
+import { formatNamePossessive } from "@/lib/format";
 import { requireModule } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Denemeler" };
@@ -50,7 +51,7 @@ export default async function ParentExamsPage({ params }: PageProps<"/parent/[st
   return (
     <div className="flex flex-col gap-6" data-testid="parent-exams">
       <p className="text-small text-ink-500">
-        {`${firstName}'in deneme netleri ve ders bazında gelişimi. Netler yayınevi puanı değil; sadece doğru − yanlış hesabıdır.`}
+        {`${formatNamePossessive(firstName)} deneme netleri ve ders bazında gelişimi. Netler yayınevi puanı değil; sadece doğru − yanlış hesabıdır.`}
       </p>
 
       {lastDetail ? <LastResultCards result={lastDetail} /> : null}

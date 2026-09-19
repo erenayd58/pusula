@@ -131,7 +131,7 @@ test.describe("yanlış defteri", () => {
     await card.click();
     await expect(page).toHaveURL(new RegExp(`/parent/${AYSE_ID}/exams$`));
     const exams = page.getByTestId("parent-exams");
-    await expect(exams).toContainText("Ayşe'in deneme netleri");
+    await expect(exams).toContainText("Ayşe'nin deneme netleri");
     await expect(page.getByTestId("last-result")).toContainText("63,33");
     await expect(page.getByRole("figure", { name: /denemede toplam net/ })).toBeVisible();
     await expect(page.getByTestId("result-row")).toHaveCount(4);

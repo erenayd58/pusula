@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Özet" };
 
 /**
  * Veli Özet (V1): modül kartları registry'den (`parentSummary`, `order` sırasıyla; Faz 6b son deneme
- * neti, Faz 8 plan uyumu / soru / süre / gidişat). Hiç kart yoksa boş durum.
+ * neti, Faz 8 plan uyumu / soru / süre / gidişat). Hiç kart yoksa boş durum; yer tutucu metin yok.
  */
 export default async function ParentSummaryPage({ params }: PageProps<"/parent/[studentId]">) {
   const { studentId } = await params;
@@ -21,8 +21,8 @@ export default async function ParentSummaryPage({ params }: PageProps<"/parent/[
     return (
       <EmptyState
         icon={ChartColumnIcon}
-        title="Haftalık özet hazırlanıyor"
-        description="Çocuğunuzun plan uyumu, çözdüğü soru sayısı, çalışma süresi ve deneme netleri burada görünecek. Koçunuz kayıtları başlattığında bu ekran dolar."
+        title="Henüz özet yok"
+        description="Çocuğunuzun deneme netleri ve haftalık gelişimi koçunuz kayıtları başlattığında burada görünür."
       />
     );
   }
@@ -33,9 +33,6 @@ export default async function ParentSummaryPage({ params }: PageProps<"/parent/[
         const Widget = w.component;
         return <Widget key={w.key} studentId={studentId} />;
       })}
-      <p className="text-small text-ink-500">
-        Plan uyumu, soru sayısı ve çalışma süresi özeti yakında eklenecek.
-      </p>
     </div>
   );
 }

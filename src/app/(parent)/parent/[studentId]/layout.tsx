@@ -4,7 +4,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { getStudentHeader } from "@/features/core";
 import { requireRole } from "@/lib/auth";
 import { weekStart } from "@/lib/dates";
-import { formatWeekRange } from "@/lib/format";
+import { formatNamePossessive, formatWeekRange } from "@/lib/format";
 import { getEnabledModules } from "@/modules/get-enabled-modules";
 import { getModule, getParentNav } from "@/modules/registry";
 
@@ -43,7 +43,7 @@ export default async function Layout({ children, params }: LayoutProps<"/parent/
           {firstName.charAt(0).toLocaleUpperCase("tr-TR")}
         </span>
         <div className="flex flex-col">
-          <h1 className="text-title font-semibold tracking-tight">{`${firstName}'in bu haftası`}</h1>
+          <h1 className="text-title font-semibold tracking-tight">{`${formatNamePossessive(firstName)} bu haftası`}</h1>
           <p className="text-small text-ink-500">
             {formatWeekRange(weekStart(new Date()), { year: true })}
           </p>

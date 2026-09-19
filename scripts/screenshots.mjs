@@ -534,6 +534,12 @@ for (const shot of shots) {
     await page.evaluate(() => document.fonts.ready);
     if (shot.before) await shot.before(page);
     await page.waitForTimeout(400); // giriş animasyonları
+    // Tam sayfa yakalamada sabit alt menü görünüm konumunda (sayfanın ortasında) boyanır ve içeriği
+    // kapatıyormuş gibi görünür; belge görüntüsünde belge altına sabitlenir (gerçekte içerik
+    // `--nav-bottom` kadar boşluk bırakır). Yalnızca görüntü için; uygulamada değişiklik yok.
+    await page.addStyleTag({
+      content: "body { position: relative } nav.fixed { position: absolute !important }",
+    });
     await page.screenshot({ path: resolve(outDir, shot.file), fullPage: true });
     console.log(`✓ ${shot.dir}/${shot.file}`);
   } catch (error) {
