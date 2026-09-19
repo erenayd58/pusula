@@ -52,6 +52,7 @@ export function QuickLogProvider({
           options={options}
           initial={state.request.edit ?? null}
           planItem={state.request.planItem ?? null}
+          section={state.request.section ?? null}
         />
       ) : null}
     </QuickLogContext.Provider>

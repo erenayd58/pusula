@@ -47,7 +47,12 @@ export function QuestionLogTable({
               <td className="px-4 py-2.5">
                 <SubjectBadge color={r.subjectColor} shortName={r.subjectShortName} />
               </td>
-              <td className="px-4 py-2.5 text-ink-900">{r.topicName ?? "—"}</td>
+              <td className="px-4 py-2.5 text-ink-900">
+                {r.topicName ?? "—"}
+                {r.sectionLabel ? (
+                  <span className="block text-micro-lg text-ink-500">{r.sectionLabel}</span>
+                ) : null}
+              </td>
               <td className="px-4 py-2.5 text-right whitespace-nowrap text-ink-700">
                 {`${r.correct} / ${r.wrong} / ${r.blank}`}
               </td>

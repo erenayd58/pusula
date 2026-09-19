@@ -17,6 +17,7 @@ const PATHS = [
   "/student/logs",
   "/student/topics",
   "/student/plan",
+  "/student/resources",
   "/coach/students",
 ] as const;
 
@@ -51,13 +52,26 @@ export const createQuestionLog = createAction({
   revalidate: PATHS,
   handler: async (input, ctx) => {
     assertOwn(ctx.profile.role, ctx.userId, input.studentId);
-    if (input.planItemId) {
+    let planItemId = input.planItemId ?? null;
+    if (!planItemId && input.sectionId) {
+      // Kaynak testi: yayınlanmış planda bu teste bağlı açık görev varsa onu da tamamla (11 §2).
+      const { data: row, error } = await ctx.supabase
+        .from("v_student_resource_sections")
+        .select("open_plan_item_id")
+        .eq("student_id", input.studentId)
+        .eq("section_id", input.sectionId)
+        .maybeSingle();
+      if (error) throw error;
+      planItemId = row?.open_plan_item_id ?? null;
+    }
+    if (planItemId) {
       // Plan görevi: kayıt + tamamlama tek transaction (RPC yetkiyi kendi denetler).
       const { data, error } = await ctx.supabase.rpc("complete_plan_item", {
-        p_item_id: input.planItemId,
+        p_item_id: planItemId,
         p_log: {
           subject_id: input.subjectId,
           topic_id: input.topicId,
+          section_id: input.sectionId ?? null,
           correct: input.correct,
           wrong: input.wrong,
           blank: input.blank,
@@ -79,6 +93,8 @@ export const createQuestionLog = createAction({
         log_date: toDateKey(todayInIstanbul()),
         subject_id: input.subjectId,
         topic_id: input.topicId,
+        section_id: input.sectionId ?? null,
+        source: input.sectionId ? "resource" : "free",
         total_count: input.correct + input.wrong + input.blank,
         correct_count: input.correct,
         wrong_count: input.wrong,

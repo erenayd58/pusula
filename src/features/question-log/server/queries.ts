@@ -19,7 +19,7 @@ import type {
  */
 
 const LOG_SELECT =
-  "id, log_date, subject_id, topic_id, total_count, correct_count, wrong_count, blank_count, duration_minutes, subject:subjects(name, short_name, color), topic:topics(name)" as const;
+  "id, log_date, subject_id, topic_id, section_id, total_count, correct_count, wrong_count, blank_count, duration_minutes, subject:subjects(name, short_name, color), topic:topics(name), section:resource_sections(title, resource:resources(title))" as const;
 
 type LogRowRaw = {
   id: string;
@@ -31,8 +31,10 @@ type LogRowRaw = {
   wrong_count: number | null;
   blank_count: number | null;
   duration_minutes: number | null;
+  section_id: string | null;
   subject: { name: string; short_name: string; color: string } | null;
   topic: { name: string } | null;
+  section: { title: string; resource: { title: string } | null } | null;
 };
 
 function toRow(r: LogRowRaw): QuestionLogRow {
@@ -45,6 +47,11 @@ function toRow(r: LogRowRaw): QuestionLogRow {
     subjectColor: r.subject?.color ?? "subject-r3",
     topicId: r.topic_id,
     topicName: r.topic?.name ?? null,
+    sectionId: r.section_id,
+    // Faz 7: kaynak bağı etiketi "Tonguç Mat SB · Test 12" (kaynak silinmişse null).
+    sectionLabel: r.section
+      ? [r.section.resource?.title, r.section.title].filter(Boolean).join(" · ")
+      : null,
     total: r.total_count,
     correct: r.correct_count ?? 0,
     wrong: r.wrong_count ?? 0,

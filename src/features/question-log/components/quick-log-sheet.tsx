@@ -4,7 +4,7 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FormError } from "@/components/shared/form-error";
-import type { QuickLogPlanItem } from "@/components/shared/quick-log-context";
+import type { QuickLogPlanItem, QuickLogSection } from "@/components/shared/quick-log-context";
 import { NativeSelect } from "@/components/shared/native-select";
 import { NumberStepper } from "@/components/shared/number-stepper";
 import { subjectVars } from "@/components/shared/subject-scope";
@@ -20,8 +20,9 @@ import {
   ResponsiveSheetTitle,
 } from "@/components/ui/responsive-sheet";
 import { toDateKey, todayInIstanbul } from "@/lib/dates";
+import { autoBlank } from "@/lib/exam/mock";
 import { calculateNet } from "@/lib/exam/net";
-import { formatDateTr, formatNet } from "@/lib/format";
+import { formatCount, formatDateTr, formatNet } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { saveToastMessage } from "../lib/save-toast";
 import { createQuestionLogSchema, updateQuestionLogSchema } from "../schemas";
@@ -66,6 +67,7 @@ export function QuickLogSheet({
   options,
   initial,
   planItem,
+  section,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -74,6 +76,8 @@ export function QuickLogSheet({
   initial: QuickLogInitial | null;
   /** Plan görevinden açıldıysa: ders/konu ön dolu, kayıt görevi tamamlar. */
   planItem: QuickLogPlanItem | null;
+  /** Kaynak testinden açıldıysa (Faz 7): ders/konu ön dolu, Boş otomatik, kayıt teste bağlanır. */
+  section: QuickLogSection | null;
 }) {
   return (
     <ResponsiveSheet open={open} onOpenChange={onOpenChange}>
@@ -84,6 +88,7 @@ export function QuickLogSheet({
           options={options}
           initial={initial}
           planItem={planItem}
+          section={section}
           onOpenChange={onOpenChange}
         />
       </ResponsiveSheetContent>
@@ -96,12 +101,14 @@ function QuickLogForm({
   options,
   initial,
   planItem,
+  section,
   onOpenChange,
 }: {
   studentId: string;
   options: QuickLogOptions;
   initial: QuickLogInitial | null;
   planItem: QuickLogPlanItem | null;
+  section: QuickLogSection | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
@@ -116,14 +123,14 @@ function QuickLogForm({
   const [{ subjectId, topicId }, setSelection] = useState(() => {
     if (initial) return { subjectId: initial.subjectId, topicId: initial.topicId };
     const fallback = { subjectId: options.subjects[0]!.subjectId, topicId: null };
-    // Plan görevi: görevin dersi/konusu (güncel seçeneklerde varsa) ön dolu gelir.
-    const planSubject =
-      planItem && options.subjects.find((s) => s.subjectId === planItem.subjectId);
-    if (planSubject) {
+    // Plan görevi / kaynak testi: dersi ve konusu (güncel seçeneklerde varsa) ön dolu gelir.
+    const preset = section ?? planItem;
+    const presetSubject = preset && options.subjects.find((s) => s.subjectId === preset.subjectId);
+    if (preset && presetSubject) {
       return {
-        subjectId: planSubject.subjectId,
-        topicId: planSubject.topics.some((t) => t.topicId === planItem.topicId)
-          ? planItem.topicId
+        subjectId: presetSubject.subjectId,
+        topicId: presetSubject.topics.some((t) => t.topicId === preset.topicId)
+          ? preset.topicId
           : null,
       };
     }
@@ -138,7 +145,19 @@ function QuickLogForm({
   });
   const [correct, setCorrect] = useState(initial?.correct ?? 0);
   const [wrong, setWrong] = useState(initial?.wrong ?? 0);
-  const [blank, setBlank] = useState(initial?.blank ?? 0);
+  const [blankManual, setBlankManual] = useState(initial?.blank ?? 0);
+  // Kaynak testinde soru sayısı biliniyorsa Boş otomatik = sayı − D − Y (karar D14, C4 kalıbı);
+  // öğrenci Boş'a dokununca elle değer geçerli olur.
+  const [blankTouched, setBlankTouched] = useState(false);
+  const sectionCount = section?.questionCount ?? null;
+  const computedBlank = sectionCount !== null ? autoBlank(sectionCount, correct, wrong) : null;
+  const blankAuto = computedBlank !== null && !blankTouched;
+  const blank = blankAuto ? Math.max(0, computedBlank) : blankManual;
+  const overCount = sectionCount !== null && correct + wrong + blank > sectionCount;
+  function setBlank(value: number) {
+    setBlankTouched(true);
+    setBlankManual(value);
+  }
   const [duration, setDuration] = useState(initial?.durationMinutes?.toString() ?? "");
   const [logDate, setLogDate] = useState(initial?.logDate ?? todayKey);
   const [error, setError] = useState<string>();
@@ -169,7 +188,15 @@ function QuickLogForm({
       blank,
       durationMinutes: duration.trim() === "" ? null : Number(duration),
     };
-    const createInput = { ...base, planItemId: planItem?.id ?? null };
+    if (overCount) {
+      setError(`Bu testte ${formatCount(sectionCount ?? 0, "soru")} var.`);
+      return;
+    }
+    const createInput = {
+      ...base,
+      planItemId: planItem?.id ?? null,
+      sectionId: section?.id ?? null,
+    };
     const parsed = editing
       ? updateQuestionLogSchema.safeParse({ ...base, id: initial.id, logDate })
       : createQuestionLogSchema.safeParse(createInput);
@@ -194,7 +221,9 @@ function QuickLogForm({
             ? "Kayıt güncellendi."
             : planItem
               ? `Görev tamamlandı. ${saveToastMessage(result.data)}`
-              : saveToastMessage(result.data),
+              : section
+                ? `${section.title} kaydedildi. ${saveToastMessage(result.data)}`
+                : saveToastMessage(result.data),
         );
         onOpenChange(false);
         router.refresh();
@@ -212,14 +241,28 @@ function QuickLogForm({
     >
       <ResponsiveSheetHeader className="shrink-0">
         <ResponsiveSheetTitle>
-          {editing ? "Kaydı düzenle" : planItem ? "Görevi tamamla" : "Soru kaydı"}
+          {editing
+            ? "Kaydı düzenle"
+            : planItem
+              ? "Görevi tamamla"
+              : section
+                ? "Testi kaydet"
+                : "Soru kaydı"}
         </ResponsiveSheetTitle>
         <ResponsiveSheetDescription>
           {editing
             ? "Sayıları veya tarihi değiştir, kaydet."
             : planItem
               ? `${planItem.title} · sayıları gir, kaydet; görev tamamlanır.`
-              : `${formatDateTr(todayInIstanbul(), { weekday: true })} · dersi seç, sayıları gir, kaydet.`}
+              : section
+                ? [
+                    section.resourceTitle,
+                    section.title,
+                    sectionCount !== null ? formatCount(sectionCount, "soru") : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+                : `${formatDateTr(todayInIstanbul(), { weekday: true })} · dersi seç, sayıları gir, kaydet.`}
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 
@@ -284,8 +327,18 @@ function QuickLogForm({
             inputRef={correctRef}
           />
           <NumberStepper id="quick-log-wrong" label="Yanlış" value={wrong} onChange={setWrong} />
-          <NumberStepper id="quick-log-blank" label="Boş" value={blank} onChange={setBlank} />
+          <NumberStepper
+            id="quick-log-blank"
+            label={blankAuto ? "Boş (otomatik)" : "Boş"}
+            value={blank}
+            onChange={setBlank}
+          />
         </div>
+        {overCount ? (
+          <p role="alert" className="text-small text-ink-700">
+            {`Bu testte ${formatCount(sectionCount ?? 0, "soru")} var; doğru + yanlış + boş bunu aşamaz.`}
+          </p>
+        ) : null}
 
         {/* Süre kompakt: telefonda adımlayıcılarla aynı satır düzeni (etiket solda, alan sağda). */}
         <div className={cn("grid gap-2 md:gap-4", editing ? "md:grid-cols-2" : "")}>
