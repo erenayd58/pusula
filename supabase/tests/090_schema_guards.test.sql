@@ -11,7 +11,7 @@
 --   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals ve faz5b_student_targets ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals, faz5b_student_targets ve faz6a_mock_exams ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -103,7 +103,23 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('student_topic_targets',  'select', true,  null),
   ('student_topic_targets',  'insert', true,  null),
   ('student_topic_targets',  'update', true,  null),
-  ('student_topic_targets',  'delete', true,  null);
+  ('student_topic_targets',  'delete', true,  null),
+  ('mock_exams',             'select', true,  null),
+  ('mock_exams',             'insert', true,  null),
+  ('mock_exams',             'update', true,  null),
+  ('mock_exams',             'delete', true,  null),
+  ('mock_exam_results',      'select', true,  null),
+  ('mock_exam_results',      'insert', true,  null),
+  ('mock_exam_results',      'update', true,  null),
+  ('mock_exam_results',      'delete', true,  null),
+  ('mock_exam_subject_results', 'select', true,  null),
+  ('mock_exam_subject_results', 'insert', true,  null),
+  ('mock_exam_subject_results', 'update', true,  null),
+  ('mock_exam_subject_results', 'delete', true,  null),
+  ('mock_exam_topic_mistakes', 'select', true,  null),
+  ('mock_exam_topic_mistakes', 'insert', true,  null),
+  ('mock_exam_topic_mistakes', 'update', true,  null),
+  ('mock_exam_topic_mistakes', 'delete', true,  null);
 
 select plan((
     (select count(*) from pg_class c

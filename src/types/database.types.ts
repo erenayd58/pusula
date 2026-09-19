@@ -505,6 +505,338 @@ export type Database = {
           },
         ]
       }
+      mock_exam_results: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          custom_title: string | null
+          duration_minutes: number | null
+          id: string
+          mock_exam_id: string | null
+          note: string | null
+          percentile: number | null
+          score: number | null
+          student_id: string
+          subject_id: string | null
+          taken_on: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          custom_title?: string | null
+          duration_minutes?: number | null
+          id?: string
+          mock_exam_id?: string | null
+          note?: string | null
+          percentile?: number | null
+          score?: number | null
+          student_id: string
+          subject_id?: string | null
+          taken_on: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          custom_title?: string | null
+          duration_minutes?: number | null
+          id?: string
+          mock_exam_id?: string | null
+          note?: string | null
+          percentile?: number | null
+          score?: number | null
+          student_id?: string
+          subject_id?: string | null
+          taken_on?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exam_results_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_mock_exam_id_fkey"
+            columns: ["mock_exam_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_coach_student_overview"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_setup_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+        ]
+      }
+      mock_exam_subject_results: {
+        Row: {
+          blank_count: number
+          correct_count: number
+          net: number | null
+          result_id: string
+          subject_id: string
+          wrong_count: number
+          wrong_penalty: number
+        }
+        Insert: {
+          blank_count?: number
+          correct_count?: number
+          net?: number | null
+          result_id: string
+          subject_id: string
+          wrong_count?: number
+          wrong_penalty: number
+        }
+        Update: {
+          blank_count?: number
+          correct_count?: number
+          net?: number | null
+          result_id?: string
+          subject_id?: string
+          wrong_count?: number
+          wrong_penalty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exam_subject_results_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exam_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_subject_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_subject_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_subject_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_subject_results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+        ]
+      }
+      mock_exam_topic_mistakes: {
+        Row: {
+          result_id: string
+          topic_id: string
+        }
+        Insert: {
+          result_id: string
+          topic_id: string
+        }
+        Update: {
+          result_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exam_topic_mistakes_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exam_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_topic_mistakes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exam_topic_mistakes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["topic_id"]
+          },
+          {
+            foreignKeyName: "mock_exam_topic_mistakes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["topic_id"]
+          },
+        ]
+      }
+      mock_exams: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          exam_date: string | null
+          id: string
+          organization_id: string
+          publisher: string | null
+          subject_id: string | null
+          template_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          exam_date?: string | null
+          id?: string
+          organization_id: string
+          publisher?: string | null
+          subject_id?: string | null
+          template_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          exam_date?: string | null
+          id?: string
+          organization_id?: string
+          publisher?: string | null
+          subject_id?: string | null
+          template_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exams_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_pace_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_subject_targets"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "v_topic_alert_facts"
+            referencedColumns: ["subject_id"]
+          },
+          {
+            foreignKeyName: "mock_exams_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -1842,12 +2174,16 @@ export type Database = {
           full_name: string | null
           has_targets: boolean | null
           last_log_date: string | null
+          last_mock_on: string | null
+          last_net: number | null
+          net_delta: number | null
           organization_id: string | null
           plan_done_week: number | null
           plan_items_week: number | null
           plan_percent_last_week: number | null
           plan_percent_week: number | null
           plan_to_date_percent_week: number | null
+          prev_net: number | null
           season: string | null
           status: Database["public"]["Enums"]["student_status"] | null
           student_id: string | null
@@ -2558,6 +2894,10 @@ export type Database = {
         Returns: undefined
       }
       postpone_plan_item: { Args: { p_item_id: string }; Returns: Json }
+      save_mock_exam_result: {
+        Args: { p_result: Json; p_subjects: Json; p_topic_ids?: string[] }
+        Returns: string
+      }
       set_plan_item_note: {
         Args: { p_item_id: string; p_note: string }
         Returns: undefined
