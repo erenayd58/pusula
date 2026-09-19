@@ -180,6 +180,19 @@ test.describe("haftalık plan", () => {
       // Bugüne kadar: bugünün tamamlanan görevi 1/1 → %100; hafta geneli 1/2 → %50.
       await expect(row).toContainText("%100");
       await expect(row).toContainText("hafta %50");
+
+      // Kısayol: görev menüsünden "Kopyala" → "Her gün" (görevin kendi günü devre dışı kalır)
+      await page.goto(`/coach/students/${student.studentId}/plan`);
+      await page.getByRole("button", { name: "Görev menüsü: Kitap oku" }).click();
+      dialog = page.getByRole("dialog");
+      await dialog.getByRole("button", { name: "Kopyala" }).click();
+      const copyChips = dialog.getByRole("group", { name: "Kopyalanacak günler" });
+      await expect(copyChips.getByRole("checkbox", { disabled: true })).toHaveCount(1);
+      await dialog.getByRole("button", { name: "Her gün" }).click();
+      await expect(copyChips.getByRole("checkbox", { checked: true })).toHaveCount(6);
+      await dialog.getByRole("button", { name: "6 güne kopyala" }).click();
+      await expect(page.getByText("Görev 6 güne kopyalandı.")).toBeVisible();
+      await expect(page.getByTestId("plan-item").filter({ hasText: "Kitap oku" })).toHaveCount(7);
     } finally {
       await page.setViewportSize({ width: 1440, height: 900 });
       if (/\/coach\//.test(page.url())) await logout(page);

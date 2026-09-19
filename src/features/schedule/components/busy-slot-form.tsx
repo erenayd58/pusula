@@ -2,9 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { DayChips, WEEKDAYS } from "@/components/shared/day-chips";
 import { FieldError } from "@/components/shared/field-error";
 import { FormError } from "@/components/shared/form-error";
 import { NativeSelect } from "@/components/shared/native-select";
@@ -19,16 +20,18 @@ import {
   ResponsiveSheetHeader,
   ResponsiveSheetTitle,
 } from "@/components/ui/responsive-sheet";
-import { busySlotKindLabels, dayOfWeekLabels } from "@/content/labels";
-import { busySlotKindValues, busySlotSchema, type BusySlotInput } from "../schemas";
-import { upsertBusySlot } from "../server/actions";
+import { busySlotKindLabels } from "@/content/labels";
+import { busySlotFormSchema, busySlotKindValues, type BusySlotFormInput } from "../schemas";
+import { addBusySlots, upsertBusySlot } from "../server/actions";
 import type { BusySlotRow } from "../types";
 
 export type BusySlotSheetState = { mode: "new" } | { mode: "edit"; row: BusySlotRow } | null;
 
-const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
-
-/** Sabit meşguliyet formu: gün, başlangıç/bitiş saati, tür, kısa not. ResponsiveSheet içinde. */
+/**
+ * Sabit meşguliyet formu: gün(ler), başlangıç/bitiş saati, tür, kısa not. ResponsiveSheet içinde.
+ * Eklemede gün çipleri çoklu seçim ("Hafta içi" kısayolu; okul için varsayılan Pzt–Cum) ve her
+ * gün ayrı satır olur; düzenlemede tek gün.
+ */
 export function BusySlotForm({
   studentId,
   state,
@@ -67,12 +70,12 @@ function Fields({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string>();
-  const form = useForm<BusySlotInput>({
-    resolver: zodResolver(busySlotSchema),
+  const form = useForm<BusySlotFormInput>({
+    resolver: zodResolver(busySlotFormSchema),
     defaultValues: {
       id: row?.id,
       studentId,
-      dayOfWeek: row?.dayOfWeek ?? 1,
+      days: row ? [row.dayOfWeek] : [...WEEKDAYS],
       startsAt: row?.startsAt ?? "08:30",
       endsAt: row?.endsAt ?? "15:00",
       kind: row?.kind ?? "school",
@@ -84,12 +87,22 @@ function Fields({
   const onSubmit = form.handleSubmit((values) => {
     setFormError(undefined);
     startTransition(async () => {
-      const result = await upsertBusySlot(values);
+      const { id, days, ...rest } = values;
+      // Düzenlemede çipler tekil (radyo); şema en az bir gün ister.
+      const result = id
+        ? await upsertBusySlot({ ...rest, id, dayOfWeek: days[0]! })
+        : await addBusySlots({ ...rest, days });
       if (!result.ok) {
         setFormError(result.error);
         return;
       }
-      toast.success(row ? "Meşguliyet güncellendi." : "Meşguliyet eklendi.");
+      toast.success(
+        id
+          ? "Meşguliyet güncellendi."
+          : days.length > 1
+            ? `Meşguliyet ${days.length} güne eklendi.`
+            : "Meşguliyet eklendi.",
+      );
       onOpenChange(false);
       router.refresh();
     });
@@ -102,25 +115,25 @@ function Fields({
           {row ? "Meşguliyeti düzenle" : "Meşguliyet ekle"}
         </ResponsiveSheetTitle>
         <ResponsiveSheetDescription>
-          Her hafta aynı gün ve saatte tekrar eden bir zaman dilimi.
+          {row
+            ? "Her hafta aynı gün ve saatte tekrar eden bir zaman dilimi."
+            : "Her hafta aynı saatte tekrar eder. Birden fazla gün seçilirse her güne ayrı kayıt eklenir."}
         </ResponsiveSheetDescription>
       </ResponsiveSheetHeader>
 
-      <div>
-        <Label htmlFor="slot-day">Gün</Label>
-        <NativeSelect
-          id="slot-day"
-          aria-invalid={!!errors.dayOfWeek}
-          {...form.register("dayOfWeek", { valueAsNumber: true })}
-        >
-          {DAYS.map((d) => (
-            <option key={d} value={d}>
-              {dayOfWeekLabels[d]}
-            </option>
-          ))}
-        </NativeSelect>
-        <FieldError message={errors.dayOfWeek?.message} />
-      </div>
+      <Controller
+        control={form.control}
+        name="days"
+        render={({ field }) => (
+          <DayChips
+            label={row ? "Gün" : "Günler"}
+            single={row !== null}
+            value={field.value}
+            onChange={(days) => field.onChange(days.filter((d): d is number => d !== null))}
+            error={errors.days?.message}
+          />
+        )}
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <div>
