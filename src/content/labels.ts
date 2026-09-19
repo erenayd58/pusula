@@ -100,13 +100,25 @@ export const planStatusLabels = {
   published: "Yayınlandı",
 } as const;
 
-/** Plan görev türü (Faz 4b; kitap/video Faz 5). */
+/** Plan görev türü (Faz 4b; `section` / `video` Faz 7). */
 export const planItemKindLabels = {
   topic_study: "Konu çalışması",
   questions: "Soru",
   review: "Tekrar",
   link: "Bağlantı",
   custom: "Serbest",
+  section: "Kaynak testi",
+  video: "Video",
+} as const;
+
+/** Kaynak (kitap) türü (Faz 7). */
+export const resourceTypeLabels = {
+  lecture_book: "Konu anlatımı",
+  question_bank: "Soru bankası",
+  worksheet: "Yaprak test",
+  booklet: "Fasikül",
+  mock_book: "Deneme kitabı",
+  other: "Diğer",
 } as const;
 
 /** Kurulum uyarıları (Faz 4 kapanışı; yalnızca koç ekranında). */
