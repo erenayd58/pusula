@@ -49,6 +49,14 @@ const SETTINGS: OrgSettings = {
     topics_finish_weeks_before_exam: 8,
   },
   mock_exams: { recent_count: 3, weak_min_marks: 2, weak_min_mistakes: 3, gap_weight: 0.5 },
+  student_alerts: {
+    inactivity_days: 3,
+    goal_behind: { from_isodow: 3, min_percent: 40 },
+    net_drop: 5,
+    low_plan_percent: 50,
+    overdue_reviews_max: 15,
+    inactivity_notify_days: 7,
+  },
 };
 
 const MAT = {

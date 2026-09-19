@@ -7,6 +7,7 @@ import { combineGap, mockSubjectGap } from "@/lib/strategy/gap";
 import { periodFor } from "@/lib/strategy/periods";
 import { createClient } from "@/lib/supabase/server";
 import { alertThresholds, evaluateSetupAlerts, evaluateTopicAlerts } from "../lib/alerts";
+import { evaluateStudentAlerts } from "../lib/student-alerts";
 import {
   buildSuggestions,
   dismissalKey,
@@ -17,6 +18,8 @@ import {
 import type {
   SetupAlert,
   SetupFacts,
+  StudentAlert,
+  StudentAlertFacts,
   StudentStrategy,
   TopicAlert,
   TopicAlertFacts,
@@ -433,4 +436,41 @@ export async function getSetupFacts(studentIds?: string | string[]): Promise<Set
 export async function getSetupAlerts(studentIds?: string | string[]): Promise<SetupAlert[]> {
   const [facts, settings] = await Promise.all([getSetupFacts(studentIds), getOrgSettings()]);
   return evaluateSetupAlerts(facts, settings.alerts, toDateKey(todayInIstanbul()));
+}
+
+// Öğrenci düzeyi uyarılar (Faz 8) ------------------------------------------------------------
+
+/** `v_coach_student_overview` satırlarından olgular (koç kendi öğrencileri, owner kurum). */
+export async function getStudentAlertFacts(studentId?: string): Promise<StudentAlertFacts[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("v_coach_student_overview")
+    .select(
+      "student_id, status, last_log_date, weekly_target, week_goal_percent, net_delta, plan_percent_last_week, overdue_reviews",
+    );
+  if (studentId) query = query.eq("student_id", studentId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data.flatMap((r) =>
+    r.student_id && r.status
+      ? [
+          {
+            studentId: r.student_id,
+            status: r.status,
+            lastLogDate: r.last_log_date,
+            weeklyTarget: r.weekly_target === null ? null : Number(r.weekly_target),
+            weekGoalPercent: r.week_goal_percent,
+            netDelta: r.net_delta === null ? null : Number(r.net_delta),
+            planPercentLastWeek: r.plan_percent_last_week,
+            overdueReviews: r.overdue_reviews ?? 0,
+          },
+        ]
+      : [],
+  );
+}
+
+/** Öğrenci düzeyi uyarılar (01 §7; 12 §3.2): olgular + kurum ayarı `student_alerts` → saf kural. */
+export async function getStudentAlerts(studentId?: string): Promise<StudentAlert[]> {
+  const [facts, settings] = await Promise.all([getStudentAlertFacts(studentId), getOrgSettings()]);
+  return evaluateStudentAlerts(facts, settings.student_alerts, toDateKey(todayInIstanbul()));
 }

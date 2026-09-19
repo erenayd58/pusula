@@ -1,7 +1,8 @@
 import "server-only";
 
+import { TZDate } from "@date-fns/tz";
 import { addDays } from "date-fns";
-import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
+import { TIME_ZONE, toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { streakFrom } from "@/lib/dates/streak";
 import { wrongPenaltyOf } from "@/lib/exam/net";
 import { createClient } from "@/lib/supabase/server";
@@ -123,17 +124,21 @@ export async function listQuestionLogs(
   return data.map(toRow);
 }
 
-/** Bu haftanın ders dağılımı (pazartesiden itibaren), dersin şablon sırasıyla; kayıtsız ders yok. */
+/**
+ * Haftanın ders dağılımı, dersin şablon sırasıyla; kayıtsız ders yok. `week` bir tarih (o haftanın
+ * pazartesisi bulunur) ya da hafta anahtarı (YYYY-AA-GG pazartesi; veli hafta seçici, Faz 8).
+ */
 export async function getWeekSubjectDistribution(
   studentId: string,
-  now = new Date(),
+  week: Date | string = new Date(),
 ): Promise<SubjectWeekBar[]> {
   const supabase = await createClient();
+  const weekKey = typeof week === "string" ? week : toDateKey(weekStart(week));
   const { data, error } = await supabase
     .from("v_student_subject_weekly")
     .select("subject_id, questions, correct")
     .eq("student_id", studentId)
-    .eq("week_start", toDateKey(weekStart(now)));
+    .eq("week_start", weekKey);
   if (error) throw error;
   const ids = data.map((r) => r.subject_id).filter((id): id is string => id !== null);
   if (ids.length === 0) return [];
@@ -152,6 +157,25 @@ export async function getWeekSubjectDistribution(
     questions: byId.get(s.id)?.questions ?? 0,
     correct: byId.get(s.id)?.correct ?? 0,
   }));
+}
+
+/** Haftanın toplamı (veli Özet, Faz 8): soru ve süre (`duration_minutes` girilmiş kayıtlar). */
+export async function getWeekTotals(
+  studentId: string,
+  weekKey: string,
+): Promise<{ questions: number; studyMinutes: number }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("v_student_daily_summary")
+    .select("questions, study_minutes")
+    .eq("student_id", studentId)
+    .gte("day", weekKey)
+    .lt("day", toDateKey(addDays(new TZDate(weekKey, TIME_ZONE), 7)));
+  if (error) throw error;
+  return {
+    questions: data.reduce((sum, r) => sum + (r.questions ?? 0), 0),
+    studyMinutes: data.reduce((sum, r) => sum + (r.study_minutes ?? 0), 0),
+  };
 }
 
 /** Seri: son 400 günün kayıt günlerinden (v_student_daily_summary) hesaplanır. */

@@ -136,3 +136,25 @@ export type StudentStrategy = {
   /** Ders → son N denemede toplam yanlış ve deneme sayısı (`v_student_mock_subject_stats`); yoksa boş. */
   subjectMockWrong: ReadonlyMap<string, { wrong: number; exams: number }>;
 };
+
+/** Öğrenci düzeyi uyarı türleri (Faz 8, 01 §7; 12 §3.2). Motivasyon ve uyku Faz 9. */
+export type StudentAlertKind =
+  "inactive" | "net_drop" | "low_plan" | "goal_behind" | "overdue_reviews";
+
+/** `v_coach_student_overview` satırından olgular (sorgu katmanı `listStudents` satırından kurar). */
+export type StudentAlertFacts = {
+  studentId: string;
+  status: "active" | "paused" | "archived";
+  lastLogDate: string | null;
+  weeklyTarget: number | null;
+  weekGoalPercent: number | null;
+  /** Son genel deneme − önceki (Faz 6a); tek deneme → null. */
+  netDelta: number | null;
+  /** Geçen haftanın yayınlanmış planı; yoksa null. */
+  planPercentLastWeek: number | null;
+  /** `v_review_queue` sayısı (vadesi bugün ya da geçmiş). */
+  overdueReviews: number;
+};
+
+/** Öğrenci düzeyi uyarı: `value` türe göre gün / yüzde / net farkı / tekrar sayısı. */
+export type StudentAlert = { studentId: string; kind: StudentAlertKind; value: number };

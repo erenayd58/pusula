@@ -54,6 +54,13 @@ export const updateExamDateSchema = studentIdSchema.extend({
 });
 export type UpdateExamDateInput = z.infer<typeof updateExamDateSchema>;
 
+/** Veli görünürlüğü (Faz 8, karar E8): `student_parents.can_view_details`. */
+export const setParentDetailsSchema = studentIdSchema.extend({
+  parentId: z.uuid("Veli seçimi geçersiz."),
+  canViewDetails: z.boolean(),
+});
+export type SetParentDetailsInput = z.infer<typeof setParentDetailsSchema>;
+
 export const assignCoachSchema = studentIdSchema.extend({
   coachId: z.uuid("Koç seçimi geçersiz."),
 });
@@ -207,6 +214,21 @@ export const orgSettingsFormSchema = z.object({
     weak_min_marks: int(1),
     weak_min_mistakes: int(1),
     gap_weight: z.number("Sayı gir.").min(0, "0 ile 1 arası gir.").max(1, "0 ile 1 arası gir."),
+  }),
+  student_alerts: z.object({
+    inactivity_days: int(1),
+    goal_behind: z.object({
+      from_isodow: z
+        .number("Sayı gir.")
+        .int("Tam sayı gir.")
+        .min(1, "1 (pazartesi) ile 7 (pazar) arası gir.")
+        .max(7, "1 (pazartesi) ile 7 (pazar) arası gir."),
+      min_percent: percent,
+    }),
+    net_drop: z.number("Sayı gir.").min(0, "0 ya da daha büyük gir."),
+    low_plan_percent: percent,
+    overdue_reviews_max: int(0),
+    inactivity_notify_days: int(1),
   }),
 });
 export type OrgSettingsFormInput = z.infer<typeof orgSettingsFormSchema>;

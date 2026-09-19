@@ -104,10 +104,23 @@ export function subjectPace(
 /**
  * Öğrenci cümlesi ("sen", yargı yok): "54 konunun 9'u bitti · takvimin 3 konu gerisindesin" ·
  * "… ilerisindesin" · "… takvimle uyumlusun"; hedef yoksa yalnızca ilk parça.
+ * Veli (Faz 8, "siz" dili, üçüncü tekil): `{ audience: "parent", name }` → "54 konunun 9'u bitti ·
+ * Ayşe takvimin 3 konu gerisinde" · "… ilerisinde" · "… takvimle uyumlu".
  */
-export function paceSentence(p: TopicPace, hasTargets: boolean): string {
+export function paceSentence(
+  p: TopicPace,
+  hasTargets: boolean,
+  opts?: { audience: "student" | "parent"; name?: string },
+): string {
   const head = `${formatCount(p.total, "konunun")} ${formatPossessive(p.done)} bitti`;
   if (!hasTargets) return head;
+  if (opts?.audience === "parent") {
+    const who = opts.name?.trim() ? `${opts.name.trim()} ` : "";
+    if (p.overdue > 0)
+      return `${head} · ${who}takvimin ${formatCount(p.overdue, "konu")} gerisinde`;
+    if (p.ahead > 0) return `${head} · ${who}takvimin ${formatCount(p.ahead, "konu")} ilerisinde`;
+    return `${head} · ${who}takvimle uyumlu`;
+  }
   if (p.overdue > 0) return `${head} · takvimin ${formatCount(p.overdue, "konu")} gerisindesin`;
   if (p.ahead > 0) return `${head} · takvimin ${formatCount(p.ahead, "konu")} ilerisindesin`;
   return `${head} · takvimle uyumlusun`;

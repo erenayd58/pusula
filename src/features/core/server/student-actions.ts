@@ -4,7 +4,7 @@ import { ActionError, createAction } from "@/lib/actions/create-action";
 import { usernameToEmail } from "@/lib/auth/username";
 import { serverEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createStudentSchema, updateExamDateSchema } from "../schemas";
+import { createStudentSchema, setParentDetailsSchema, updateExamDateSchema } from "../schemas";
 import { createStudentAccount } from "./create-student-account";
 
 const STUDENTS_PATH = "/coach/students";
@@ -53,5 +53,30 @@ export const updateStudentExamDate = createAction({
     }
     if (data.length === 0) throw new ActionError("Öğrenci bulunamadı.");
     return { examDate: input.examDate };
+  },
+});
+
+/**
+ * Veli görünürlüğü (Faz 8, E8): `student_parents.can_view_details` — yanlış defteri sekmesi ve depo
+ * kapısı (`can_read_mistakes`). RLS koçu kendi öğrencisiyle sınırlar.
+ */
+export const setParentDetails = createAction({
+  name: "setParentDetails",
+  schema: setParentDetailsSchema,
+  roles: ["coach", "owner"],
+  revalidate: ["/coach/students", "/parent"],
+  handler: async (input, ctx) => {
+    const { data, error } = await ctx.supabase
+      .from("student_parents")
+      .update({ can_view_details: input.canViewDetails })
+      .eq("student_id", input.studentId)
+      .eq("parent_id", input.parentId)
+      .select("parent_id");
+    if (error) {
+      if (error.code === "42501") throw new ActionError("Bu işlem için yetkin yok.");
+      throw error;
+    }
+    if (data.length === 0) throw new ActionError("Veli bağlantısı bulunamadı.");
+    return { canViewDetails: input.canViewDetails };
   },
 });

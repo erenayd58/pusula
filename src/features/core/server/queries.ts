@@ -41,6 +41,8 @@ export type StudentListRow = {
   /** Önceki genel denemeye göre; tek deneme → null. */
   netDelta: number | null;
   lastMockOn: string | null;
+  /** Faz 8: vadesi bugün ya da geçmiş tekrar sayısı (`v_review_queue`). */
+  overdueReviews: number;
 };
 
 /**
@@ -52,7 +54,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
   const { data, error } = await supabase
     .from("v_coach_student_overview")
     .select(
-      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_behind, topics_ahead, last_net, net_delta, last_mock_on",
+      "student_id, coach_id, full_name, username, status, season, last_log_date, week_questions, weekly_target, week_goal_percent, plan_percent_week, plan_to_date_percent_week, has_targets, topics_total, topics_done, topics_behind, topics_ahead, last_net, net_delta, last_mock_on, overdue_reviews",
     )
     .order("full_name");
   if (error) throw error;
@@ -93,6 +95,7 @@ export async function listStudents(): Promise<StudentListRow[]> {
             lastNet: row.last_net === null ? null : Number(row.last_net),
             netDelta: row.net_delta === null ? null : Number(row.net_delta),
             lastMockOn: row.last_mock_on,
+            overdueReviews: row.overdue_reviews ?? 0,
           },
         ]
       : [],
@@ -210,6 +213,49 @@ export async function getStudentHeader(studentId: string): Promise<StudentHeader
     status: data.status,
     coachName: data.coach?.full_name ?? null,
   };
+}
+
+// Veli bağlantıları (Faz 8) ---------------------------------------------------------------
+
+export type StudentParentRow = {
+  parentId: string;
+  fullName: string;
+  relation: "mother" | "father" | "guardian" | "other";
+  canViewDetails: boolean;
+  linkedAt: string;
+};
+
+/** K2 "Veliler" kartı: öğrencinin velileri (RLS: koç kendi öğrencisi; veli profilleri `can_see_profile`). */
+export async function listStudentParents(studentId: string): Promise<StudentParentRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("student_parents")
+    .select(
+      "parent_id, relation, can_view_details, created_at, parent:profiles!student_parents_parent_id_fkey(full_name)",
+    )
+    .eq("student_id", studentId)
+    .order("created_at");
+  if (error) throw error;
+  return data.map((r) => ({
+    parentId: r.parent_id,
+    fullName: r.parent.full_name,
+    relation: r.relation,
+    canViewDetails: r.can_view_details,
+    linkedAt: r.created_at,
+  }));
+}
+
+/** Oturumdaki velinin bu çocuk için `can_view_details` izni (veli kabuğu sekmeleri, E8). */
+export async function getParentDetailsAccess(studentId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("student_parents")
+    .select("can_view_details")
+    .eq("student_id", studentId)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.can_view_details ?? false;
 }
 
 // KVKK onay durumu ---------------------------------------------------------------------

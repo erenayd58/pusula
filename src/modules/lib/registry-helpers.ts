@@ -86,11 +86,18 @@ export function getCoachStudentTabs(
   return resolveSegments(modules, enabled, (m) => m.coachStudentTabs);
 }
 
+/**
+ * Veli menüsü; `requiresDetails` taşıyan sekmeler yalnızca `opts.details` (velinin
+ * `can_view_details` bağlantısı) ile görünür (Faz 8, karar E8).
+ */
 export function getParentNav(
   modules: readonly ModuleManifest[],
   enabled: EnabledSet,
+  opts: { details?: boolean } = {},
 ): ResolvedTab[] {
-  return resolveSegments(modules, enabled, (m) => m.nav?.parent);
+  return resolveSegments(modules, enabled, (m) =>
+    (m.nav?.parent ?? []).filter((t) => !t.requiresDetails || opts.details === true),
+  );
 }
 
 /** Verilen href'i menüsünde taşıyan modül (öğrenci/koç yer tutucu sayfaları için). */

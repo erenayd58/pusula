@@ -30,6 +30,8 @@ export type SegmentItem = {
   label: string;
   icon?: LucideIcon;
   order: number;
+  /** Veli sekmesi yalnızca `student_parents.can_view_details` olan velide görünür (Faz 8, karar E8). */
+  requiresDetails?: boolean;
 };
 
 export type ModuleManifest<TSettings extends z.ZodType = z.ZodType> = {
@@ -70,12 +72,16 @@ export type StudentTodayWidget = {
   column?: "main" | "side";
 };
 
+/** Veli Özet kartı bağlamı (Faz 8, karar E5): seçili çocuk + `?week=` ile seçilen hafta (pazartesi). */
+export type ParentSummaryWidgetProps = ModuleWidgetProps & { weekStart: string };
+
 /**
- * Veli Özet kartı (Faz 6b, karar C15): tek sütun, `order` sırasıyla; prop `{ studentId }` (seçili
- * çocuk). Faz 8 plan uyumu / soru / gidişat kartlarını ekler.
+ * Veli Özet kartı (Faz 6b, karar C15): tek sütun, `order` sırasıyla; prop `{ studentId, weekStart }`.
+ * Faz 8: plan uyumu 10, soru/süre 20, gidişat 30, son deneme 40, ders dağılımı 50, kaynak/video 60,
+ * koç notu 70.
  */
 export type ParentSummaryWidget = {
-  component: ComponentType<ModuleWidgetProps>;
+  component: ComponentType<ParentSummaryWidgetProps>;
   order: number;
 };
 

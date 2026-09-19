@@ -2,10 +2,11 @@ import { redirect } from "next/navigation";
 import { SurfaceRoot } from "@/components/layout/surface-root";
 import { siteConfig } from "@/config/site";
 import { LogoutButton, listChildrenNeedingConsent } from "@/features/core";
+import { NotificationBell } from "@/features/notifications";
 import { requireRole } from "@/lib/auth";
 
 /**
- * Veli kabuğu (clay-calm, 04 Bölüm 8.3): tek sütun, üstte marka + çıkış. Alt menü çocuğa bağlı
+ * Veli kabuğu (clay-calm, 04 Bölüm 8.3): tek sütun, üstte marka + zil (Faz 8) + çıkış. Alt menü çocuğa bağlı
  * olduğu için `[studentId]/layout.tsx` içindedir. requireRole sunucu tarafında kesin kontrol.
  */
 export default async function Layout({ children }: LayoutProps<"/parent">) {
@@ -18,7 +19,10 @@ export default async function Layout({ children }: LayoutProps<"/parent">) {
     <SurfaceRoot surface="clay-calm">
       <header className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center justify-between gap-4 px-4 pt-4 md:px-8">
         <p className="text-small font-semibold text-ink-900">{siteConfig.name}</p>
-        <LogoutButton variant="ghost" />
+        <div className="flex items-center gap-2">
+          <NotificationBell href="/parent/notifications" />
+          <LogoutButton variant="ghost" />
+        </div>
       </header>
       <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-[calc(var(--nav-bottom)+24px)] md:px-8">
         {children}

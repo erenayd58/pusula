@@ -163,3 +163,32 @@ export const mockExamKindLabels = {
   general: "Genel",
   branch: "Branş",
 } as const;
+
+/** Öğrenci düzeyi koç uyarıları (Faz 8, 01 §7). */
+export const studentAlertKindLabels = {
+  inactive: "Hareketsizlik",
+  net_drop: "Net düşüşü",
+  low_plan: "Plan uyumu düşük",
+  goal_behind: "Hedef geride",
+  overdue_reviews: "Birikmiş tekrar",
+} as const;
+
+/** Koç notu görünürlüğü (Faz 8). */
+export const noteVisibilityLabels = {
+  coach_only: "Sadece ben",
+  student: "Öğrenci",
+  parent: "Veli",
+  student_and_parent: "Öğrenci ve veli",
+} as const;
+
+/** Bildirim türleri (Faz 8; tercih formu). */
+export const notificationTypeLabels = {
+  plan_published: "Haftalık plan yayınlandı",
+  note_added: "Koç notu",
+  announcement: "Duyuru",
+  mock_result_added: "Öğrenci deneme sonucu girdi",
+  student_note: "Öğrenci not bıraktı",
+  review_due: "Tekrar hatırlatması",
+  student_inactive: "Hareketsizlik uyarısı",
+  weekly_summary: "Haftalık özet",
+} as const;

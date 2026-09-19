@@ -74,6 +74,33 @@ describe("topicPace", () => {
     expect(paceLabel(ok, true)).toBe("Uyumlu");
   });
 
+  it("veli cümlesi (Faz 8): üçüncü tekil, ad ile; hedefsizken yalnızca sayım", () => {
+    const behind = topicPace(
+      [t("a", { targetOn: "2026-09-10" }), t("b", { targetOn: "2026-10-05" })],
+      input,
+    );
+    expect(paceSentence(behind, true, { audience: "parent", name: "Ayşe" })).toBe(
+      `2${NBSP}konunun 0'ı bitti · Ayşe takvimin 1${NBSP}konu gerisinde`,
+    );
+    const ahead = topicPace(
+      [t("a", { done: true, completedAt: ago(1), targetOn: "2026-10-05" })],
+      input,
+    );
+    expect(paceSentence(ahead, true, { audience: "parent", name: "Ayşe" })).toBe(
+      `1${NBSP}konunun 1'i bitti · Ayşe takvimin 1${NBSP}konu ilerisinde`,
+    );
+    const ok = topicPace([t("a", { targetOn: "2026-10-05" })], input);
+    expect(paceSentence(ok, true, { audience: "parent", name: "Ayşe" })).toBe(
+      `1${NBSP}konunun 0'ı bitti · Ayşe takvimle uyumlu`,
+    );
+    expect(paceSentence(ok, true, { audience: "parent" })).toBe(
+      `1${NBSP}konunun 0'ı bitti · takvimle uyumlu`,
+    );
+    expect(paceSentence(ok, false, { audience: "parent", name: "Ayşe" })).toBe(
+      `1${NBSP}konunun 0'ı bitti`,
+    );
+  });
+
   it("hedefsiz: cümle yalnızca sayım, etiket —", () => {
     const p = topicPace([t("a", { done: true, completedAt: ago(2) }), t("b")], input);
     expect(paceSentence(p, false)).toBe(`2${NBSP}konunun 1'i bitti`);

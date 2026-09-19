@@ -78,7 +78,8 @@ export function MistakeList({
   subjects: Pick<MistakeSubject, "subjectId" | "shortName" | "color">[];
   filters: MistakeFilters;
   basePath: string;
-  audience: "student" | "coach";
+  /** Koç ve veli salt okunur (fotoğraf diyaloğu); veli yalnızca `can_view_details` ile (Faz 8, E8). */
+  audience: "student" | "coach" | "parent";
   studentId: string;
 }) {
   return (
@@ -151,7 +152,7 @@ export function MistakeList({
             const solved = m.status === "solved";
             const title = m.topicName ?? m.subjectName;
             const thumb = m.imageUrl ? (
-              audience === "coach" ? (
+              audience !== "student" ? (
                 <MistakeImageDialog url={m.imageUrl} title={title} className="size-16" />
               ) : (
                 <span className="block size-16 shrink-0 overflow-hidden rounded-xs border border-line bg-bg-sunken clay:rounded-md clay:border-0 clay:clay-well">

@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SetupList, SuggestionList, getSetupAlerts, getSuggestions } from "@/features/analytics";
-import { ExamDateForm, getOrgSettings, getStudentHeader } from "@/features/core";
+import {
+  SetupList,
+  StudentAlertList,
+  SuggestionList,
+  getSetupAlerts,
+  getStudentAlerts,
+  getSuggestions,
+} from "@/features/analytics";
+import { PinnedNoteCard } from "@/features/coach-notes";
+import {
+  ExamDateForm,
+  ParentVisibilityCard,
+  getOrgSettings,
+  getStudentHeader,
+  listStudentParents,
+} from "@/features/core";
 import {
   GoalForm,
   PaceTile,
@@ -29,7 +43,8 @@ export const metadata: Metadata = { title: "Genel bakış" };
  * açıksa); plan uyumu kutusu ve "Öneriler" kartı (planner / analytics açıksa; "Plana ekle" bu
  * haftanın taslağına); hedef formu (goals açıksa); sınav tarihi. Faz 5b: konu takvimi özet kutusu
  * (`PaceTile`) ve "Ders bazlı gidişat" tablosu (goals açıksa). Faz 6a: "Son deneme neti" kutusu
- * (`LastMockTile`, mock-exams açıksa; karar C14). Tekrar özeti kendi fazında eklenir.
+ * (`LastMockTile`, mock-exams açıksa; karar C14). Faz 8: sabitlenmiş not (coach-notes açıksa),
+ * "Veliler" kartı (görünürlük anahtarı, E8), öğrenci düzeyi uyarılar (analytics açıksa).
  */
 export default async function OverviewPage({ params }: PageProps<"/coach/students/[studentId]">) {
   const { studentId } = await params;
@@ -44,19 +59,32 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
   const plannerOn = enabled.has("planner");
   const analyticsOn = enabled.has("analytics");
   const mockExamsOn = enabled.has("mock-exams");
+  const notesOn = enabled.has("coach-notes");
   const week = toDateKey(weekStart(todayInIstanbul()));
   const lastWeek = shiftWeek(week, -1);
-  const [goals, planThisWeek, planLastWeek, lastWeekPlan, suggestions, setup, settings, targets] =
-    await Promise.all([
-      goalsOn ? getActiveGoals(studentId) : Promise.resolve({ daily: null, weekly: null }),
-      plannerOn ? getPlanCompletion(studentId, week) : Promise.resolve(null),
-      plannerOn ? getPlanCompletion(studentId, lastWeek) : Promise.resolve(null),
-      plannerOn ? getWeekPlan(studentId, lastWeek) : Promise.resolve(null),
-      analyticsOn ? getSuggestions(studentId) : Promise.resolve([]),
-      analyticsOn ? getSetupAlerts(studentId) : Promise.resolve([]),
-      getOrgSettings(),
-      goalsOn ? getStudentTargets(studentId) : Promise.resolve(null),
-    ]);
+  const [
+    goals,
+    planThisWeek,
+    planLastWeek,
+    lastWeekPlan,
+    suggestions,
+    setup,
+    settings,
+    studentAlerts,
+    targets,
+    parents,
+  ] = await Promise.all([
+    goalsOn ? getActiveGoals(studentId) : Promise.resolve({ daily: null, weekly: null }),
+    plannerOn ? getPlanCompletion(studentId, week) : Promise.resolve(null),
+    plannerOn ? getPlanCompletion(studentId, lastWeek) : Promise.resolve(null),
+    plannerOn ? getWeekPlan(studentId, lastWeek) : Promise.resolve(null),
+    analyticsOn ? getSuggestions(studentId) : Promise.resolve([]),
+    analyticsOn ? getSetupAlerts(studentId) : Promise.resolve([]),
+    getOrgSettings(),
+    analyticsOn ? getStudentAlerts(studentId) : Promise.resolve([]),
+    goalsOn ? getStudentTargets(studentId) : Promise.resolve(null),
+    listStudentParents(studentId),
+  ]);
   const pace = {
     today: toDateKey(todayInIstanbul()),
     examOn: targets?.examDate ?? null,
@@ -80,6 +108,7 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
           ) : null}
           {targets ? <PaceTile targets={targets} pace={pace} /> : null}
           {mockExamsOn ? <LastMockTile studentId={studentId} /> : null}
+          {notesOn ? <PinnedNoteCard studentId={studentId} /> : null}
           {lastWeekPlan?.studentReflection ? (
             <div className="flex flex-col gap-0.5 rounded-sm border border-line bg-bg-paper px-4 py-3 sm:col-span-2 lg:col-span-1">
               <span className="text-micro-lg text-ink-500">
@@ -92,6 +121,14 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
       ) : null}
 
       {targets ? <SubjectPaceTable targets={targets} pace={pace} /> : null}
+
+      {analyticsOn ? (
+        <StudentAlertList
+          alerts={studentAlerts}
+          title="Uyarılar"
+          emptyText="Şu an bu öğrenci için uyarı yok."
+        />
+      ) : null}
 
       {analyticsOn ? <SetupList alerts={setup} /> : null}
 
@@ -130,6 +167,7 @@ export default async function OverviewPage({ params }: PageProps<"/coach/student
           <h2 className="text-heading font-semibold text-ink-900">Sınav</h2>
           <ExamDateForm studentId={studentId} examDate={student.examDate} />
         </section>
+        <ParentVisibilityCard studentId={studentId} parents={parents} />
       </div>
     </div>
   );

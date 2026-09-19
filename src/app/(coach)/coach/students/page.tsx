@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import {
   AttentionList,
   SetupList,
+  StudentAlertList,
   SuggestionList,
   alertToTask,
   getSetupAlerts,
+  getStudentAlerts,
   getSuggestions,
   getTopicAlerts,
 } from "@/features/analytics";
@@ -21,7 +23,8 @@ import { periodFor } from "@/lib/strategy/periods";
 export const metadata: Metadata = { title: "Öğrenciler" };
 
 /**
- * K1 Öğrenciler: başlık, "Dikkat gerektirenler" (acil müdahale), "Kurulum" (yeni öğrencide
+ * K1 Öğrenciler: başlık, "Öğrenci uyarıları" (Faz 8, 01 §7: öğrenci düzeyi, hızlı eylemli),
+ * "Dikkat gerektirenler" (acil müdahale), "Kurulum" (yeni öğrencide
  * eksik adımlar; yalnızca koç görür) ve "Öneriler" (plana
  * eklenebilecekler; öğrenci başına 3 açık, gerisi "Tümünü gör"), liste (karar A12). Uyarı ve
  * öneriler tek sorguyla görünen tüm öğrenciler için; sıradaki konu (`not_started`) dikkat
@@ -31,14 +34,16 @@ export const metadata: Metadata = { title: "Öğrenciler" };
  */
 export default async function StudentsPage() {
   const { profile } = await requireRole("coach", "owner");
-  const [students, coaches, alerts, suggestions, setup, settings] = await Promise.all([
-    listStudents(),
-    profile.role === "owner" ? listCoaches() : Promise.resolve([]),
-    getTopicAlerts(),
-    getSuggestions(),
-    getSetupAlerts(),
-    getOrgSettings(),
-  ]);
+  const [students, coaches, alerts, suggestions, setup, settings, studentAlerts] =
+    await Promise.all([
+      listStudents(),
+      profile.role === "owner" ? listCoaches() : Promise.resolve([]),
+      getTopicAlerts(),
+      getSuggestions(),
+      getSetupAlerts(),
+      getOrgSettings(),
+      getStudentAlerts(),
+    ]);
   const active = new Set(students.filter((s) => s.status === "active").map((s) => s.profileId));
   const attention = alerts.filter((a) => a.kind !== "not_started" && active.has(a.studentId));
   // Aynı öğrenci + konu + tür iki bölümde birden görünmesin: dikkat listesi öncelikli.
@@ -72,6 +77,11 @@ export default async function StudentsPage() {
       </header>
       {students.length > 0 ? (
         <>
+          <StudentAlertList
+            alerts={studentAlerts}
+            studentNames={studentNames}
+            description="Hareketsizlik, net düşüşü, plan uyumu, hedef ve birikmiş tekrar; eşikler kurum ayarında."
+          />
           <AttentionList
             alerts={attention}
             studentNames={studentNames}

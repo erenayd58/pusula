@@ -5,6 +5,7 @@ import { coreModule } from "@/features/core";
 import { goalsModule } from "@/features/goals";
 import { mistakesModule } from "@/features/mistakes";
 import { mockExamsModule } from "@/features/mock-exams";
+import { notificationsModule } from "@/features/notifications";
 import { plannerModule } from "@/features/planner";
 import { questionLogModule } from "@/features/question-log";
 import { resourcesModule } from "@/features/resources";
@@ -33,6 +34,7 @@ export const modules: readonly ModuleManifest[] = [
   videosModule,
   coachNotesModule,
   announcementsModule,
+  notificationsModule,
 ];
 
 export type { ModuleChange, ResolvedNavItem, ResolvedTab } from "@/modules/lib/registry-helpers";
@@ -43,8 +45,8 @@ export const getStudentNav = (enabled: ReadonlySet<string>, opts?: { mobile?: bo
 export const getCoachNav = () => helpers.getCoachNav(modules);
 export const getCoachStudentTabs = (enabled: ReadonlySet<string>) =>
   helpers.getCoachStudentTabs(modules, enabled);
-export const getParentNav = (enabled: ReadonlySet<string>) =>
-  helpers.getParentNav(modules, enabled);
+export const getParentNav = (enabled: ReadonlySet<string>, opts?: { details?: boolean }) =>
+  helpers.getParentNav(modules, enabled, opts);
 export const findModuleByHref = (role: "student" | "coach", href: string) =>
   helpers.findModuleByHref(modules, role, href);
 export const findModuleBySegment = (kind: "coachStudentTab" | "parent", segment: string) =>
