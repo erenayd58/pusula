@@ -55,6 +55,18 @@ export function PlanTaskCard({
           topicId: item.topicId,
           targetValue: item.targetValue,
         },
+        // Kaynak testi (Faz 7): kayıt teste bağlanır, Boş otomatik (soru sayısı = hedef).
+        section:
+          item.kind === "section" && item.sectionId
+            ? {
+                id: item.sectionId,
+                title: item.title,
+                resourceTitle: "",
+                subjectId: item.subjectId,
+                topicId: item.topicId,
+                questionCount: item.targetValue,
+              }
+            : undefined,
       });
       return;
     }

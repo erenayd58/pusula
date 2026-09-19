@@ -96,6 +96,8 @@ export function suggestionsToPoolItems(suggestions: readonly Suggestion[]): Task
     targetValue: s.task.targetValue,
     targetUnit: s.task.targetUnit,
     estimatedMinutes: s.task.estimatedMinutes,
+    sectionId: s.task.sectionId,
+    videoId: s.task.videoId,
     reason: s.strategyNote ? `${s.reason} · ${s.strategyNote}` : s.reason,
   }));
 }

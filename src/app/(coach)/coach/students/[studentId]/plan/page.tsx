@@ -5,20 +5,23 @@ import { getStudentHeader, listStudents } from "@/features/core";
 import {
   PlanBuilder,
   PlanPrintSheet,
+  alertPriorityByTopic,
   alertsToPoolItems,
   buildTaskPool,
   getExistingItemCounts,
   getFrequentTasks,
   getPlanCompletion,
   getPlanOptions,
+  getResourcePoolRows,
   getWeekPlan,
+  sectionsToPoolItems,
   suggestionsToPoolItems,
   type CopyTarget,
 } from "@/features/planner";
 import { getWeekAvailability } from "@/features/schedule";
 import { requireRole } from "@/lib/auth";
 import { resolveWeekParam, shiftWeek, weekDates } from "@/lib/dates";
-import { requireModule } from "@/modules/get-enabled-modules";
+import { getEnabledModules, requireModule } from "@/modules/get-enabled-modules";
 
 export const metadata: Metadata = { title: "Plan" };
 
@@ -34,6 +37,7 @@ export default async function CoachPlanPage({
   const { week: weekParam } = await searchParams;
   const { userId } = await requireRole("coach", "owner");
   await requireModule(studentId, "planner");
+  const enabled = await getEnabledModules(studentId);
   const week = resolveWeekParam(typeof weekParam === "string" ? weekParam : undefined);
   const prevWeek = shiftWeek(week, -1);
   const nextWeek = shiftWeek(week, 1);
@@ -49,6 +53,7 @@ export default async function CoachPlanPage({
     nextWeekPlan,
     alerts,
     suggestions,
+    sectionRows,
   ] = await Promise.all([
     getStudentHeader(studentId),
     getWeekPlan(studentId, week),
@@ -60,7 +65,10 @@ export default async function CoachPlanPage({
     getPlanCompletion(studentId, nextWeek),
     getTopicAlerts(studentId),
     getSuggestions(studentId, week),
+    // Faz 7: kaynak modülü kapalıysa kategori boş kalır.
+    enabled.has("resources") ? getResourcePoolRows(studentId) : Promise.resolve([]),
   ]);
+  const alertPriority = alertPriorityByTopic(alerts);
   if (!student) notFound();
 
   const others = students.filter((s) => s.profileId !== studentId && s.status === "active");
@@ -98,6 +106,7 @@ export default async function CoachPlanPage({
         pool={buildTaskPool({
           suggestions: suggestionsToPoolItems(suggestions),
           ...alertsToPoolItems(alerts, { ...options, reason: alertReason }),
+          resources: sectionsToPoolItems(sectionRows, { alertPriority, ...options }),
           frequent,
         })}
         otherStudents={otherStudents}

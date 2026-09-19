@@ -167,6 +167,8 @@ export function PlanBuilder(props: PlanBuilderProps) {
           targetValue: preset.targetValue,
           targetUnit: preset.targetUnit,
           estimatedMinutes: preset.estimatedMinutes,
+          sectionId: preset.sectionId ?? null,
+          videoId: preset.videoId ?? null,
         });
         if (!result.ok) {
           toast.error(result.error);

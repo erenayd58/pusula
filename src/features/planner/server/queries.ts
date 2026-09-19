@@ -5,6 +5,7 @@ import { toDateKey, todayInIstanbul, weekStart } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import type { PlanItemKind } from "@/types";
 import type { PlannerDefaults } from "../lib/estimate";
+import type { SectionPoolRow } from "../lib/media-pool";
 import type {
   CoachPlanRow,
   PlanCompletion,
@@ -21,7 +22,7 @@ import type {
  */
 
 const ITEM_SELECT =
-  "id, plan_id, day_of_week, sort_order, kind, title, subject_id, topic_id, url, target_value, target_unit, estimated_minutes, completed_at, student_note, postponed_from, postponed_at, subject:subjects(name, short_name, color), topic:topics(name)" as const;
+  "id, plan_id, day_of_week, sort_order, kind, title, subject_id, topic_id, url, target_value, target_unit, estimated_minutes, section_id, completed_at, student_note, postponed_from, postponed_at, subject:subjects(name, short_name, color), topic:topics(name)" as const;
 
 type ItemRaw = {
   id: string;
@@ -36,6 +37,7 @@ type ItemRaw = {
   target_value: number | null;
   target_unit: string | null;
   estimated_minutes: number;
+  section_id: string | null;
   completed_at: string | null;
   student_note: string | null;
   postponed_from: number | null;
@@ -62,6 +64,8 @@ function toItem(r: ItemRaw): PlanItem {
     targetValue: r.target_value,
     targetUnit: r.target_unit === "questions" || r.target_unit === "minutes" ? r.target_unit : null,
     estimatedMinutes: r.estimated_minutes,
+    sectionId: r.section_id,
+    videoId: null,
     completedAt: r.completed_at,
     studentNote: r.student_note,
     postponedFrom: r.postponed_from,
@@ -278,4 +282,35 @@ export async function getExistingItemCounts(
   const out: Record<string, number> = {};
   for (const r of data) if (r.student_id) out[r.student_id] = r.items_total ?? 0;
   return out;
+}
+
+/** Havuz `resources` kategorisi: atanmış kaynakların bitmemiş testleri (görünüm; Faz 7). */
+export async function getResourcePoolRows(studentId: string): Promise<SectionPoolRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("v_student_resource_sections")
+    .select(
+      "section_id, resource_title, section_title, subject_id, subject_name, topic_id, topic_name, question_count, done_at",
+    )
+    .eq("student_id", studentId)
+    .is("done_at", null)
+    .order("resource_title")
+    .order("sort_order");
+  if (error) throw error;
+  return data.flatMap((r) =>
+    r.section_id
+      ? [
+          {
+            sectionId: r.section_id,
+            resourceTitle: r.resource_title ?? "",
+            title: r.section_title ?? "",
+            subjectId: r.subject_id,
+            subjectName: r.subject_name,
+            topicId: r.topic_id,
+            topicName: r.topic_name,
+            questionCount: r.question_count,
+          },
+        ]
+      : [],
+  );
 }

@@ -21,6 +21,9 @@ export type PlanItem = {
   targetValue: number | null;
   targetUnit: TargetUnit | null;
   estimatedMinutes: number;
+  /** Faz 7: kaynak testi / video bağı (silinmişse null; kart dokunuşla tamamlanır). */
+  sectionId: string | null;
+  videoId: string | null;
   completedAt: string | null;
   studentNote: string | null;
   postponedFrom: number | null;
@@ -53,8 +56,14 @@ export type PlanSubjectOption = {
 export type SubjectPace = { subjectId: string; minutesPerQuestion: number };
 
 export type TaskPoolCategoryId =
-  "suggestions" | "behind" | "weak" | "not_started" | "review_due" | "frequent";
-// Faz 7: "resources" | "videos"
+  | "suggestions"
+  | "behind"
+  | "weak"
+  | "not_started"
+  | "review_due"
+  | "resources"
+  | "videos"
+  | "frequent";
 
 /** Ön dolu görev (havuz öğesi, öneri "Plana ekle"): `addPlanItems` alanları. */
 export type PoolTask = {
@@ -66,6 +75,9 @@ export type PoolTask = {
   targetUnit: TargetUnit | null;
   estimatedMinutes: number;
   url?: string;
+  /** Faz 7: `section` / `video` türünde bağ. */
+  sectionId?: string;
+  videoId?: string;
 };
 
 export type TaskPoolItem = PoolTask & {

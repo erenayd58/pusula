@@ -117,6 +117,10 @@ function Fields({
   const [days, setDays] = useState<(number | null)[]>(state.mode === "add" ? state.days : []);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string>();
+  // Faz 7: kaynak testi / video bağı havuz ya da düzenlenen görevden gelir; formda seçilmez.
+  const sectionId = initial?.sectionId ?? null;
+  const videoId = initial?.videoId ?? null;
+  const countsQuestions = kind === "questions" || kind === "section";
 
   const spec = KIND_SPECS[kind];
   const subject = options.subjects.find((s) => s.subjectId === subjectId) ?? null;
@@ -125,7 +129,7 @@ function Fields({
   const targetUnit: TargetUnit | null = spec.defaultTargetUnit;
   const suggested = estimateMinutes({
     kind,
-    targetValue: kind === "questions" ? targetValue : null,
+    targetValue: countsQuestions ? targetValue : kind === "video" ? targetValue : null,
     pace:
       subjectId && options.pace[subjectId]
         ? { minutesPerQuestion: options.pace[subjectId]! }
@@ -158,11 +162,13 @@ function Fields({
       kind,
       title,
       subjectId: kind === "custom" || kind === "link" ? (subjectId ?? null) : subjectId,
-      topicId: spec.needsTopic || kind === "questions" ? topicId : null,
+      topicId: spec.needsTopic || countsQuestions || kind === "video" ? topicId : null,
       url: kind === "link" ? url : "",
-      targetValue: kind === "questions" ? targetValue : null,
-      targetUnit: kind === "questions" ? "questions" : null,
+      targetValue: countsQuestions || kind === "video" ? targetValue : null,
+      targetUnit: countsQuestions ? "questions" : kind === "video" ? "minutes" : null,
       estimatedMinutes: effectiveEstimated.trim() === "" ? NaN : Number(effectiveEstimated),
+      sectionId,
+      videoId,
     };
     const parsed = editing
       ? updatePlanItemSchema.safeParse({ ...common, id: state.item.id })
@@ -286,14 +292,14 @@ function Fields({
         </div>
         {kind !== "custom" && kind !== "link" ? (
           <div>
-            <Label htmlFor="item-topic">Konu{kind === "questions" ? " (isteğe bağlı)" : ""}</Label>
+            <Label htmlFor="item-topic">Konu{countsQuestions ? " (isteğe bağlı)" : ""}</Label>
             <NativeSelect
               id="item-topic"
               value={topicId ?? ""}
               onChange={(e) => setTopicId(e.target.value || null)}
               disabled={!subject}
             >
-              <option value="">{kind === "questions" ? "Karışık" : "Konu seç"}</option>
+              <option value="">{countsQuestions ? "Karışık" : "Konu seç"}</option>
               {subject?.topics.map((t) => (
                 <option key={t.topicId} value={t.topicId}>
                   {t.name}
@@ -306,7 +312,7 @@ function Fields({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {kind === "questions" ? (
+        {countsQuestions ? (
           <div>
             <Label htmlFor="item-target">Soru sayısı</Label>
             <Input
@@ -338,7 +344,7 @@ function Fields({
             }}
           />
           <p className="mt-1 text-micro-lg text-ink-500">
-            {kind === "questions" && subjectId && options.pace[subjectId]
+            {countsQuestions && subjectId && options.pace[subjectId]
               ? `Öneri ${suggested} dk: öğrencinin bu dersteki temposu (son 60 gün).`
               : `Öneri ${suggested} dk: kurum varsayılanı.`}
           </p>

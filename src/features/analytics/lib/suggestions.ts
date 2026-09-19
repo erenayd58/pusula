@@ -15,6 +15,9 @@ export type SuggestionTask = {
   targetUnit: TaskTargetUnit | null;
   estimatedMinutes: number;
   title: string;
+  /** Faz 7: konuya eşli kaynak testi / video görevi (11 §3.3). */
+  sectionId?: string;
+  videoId?: string;
 };
 
 export type Suggestion = {

@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const planItemKindValues = ["topic_study", "questions", "review", "link", "custom"] as const;
+export const planItemKindValues = [
+  "topic_study",
+  "questions",
+  "review",
+  "link",
+  "custom",
+  "section",
+  "video",
+] as const;
 export const targetUnitValues = ["questions", "minutes"] as const;
 
 const uuid = (msg: string) => z.uuid(msg);
@@ -40,6 +48,9 @@ const itemFields = {
     .int("Tam sayı gir.")
     .min(1, "En az 1 dakika.")
     .max(600, "En fazla 600 dakika."),
+  /** Faz 7: `section` / `video` türlerinin bağı (havuz ve öneriden gelir). */
+  sectionId: uuid("Test kimliği geçersiz.").nullable().optional(),
+  videoId: uuid("Video kimliği geçersiz.").nullable().optional(),
 };
 
 function refineItem(v: z.infer<z.ZodObject<typeof itemFields>>, ctx: z.RefinementCtx) {
@@ -51,6 +62,12 @@ function refineItem(v: z.infer<z.ZodObject<typeof itemFields>>, ctx: z.Refinemen
   }
   if ((v.kind === "topic_study" || v.kind === "review" || v.kind === "questions") && !v.subjectId) {
     ctx.addIssue({ code: "custom", path: ["subjectId"], message: "Ders seç." });
+  }
+  if (v.kind === "section" && !v.sectionId) {
+    ctx.addIssue({ code: "custom", path: ["kind"], message: "Kaynak testi havuzdan seçilir." });
+  }
+  if (v.kind === "video" && !v.videoId) {
+    ctx.addIssue({ code: "custom", path: ["kind"], message: "Video havuzdan seçilir." });
   }
 }
 
