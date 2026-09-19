@@ -327,6 +327,7 @@ Uygulamanın imza ekranı. Durumlar üç ayrı kanalla ayrılır: **doluluk, des
 | `Toast` | sonner teması | Başarı: "Kaydedildi. Bugün 34 soru kaldı." Hata: ikon + "Kaydedilemedi. Tekrar dene." + eylem |
 | `BottomSheet` / `Dialog` | `components/ui` | < 768 px alt panel, ≥ 768 px diyalog; aynı API (`ResponsiveSheet`) |
 | `StatTile` | `components/shared` | Büyük sayı + kısa açıklama (+ isteğe bağlı karşılaştırma satırı) |
+| `LineChart` | `components/shared/line-chart` | Faz 6a (karar C1): saf SVG çizgi grafiği; `viewBox` ile ölçeklenir, x eşit aralıklı, y `niceCeil`; seri çipleri (`checkbox`, en az biri açık; toplam `ink-900` 3 px, dersler `var(--s)` 1,5 px), nokta seçimi dokunma/←→/Home/End, `aria-live` detay kutusu, `<figure aria-label={özet}>` + sr-only tablo; hareket yok. Dört noktadan azsa çağıran kart listesi çizer |
 
 ## 11. Hareket
 

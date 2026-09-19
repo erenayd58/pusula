@@ -362,6 +362,69 @@ const SHOTS = [
       await page.getByRole("dialog").waitFor();
     },
   },
+
+  // Faz 6 Parça 1: denemeler (seed: Ayşe 4 genel deneme → grafik; katalog denemesi Ayşe + Mehmet)
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-denemeler-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams",
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-deneme-giris-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams/new",
+    before: async (page) => {
+      // 2. adım (netler): serbest deneme adıyla ilerlenir; kaydedilmez.
+      await page.getByRole("radio", { name: "Başka bir deneme" }).click();
+      await page.getByLabel("Deneme adı").fill("Kafa Dengi Deneme 4");
+      await page.getByRole("button", { name: "Devam" }).click();
+      await page.getByRole("list", { name: "Ders netleri" }).waitFor();
+      const rows = page.getByTestId("subject-entry-row");
+      await rows.nth(0).getByLabel("Doğru", { exact: true }).fill("16");
+      await rows.nth(0).getByLabel("Yanlış", { exact: true }).fill("2");
+      await rows.nth(1).getByLabel("Doğru", { exact: true }).fill("13");
+      await rows.nth(1).getByLabel("Yanlış", { exact: true }).fill("4");
+    },
+  },
+  {
+    dir: "uygulama-6",
+    file: "ogrenci-deneme-detay-390.png",
+    as: "student",
+    width: 390,
+    path: "/student/exams/e1000000-0000-4000-8000-000000000004",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-denemeler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: `/coach/students/${SEED.ayse}/exams`,
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-deneme-katalog-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/exams",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-deneme-karsilastirma-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/exams/e0000000-0000-4000-8000-000000000001",
+  },
+  {
+    dir: "uygulama-6",
+    file: "koc-ogrenciler-1440.png",
+    as: "coach",
+    width: 1440,
+    path: "/coach/students",
+  },
 ];
 
 /** (+) → hızlı kayıt sheet'i; Doğru/Yanlış doldurulur ki anlık özet görünsün (kaydedilmez). */

@@ -278,30 +278,33 @@ export function LineChart({
         )}
       </div>
 
-      <table className="sr-only" aria-describedby={`${id}-caption`}>
-        <caption id={`${id}-caption`}>{summary}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Deneme</th>
-            {series.map((s) => (
-              <th key={s.id} scope="col">
-                {s.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.key}>
-              <th scope="row">{p.label}</th>
-              {series.map((s) => {
-                const v = p.values[s.id];
-                return <td key={s.id}>{v === null || v === undefined ? "—" : formatNet(v)}</td>;
-              })}
+      {/* Tabloya doğrudan sr-only uygulanmaz: table overflow:hidden almaz ve sayfayı yatay taşırır. */}
+      <div className="sr-only">
+        <table aria-describedby={`${id}-caption`}>
+          <caption id={`${id}-caption`}>{summary}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Deneme</th>
+              {series.map((s) => (
+                <th key={s.id} scope="col">
+                  {s.label}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {points.map((p) => (
+              <tr key={p.key}>
+                <th scope="row">{p.label}</th>
+                {series.map((s) => {
+                  const v = p.values[s.id];
+                  return <td key={s.id}>{v === null || v === undefined ? "—" : formatNet(v)}</td>;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

@@ -26,12 +26,12 @@ test.describe("uygulama kabukları", () => {
 
     await nav.getByRole("link", { name: "Konular" }).click();
     await expect(page).toHaveURL(/\/student\/topics$/);
-    // Faz 2: Konular gerçek sayfa (konu haritası); yer tutucu için Denemeler.
+    // Faz 2: Konular gerçek sayfa (konu haritası); Faz 6a: Denemeler gerçek sayfa (seed: son deneme kartı).
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Konu haritası");
     await nav.getByRole("link", { name: "Denemeler" }).click();
     await expect(page).toHaveURL(/\/student\/exams$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Denemeler");
-    await expect(page.getByText("bu bölüm yakında")).toBeVisible();
+    await expect(page.getByTestId("last-result")).toBeVisible();
 
     // Ben: ad, kullanıcı adı ve çıkış. Telefonda üst barda çıkış yok; masaüstünde ray + Ben.
     await nav.getByRole("link", { name: "Ben" }).click();

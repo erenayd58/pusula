@@ -245,19 +245,22 @@ Yeni sekme değil: plan oluşturucu, öneri motoru, Bugün, konu haritası ve ko
 - [x] Faz kapanışı (2026-09-18): e2e paylaşımlı durum izolasyonu (`e2e/shared/` + `shared-desktop` seri projesi, diğer projeler ona bağımlı; karar #47), tam paket iki ardışık koşuda yeşil; `pnpm screenshots --only 5` → `docs/tasarim/uygulama-5/` (K1 dönem satırı + strateji notu, Mehmet geride kareleri) ve `uygulama-4/koc-plan-havuz-1440` (havuz önerisinde not)
 - **Kabul (09 §2):** 54 konunun okul takvimi tek oturumda doldurulur, seed öğrencisinde "Okulun gerisinde" K1'de görünür, dönemler önerilir/kaydedilir (e2e ✅); koç hedefi kurunca 54 konu tarihi yazılır, gerçekçilik cümlesi program değişince değişir, öğrenci Bugün'de gidişat cümlesi + çubuk, K1/K2 dolu, haftalık hedef önerisi uygulanır (e2e ✅); aynı uyarı kümesi farklı dönemde farklı karışım verir, sınava yaklaşınca yeni konu zayıf konunun altına düşer, hedef tarihi geçmiş konu gecikme puanı alır, dağıtım aynı güne aynı dersten üst üste koymaz (birim ✅), dönem değişince K2 öneri türleri değişir ve başlıkta dönem adı (e2e ✅).
 
-### Faz 6: Denemeler ve Yanlış Defteri (L; tekrar sistemi ve ısı haritası dahil)
-- `mock_exams`, `mock_exam_results`, `mock_exam_subject_results`, `mock_exam_topic_mistakes`, `mistakes`, tekrar alanları
-- Deneme giriş sihirbazı, net trend grafiği, aynı denemede öğrenci karşılaştırma
-- Fotoğraflı yanlış kaydı (tarayıcıda sıkıştırma), hata nedeni analizi
-- Tekrar kuyruğu ve `pg_cron` ile günlük tekrar hesaplama
-- Konu haritası (ısı haritası): konu durumu + soru başarı oranı + deneme yanlışları birleşik
-- **Kabul:** Deneme girildiğinde net otomatik hesaplanıyor; zayıf konular haritada öne çıkıyor.
+### Faz 6: Denemeler ve Yanlış Defteri (L, iki parça; tasarım: `10-faz6-denemeler.md`) — sürüyor
+Tekrar sistemi ve ısı haritası bu fazın **dışına** alındı (karar C13): "Faz 6b (sonra)" olarak Faz 7'nin ardına yazıldı.
+- [x] **Parça 1 — Denemeler ve analiz** (`mock-exams`, `core`; 2026-09-19, dal `faz-6-denemeler`): kurum ayarı `mock_exams` (`faz6a_mock_settings`, pgTAP `225`) + ayar formu bölümü; `mock_exams` (kurum kataloğu, `subject_id` ile genel/branş), `mock_exam_results`, `mock_exam_subject_results` (generated `net`), `mock_exam_topic_mistakes` (işaret) + RLS + `private.mock_result_student` (`faz6a_mock_exams`, pgTAP `220`, `090`, `110`); `save_mock_exam_result` security invoker RPC (`faz6a_mock_exam_rpc`); `v_coach_student_overview` + `last_net / prev_net / net_delta / last_mock_on` (`faz6a_mock_overview`); `src/lib/exam/mock.ts` (`autoBlank`, `totalNet`, `netDeltas`, `trendSummary`, `topicMarkCounts`, `recentSubjectWrong`) ve `components/shared/line-chart` (`LineChart`, `scale.ts`; karar C1) birim testli; öğrenci 3 adımlı giriş sihirbazı (katalog / serbest, Boş otomatik, konu işaretleri, yapışkan özet), `/student/exams` (son deneme + ders kartları, trend ≥ 4 / kart listesi, en çok yanlış konular, liste), detay + düzenle/sil; koç `/coach/exams` kataloğu (tanımla / düzenle / sil; sonucu olan silinemez), `/coach/exams/[examId]` karşılaştırma (sıralı + ortalama), K2 Denemeler sekmesi (+ ders bazlı net gelişimi, konu bazlı yanlış birikimi, koç sihirbazı), K2 "Son deneme neti" kutusu, K1 "Son net" sütunu; seed (katalog denemesi, Ayşe 4 sonuç, Mehmet 1); e2e `mock-exams.spec.ts`; `pnpm screenshots --only 6` → `docs/tasarim/uygulama-6/`
+- [ ] **Parça 2 — Yanlış defteri, veli raporu, öneri motoruna bağlama** (`mistakes`, `analytics`, `topics`, `core`, `mock-exams`): `mistakes` + `mistake-images` bucket + politikalar; fotoğraflı/fotoğrafsız kayıt (bağımlılıksız canvas sıkıştırma), liste, "Çözdüm"; koç hata nedeni dağılımı; `mock_weak` uyarı türü + `v_topic_alert_facts` deneme/defter kolonları + `subjectGap` deneme bileşeni; konu hücresi detayında deneme satırı; `parentSummary` widget kalıbı; veli Denemeler sekmesi ve Özet kartı; öğrenci silmede depo temizliği
+- **Kabul (10 §2):** Parça 1 — öğrenci telefonda 6 derste D/Y girip iki konu işaretleyerek deneme kaydeder, net şablon kuralıyla anında ve kayıtta aynı (e2e ✅ + pgTAP ✅); dört ve üzeri denemede grafik, altında kart listesi (e2e ✅); koç katalog denemesi tanımlar ve aynı denemeyi girenleri karşılaştırır (e2e ✅); K1 "Son net" ve K2 kutusu görünümden dolu (e2e ✅); saf fonksiyonlar ve ölçek yardımcıları birim testli ✅. Parça 2 — fotoğraflı yanlış `{org}/{student}/` yolunda ve 2 MB altında, başkası göremez; "Çözdüm" ve filtreler; koç dağılım cümlesi; veli Denemeler ve Özet kartı "siz" diliyle; `mock_weak` seed'de K2 zayıf listesinde ve öneri notunda.
 
 ### Faz 7: Kaynaklar ve Videolar (M)
 - `resources`, `resource_sections`, `student_resources`, `video_playlists`, `videos`, `student_playlists`, `student_video_progress`; `plan_item_kind` + `section`, `video`; `question_logs.section_id`
 - YouTube Data API ile oynatma listesi içe aktarma (sunucu tarafında)
 - Uygulama içi video oynatıcı ve "izlendi" işareti
 - **Kabul:** Koç bir YouTube listesi linki yapıştırınca videolar geliyor; öğrencinin test tamamlaması kaynak yüzdesini güncelliyor.
+
+### Faz 6b (sonra): Tekrar Sistemi ve Isı Haritası (M; karar C13)
+- `mistakes.review_stage / next_review_at`, `mistake_status` + `reviewing`, `v_review_queue` (`item_type 'mistake'`), `mark_reviewed`, `pg_cron` ile günlük tekrar hesaplama
+- `v_topic_mastery` ısı haritası (`mastery_score`, 03 §6): konu durumu + soru başarı oranı + deneme yanlışları birleşik; hücrede görsel işaret
+- **Kabul:** Tekrar kuyruğu günlük dolar; zayıf konular haritada öne çıkar.
 
 ### Faz 8: Veli Paneli ve Bildirimler (M)
 - Veli özet paneli (gidişat cümlesi "siz" diliyle, 09 §5), görünürlük ayarları

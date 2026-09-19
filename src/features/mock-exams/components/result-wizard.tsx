@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { mockExamKindLabels } from "@/content/labels";
-import { autoBlank } from "@/lib/exam/mock";
+import { autoBlank, totalNet } from "@/lib/exam/mock";
 import { calculateNet } from "@/lib/exam/net";
 import { formatCount, formatDateTr, formatNet } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -115,11 +115,15 @@ export function ResultWizard({
     const entry = entries[s.subjectId] ?? { correct: 0, wrong: 0, blankManual: null };
     const auto = autoBlank(s.questionCount, entry.correct, entry.wrong);
     const blank = entry.blankManual ?? auto ?? 0;
-    const net = calculateNet({
-      correct: entry.correct,
-      wrong: entry.wrong,
-      wrongPenalty: options.wrongPenalty,
-    });
+    // Ders neti iki basamağa yuvarlanır (DB `numeric(6,2)` ile aynı); toplam yuvarlanmışların toplamı.
+    const net =
+      Math.round(
+        calculateNet({
+          correct: entry.correct,
+          wrong: entry.wrong,
+          wrongPenalty: options.wrongPenalty,
+        }) * 100,
+      ) / 100;
     const over = s.questionCount !== null && entry.correct + entry.wrong + blank > s.questionCount;
     return {
       subject: s,
@@ -130,7 +134,16 @@ export function ResultWizard({
     };
   });
   const totalQuestions = rows.reduce((a, r) => a + r.entry.correct + r.entry.wrong + r.blank, 0);
-  const totalNet = Math.round(rows.reduce((a, r) => a + r.net, 0) * 100) / 100;
+  const total = totalNet(
+    rows.map((r) => ({
+      subjectId: r.subject.subjectId,
+      correct: r.entry.correct,
+      wrong: r.entry.wrong,
+      blank: r.blank,
+      net: r.net,
+      questionCount: r.subject.questionCount,
+    })),
+  );
   const wrongBySubject = new Map(rows.map((r) => [r.subject.subjectId, r.entry.wrong]));
   const title = customOn ? custom.title.trim() : (selectedExam?.title ?? "");
 
@@ -195,8 +208,8 @@ export function ResultWizard({
         }
         toast.success(
           initial
-            ? `Deneme güncellendi. Toplam net ${formatNet(totalNet)}.`
-            : `Deneme kaydedildi. Toplam net ${formatNet(totalNet)}.`,
+            ? `Deneme güncellendi. Toplam net ${formatNet(total)}.`
+            : `Deneme kaydedildi. Toplam net ${formatNet(total)}.`,
         );
         router.push(`${basePath}/${result.data.id}`);
         router.refresh();
@@ -556,7 +569,7 @@ export function ResultWizard({
               {step === 2 ? "Anlık özet" : `${formatCount(topics.size, "konu")} işaretli`}
             </span>
             <span className="font-semibold text-ink-900 tabular-nums">
-              {`Toplam ${formatCount(totalQuestions, "soru")} · Net ${formatNet(totalNet)}`}
+              {`Toplam ${formatCount(totalQuestions, "soru")} · Net ${formatNet(total)}`}
             </span>
           </p>
         ) : null}

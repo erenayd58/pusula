@@ -35,6 +35,16 @@ export async function deleteE2ETopics(name?: string): Promise<number> {
   return count ?? 0;
 }
 
+/** Testlerin kataloğa eklediği denemeleri siler ("E2E Deneme" ile başlayan; sonuçları öğrenciyle gitmiş olmalı). */
+export async function deleteE2EMockExams(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("mock_exams")
+    .delete({ count: "exact" })
+    .like("title", "E2E Deneme%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
 export async function clearSchoolDates(): Promise<number> {
   const { count, error } = await adminClient()

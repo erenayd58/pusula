@@ -208,6 +208,8 @@ Koç aynı sihirbazı `flat` yüzeyde, `compact` adımlayıcıyla kullanır (ö�
 
 **Kabul:** Öğrenci telefonda 6 derste D/Y girip iki konu işaretleyerek deneme kaydeder, net şablon kuralıyla anında ve kayıtta aynı (e2e + pgTAP `net`); dört ve üzeri denemede grafik, altında kart listesi (e2e seed + yeni öğrenci); koç katalog denemesi tanımlar ve aynı denemeyi giren öğrencileri karşılaştırır (e2e); K1 "Son net" ve K2 kutusu görünümden dolu (e2e); `autoBlank`, `netDeltas`, `trendSummary`, `topicMarkCounts`, `recentSubjectWrong`, ölçek yardımcıları birim testli; `pnpm check` + `pnpm db:test` yeşil.
 
+**Uygulama notu (2026-09-19, Parça 1 tamamlandı):** belgedeki dosya listesi birebir uygulandı; ekler: `result-actions.tsx` (detaydaki düzenle/sil; silme onaylı `ResponsiveSheet`), `listCatalogTemplates()` (katalog formunda şablon + ders seçenekleri), `getTopicMarkCounts(studentId, n?, limit)` (n boşsa kurum ayarı). Sihirbazda ders neti iki basamağa yuvarlanıp toplanır (DB `numeric(6,2)` satır yuvarlamasıyla birebir; 61,66 ≠ 61,67 farkı e2e'de yakalandı). Katalog formu `?edit` yerine sayfa içi `ResponsiveSheet`; katalog silme tarayıcı onayı (`confirm`) + eylem mesajı. `mock_exams` RLS'de yazma `private.my_role() in ('coach','owner')` ile (ayrı yardımcı gerekmedi). e2e `mock-exams.spec.ts` masaüstünde tek akış (katalog → öğrenci sihirbazı → ikinci serbest deneme → koç K2/K1/karşılaştırma → silme kısıtı → düzenleme → silme) + seed Ayşe grafiği (iki proje); teardown `deleteE2EMockExams`. Puan/yüzdelik/süre ve not "İsteğe bağlı" katlanır bölümde (1. adım).
+
 ### Parça 2: Yanlış defteri, veli raporu, öneri motoruna bağlama (`mistakes`, `analytics`, `topics`, `core`, `mock-exams`)
 
 **Dosyalar**
