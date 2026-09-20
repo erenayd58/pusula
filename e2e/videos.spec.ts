@@ -45,7 +45,8 @@ test.describe("videolar", () => {
         await page.getByRole("button", { name: "Video ekle" }).click();
         const dialog = page.getByRole("dialog");
         await dialog.getByLabel("YouTube bağlantısı").fill(url);
-        await dialog.getByLabel("Başlık", { exact: true }).fill(title);
+        // Anahtar varsa etiket "Başlık (isteğe bağlı)"; test anahtardan bağımsız geçer.
+        await dialog.getByLabel(/^Başlık( \(isteğe bağlı\))?$/).fill(title);
         await dialog.getByRole("button", { name: "Ekle", exact: true }).click();
         await expect(page.getByText(`“${title}” eklendi.`)).toBeVisible();
         await expect(page.getByRole("dialog")).toHaveCount(0);

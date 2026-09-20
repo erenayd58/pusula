@@ -151,12 +151,26 @@ test.describe("haftalık plan", () => {
       await page.getByRole("button", { name: "Görev detayı: Matematik · 20 soru" }).click();
       dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { name: "Yarına ertele" }).click();
-      await expect(page.getByText(/ertelendi\.|taşındı\./)).toBeVisible();
-      // Görev yarına (pazarsa "bu hafta içinde"ye) taşındı; oraya bak
-      if (today < 7) {
-        await page.getByRole("tab", { name: new RegExp(`^${DAY_FULL[(today + 1) % 7]},`) }).click();
+      // Hedef gün sunucuda hesaplanır (yarın; pazarsa "bu hafta içinde"): güne bağlı kalmamak
+      // için toast'tan okunur. Eski kart yenilenmeden önce tıklanmasın: önce sheet kapanır,
+      // sonra görev hedef bölümde görünür.
+      const postponedToast = page.getByText(
+        /^Görev (“bu hafta içinde”ye taşındı|\S+ gününe ertelendi)\.$/,
+      );
+      await expect(postponedToast).toBeVisible();
+      const postponedText = (await postponedToast.textContent()) ?? "";
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      const detailButton = { name: "Görev detayı: Matematik · 20 soru" } as const;
+      if (postponedText.includes("bu hafta içinde")) {
+        const anytime = page.getByRole("region", { name: "Bu hafta içinde" });
+        await expect(anytime.getByRole("button", detailButton)).toBeVisible();
+        await anytime.getByRole("button", detailButton).click();
+      } else {
+        const short = postponedText.match(/^Görev (\S+) gününe/)?.[1] ?? "";
+        const full = DAY_FULL[DAY_SHORT.indexOf(short as (typeof DAY_SHORT)[number])];
+        await page.getByRole("tab", { name: new RegExp(`^${full},`) }).click();
+        await page.getByRole("button", detailButton).click();
       }
-      await page.getByRole("button", { name: "Görev detayı: Matematik · 20 soru" }).click();
       await expect(page.getByText("Bu görev bir kez ertelendi; tekrar ertelenemez.")).toBeVisible();
       await page.keyboard.press("Escape");
       await logout(page);
