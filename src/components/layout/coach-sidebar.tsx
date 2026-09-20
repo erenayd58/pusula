@@ -14,10 +14,13 @@ export function CoachSidebar({
   items,
   user,
   footer,
+  bell,
 }: {
   items: ShellNavItem[];
   user: { fullName: string; subtitle: string };
   footer?: React.ReactNode;
+  /** Bildirim zili (Faz 8): masaüstünde marka satırının sağında, telefonda üst barda. */
+  bell?: React.ReactNode;
 }) {
   const nav = <CoachNav items={items} />;
   const brand = <Brand />;
@@ -29,7 +32,10 @@ export function CoachSidebar({
         data-print="hide"
         className="fixed inset-y-0 left-0 z-40 hidden w-[var(--coach-sidebar)] flex-col gap-6 border-r border-line bg-bg-paper px-3 py-4 lg:flex"
       >
-        {brand}
+        <div className="flex items-center justify-between gap-2">
+          {brand}
+          {bell}
+        </div>
         {nav}
         {account}
       </aside>
@@ -43,6 +49,7 @@ export function CoachSidebar({
           {account}
         </CoachMobileMenu>
         <div className="flex-1">{brand}</div>
+        {bell}
         {footer}
       </header>
     </>

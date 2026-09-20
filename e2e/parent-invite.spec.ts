@@ -64,7 +64,7 @@ test.describe("veli daveti", () => {
     await page.getByRole("button", { name: "Onaylıyorum" }).click();
     // Tek çocuk: doğrudan çocuğun özetine yönlenir
     await expect(page).toHaveURL(/\/parent\/[0-9a-f-]{36}$/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Davet'in bu haftası");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Davet'in haftası");
 
     // Aynı kod ikinci kez kullanılamaz
     await logout(page);

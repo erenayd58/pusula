@@ -11,7 +11,7 @@
 --   * public'teki her görünümde security_invoker açık; anon yetkisiz, authenticated yalnızca select.
 begin;
 
--- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals, faz5b_student_targets, faz6a_mock_exams, faz6b_mistakes, faz7a_resources ve faz7b_videos ile birebir).
+-- Beklenen authenticated yetkileri (faz1b_table_grants, faz2_topics_schema, faz3_question_logs_goals, faz4a_schedule, faz4b_weekly_plans, faz4d_suggestion_dismissals, faz5b_student_targets, faz6a_mock_exams, faz6b_mistakes, faz7a_resources, faz7b_videos, faz8a_notes_announcements ve faz8b_notifications ile birebir).
 -- columns NULL = tablo düzeyi; dolu = sadece bu kolonlar (kolon düzeyi GRANT).
 create temporary table expected_grants (
   table_name text not null,
@@ -28,7 +28,7 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('organizations',   'delete', false, null),
   ('profiles',        'select', true,  null),
   ('profiles',        'insert', false, null),
-  ('profiles',        'update', true,  array['full_name', 'avatar_url', 'phone']),
+  ('profiles',        'update', true,  array['full_name', 'avatar_url', 'phone', 'notification_prefs']),
   ('profiles',        'delete', false, null),
   ('students',        'select', true,  null),
   ('students',        'insert', false, null),
@@ -151,7 +151,19 @@ insert into expected_grants (table_name, privilege, allowed, columns) values
   ('student_video_progress', 'select', true,  null),
   ('student_video_progress', 'insert', true,  null),
   ('student_video_progress', 'update', true,  null),
-  ('student_video_progress', 'delete', true,  null);
+  ('student_video_progress', 'delete', true,  null),
+  ('coach_notes',            'select', true,  null),
+  ('coach_notes',            'insert', true,  null),
+  ('coach_notes',            'update', true,  null),
+  ('coach_notes',            'delete', true,  null),
+  ('announcements',          'select', true,  null),
+  ('announcements',          'insert', true,  null),
+  ('announcements',          'update', false, null),
+  ('announcements',          'delete', true,  null),
+  ('notifications',          'select', true,  null),
+  ('notifications',          'insert', false, null),
+  ('notifications',          'update', true,  array['read_at']),
+  ('notifications',          'delete', false, null);
 
 select plan((
     (select count(*) from pg_class c

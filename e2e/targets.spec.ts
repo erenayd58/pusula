@@ -82,7 +82,8 @@ test.describe("hedef ve geri planlama", () => {
       await expect(page.getByText("Uyanık aralık:")).toContainText("(kurum varsayılanı)");
       await page.getByRole("button", { name: "Meşguliyet ekle" }).click();
       const slot = page.getByRole("dialog");
-      await slot.getByLabel("Gün").selectOption({ label: "Salı" });
+      await slot.getByRole("button", { name: "Temizle" }).click();
+      await slot.getByRole("group", { name: "Günler" }).getByText("Sal", { exact: true }).click();
       await slot.getByLabel("Başlangıç").fill("08:30");
       await slot.getByLabel("Bitiş").fill("15:00");
       await slot.getByLabel("Tür").selectOption({ label: "Okul" });

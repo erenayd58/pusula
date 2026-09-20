@@ -385,6 +385,7 @@ export function PlanBuilder(props: PlanBuilderProps) {
       <PlanItemMenu
         item={menuItem}
         studentId={studentId}
+        weekStart={weekStart}
         onOpenChange={(o) => !o && setMenuItem(null)}
         onEdit={(item) => setForm({ mode: "edit", item })}
       />

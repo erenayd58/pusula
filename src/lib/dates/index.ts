@@ -101,3 +101,17 @@ export function weekDates(weekKey: string): Record<number, string> {
 export function isoDayOfWeek(date: Date | number | string = new Date()): number {
   return ((toIstanbul(date).getDay() + 6) % 7) + 1;
 }
+
+/**
+ * `from`…`to` (YYYY-MM-DD, ikisi de dahil) arası tarih anahtarları; `to < from` ise boş.
+ * `limit` verilirse en fazla `limit + 1` anahtar döner (çağıran aşımı sayıdan anlar).
+ */
+export function dateRangeKeys(from: string, to: string, limit = 366): string[] {
+  const start = new TZDate(from, TIME_ZONE);
+  const end = new TZDate(to, TIME_ZONE);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
+  const span = differenceInCalendarDays(end, start);
+  const out: string[] = [];
+  for (let i = 0; i <= span && i <= limit; i++) out.push(toDateKey(addDays(start, i)));
+  return out;
+}

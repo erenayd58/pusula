@@ -27,7 +27,11 @@ import type { ScheduleExceptionRow } from "../types";
 export type ExceptionSheetState =
   { mode: "new" } | { mode: "edit"; row: ScheduleExceptionRow } | null;
 
-/** Tek seferlik istisna formu: tarih, tüm gün anahtarı, saat aralığı, başlık, not. */
+/**
+ * Tek seferlik istisna formu: tarih, tüm gün anahtarı, saat aralığı, başlık, not. Eklemede
+ * isteğe bağlı bitiş tarihi (kısayol: gezi/hastalık gibi ardışık günler tek seferde, her güne
+ * ayrı kayıt).
+ */
 export function ScheduleExceptionForm({
   studentId,
   state,
@@ -71,6 +75,7 @@ function Fields({
       id: row?.id,
       studentId,
       onDate: row?.onDate ?? toDateKey(todayInIstanbul()),
+      untilDate: "",
       allDay: row ? row.startsAt === null : true,
       startsAt: row?.startsAt ?? "13:00",
       endsAt: row?.endsAt ?? "15:00",
@@ -89,7 +94,13 @@ function Fields({
         setFormError(result.error);
         return;
       }
-      toast.success(row ? "İstisna güncellendi." : "İstisna eklendi.");
+      toast.success(
+        row
+          ? "İstisna güncellendi."
+          : result.data.count > 1
+            ? `İstisna ${result.data.count} güne eklendi.`
+            : "İstisna eklendi.",
+      );
       onOpenChange(false);
       router.refresh();
     });
@@ -116,16 +127,35 @@ function Fields({
         <FieldError message={errors.title?.message} />
       </div>
 
-      <div>
-        <Label htmlFor="exc-date">Tarih</Label>
-        <Input
-          id="exc-date"
-          type="date"
-          aria-invalid={!!errors.onDate}
-          {...form.register("onDate")}
-        />
-        <FieldError message={errors.onDate?.message} />
+      <div className={row ? undefined : "grid grid-cols-2 gap-4"}>
+        <div>
+          <Label htmlFor="exc-date">Tarih</Label>
+          <Input
+            id="exc-date"
+            type="date"
+            aria-invalid={!!errors.onDate}
+            {...form.register("onDate")}
+          />
+          <FieldError message={errors.onDate?.message} />
+        </div>
+        {!row ? (
+          <div>
+            <Label htmlFor="exc-until">Bitiş tarihi (isteğe bağlı)</Label>
+            <Input
+              id="exc-until"
+              type="date"
+              aria-invalid={!!errors.untilDate}
+              {...form.register("untilDate")}
+            />
+            <FieldError message={errors.untilDate?.message} />
+          </div>
+        ) : null}
       </div>
+      {!row ? (
+        <p className="-mt-2 text-micro-lg text-ink-500">
+          Bitiş tarihi verilirse aradaki her güne aynı istisna ayrı ayrı eklenir (en fazla 31 gün).
+        </p>
+      ) : null}
 
       <div className="flex items-center justify-between gap-3 rounded-sm border border-line bg-bg-paper px-3 py-2 clay:rounded-md clay:border-0 clay:clay-well">
         <Label htmlFor="exc-all-day" className="mb-0">

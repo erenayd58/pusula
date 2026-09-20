@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * `organizations.settings` şeması (08-faz4-plan-sistemi.md §1.2, 09-faz5-strateji.md §1.2,
  * 10-faz6-denemeler.md §1.2). Değerler veritabanında durur (migration `faz4a_org_settings` /
- * `faz5a_strategy_settings` / `faz6a_mock_settings` varsayılanları yazar); buradaki `.default()` yalnızca eksik anahtar güvencesidir, eşikler koda
+ * `faz5a_strategy_settings` / `faz6a_mock_settings` / `faz8c_student_alerts` varsayılanları yazar); buradaki `.default()` yalnızca eksik anahtar güvencesidir, eşikler koda
  * gömülmez. Owner formu (`orgSettingsFormSchema`) bu yapıyı yazar.
  */
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "SS:DD biçiminde saat gir.");
@@ -93,6 +93,28 @@ export const orgSettingsSchema = z.object({
       weak_min_mistakes: z.number().int().min(1).default(3),
       /** `subjectGap = (1 − w) × soruAçığı + w × denemeAçığı` (Parça 2). */
       gap_weight: z.number().min(0).max(1).default(0.5),
+    })
+    .prefault({}),
+  /** Öğrenci düzeyi koç uyarıları (Faz 8, 12 §1.3; 01 §7). Kurallar `features/analytics/lib/student-alerts.ts`. */
+  student_alerts: z
+    .object({
+      /** Son kayıttan bu yana bu kadar gün geçtiyse "hareketsiz". */
+      inactivity_days: z.number().int().min(1).default(3),
+      /** Haftanın bu gününden (ISO; 3 = çarşamba) itibaren haftalık hedefin yüzdesi eşiğin altındaysa "hedef geride". */
+      goal_behind: z
+        .object({
+          from_isodow: z.number().int().min(1).max(7).default(3),
+          min_percent: z.number().min(0).max(100).default(40),
+        })
+        .default({ from_isodow: 3, min_percent: 40 }),
+      /** Son genel deneme öncekinden bu kadar net düşükse "net düşüşü" (E7). */
+      net_drop: z.number().min(0).default(5),
+      /** Geçen haftanın plan uyumu bu yüzdenin altındaysa "plan uyumu düşük". */
+      low_plan_percent: z.number().min(0).max(100).default(50),
+      /** Vadesi geçmiş tekrar sayısı bunu aşarsa "birikmiş tekrar". */
+      overdue_reviews_max: z.number().int().min(0).default(15),
+      /** Hareketsizlik bildirimi (cron) aynı öğrenci için en erken bu kadar günde bir. */
+      inactivity_notify_days: z.number().int().min(1).default(7),
     })
     .prefault({}),
 });

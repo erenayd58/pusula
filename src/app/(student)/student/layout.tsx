@@ -3,6 +3,7 @@ import { StudentRail } from "@/components/layout/student-rail";
 import { SurfaceRoot } from "@/components/layout/surface-root";
 import { siteConfig } from "@/config/site";
 import { LogoutButton } from "@/features/core";
+import { NotificationBell } from "@/features/notifications";
 import { QuickLogButton, QuickLogProvider, getQuickLogOptions } from "@/features/question-log";
 import { requireRole } from "@/lib/auth";
 import { getEnabledModules } from "@/modules/get-enabled-modules";
@@ -26,15 +27,21 @@ export default async function Layout({ children }: LayoutProps<"/student">) {
         <StudentRail
           items={getStudentNav(enabled)}
           top={quickLog ? <QuickLogButton variant="rail" /> : undefined}
-          bottom={<LogoutButton variant="ghost" iconOnly />}
+          bottom={
+            <div className="flex flex-col items-center gap-2">
+              <NotificationBell href="/student/notifications" />
+              <LogoutButton variant="ghost" iconOnly />
+            </div>
+          }
         />
         <div className="flex flex-1 flex-col lg:pl-[var(--nav-rail)]">
-          {/* Telefon/tablet üst barı: yalnızca ad; çıkış "Ben" sayfasında (masaüstünde rayda). */}
+          {/* Telefon/tablet üst barı: ad + zil (Faz 8); çıkış "Ben" sayfasında (masaüstünde rayda). */}
           <header
             data-print="hide"
-            className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center px-4 pt-4 md:px-8 lg:hidden"
+            className="mx-auto flex w-full max-w-[var(--content-max-student)] items-center justify-between px-4 pt-4 md:px-8 lg:hidden"
           >
             <p className="text-small font-semibold text-ink-900">{siteConfig.name}</p>
+            <NotificationBell href="/student/notifications" />
           </header>
           <main className="mx-auto flex w-full max-w-[var(--content-max-student)] flex-1 flex-col gap-6 px-4 py-6 pb-[calc(var(--nav-bottom)+24px)] md:px-8 lg:py-10">
             {children}

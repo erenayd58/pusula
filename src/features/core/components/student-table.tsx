@@ -86,6 +86,10 @@ export function StudentTable({
               <dd className="text-ink-900">
                 <Pace row={s} />
               </dd>
+              <dt className="text-ink-500">Birikmiş tekrar</dt>
+              <dd className="text-ink-900">
+                <OverdueReviews row={s} />
+              </dd>
             </dl>
             <StudentRowActions
               student={{ profileId: s.profileId, fullName: s.fullName, coachId: s.coachId }}
@@ -107,6 +111,7 @@ export function StudentTable({
               <th className="px-4 py-3 text-right font-medium">Plan uyumu</th>
               <th className="px-4 py-3 text-right font-medium">Son net</th>
               <th className="px-4 py-3 text-right font-medium">Takvim</th>
+              <th className="px-4 py-3 text-right font-medium">Birikmiş tekrar</th>
               <th className="px-4 py-3 font-medium">Durum</th>
               {viewerRole === "owner" ? <th className="px-4 py-3 font-medium">Koç</th> : null}
               <th className="px-4 py-3 text-right font-medium">Eylemler</th>
@@ -147,6 +152,9 @@ export function StudentTable({
                 </td>
                 <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
                   <Pace row={s} />
+                </td>
+                <td className="px-4 py-3 text-right text-ink-900 tabular-nums">
+                  <OverdueReviews row={s} />
                 </td>
                 <td className="px-4 py-3 text-ink-700">{studentStatusLabels[s.status]}</td>
                 {viewerRole === "owner" ? (
@@ -208,6 +216,15 @@ function Pace({ row }: { row: StudentListRow }) {
     >
       {label}
     </span>
+  );
+}
+
+/** Birikmiş tekrar (Faz 8): `v_review_queue` sayısı (vadesi bugün ya da geçmiş); 0 → "—". Uyarı rengi yok (K1 listesi söyler). */
+function OverdueReviews({ row }: { row: StudentListRow }) {
+  return row.overdueReviews > 0 ? (
+    <span data-testid="overdue-reviews">{formatCount(row.overdueReviews)}</span>
+  ) : (
+    <span className="text-ink-500">—</span>
   );
 }
 

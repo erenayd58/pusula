@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { DayChips } from "@/components/shared/day-chips";
 import { FieldError } from "@/components/shared/field-error";
 import { FormError } from "@/components/shared/form-error";
 import { NativeSelect } from "@/components/shared/native-select";
@@ -17,8 +18,7 @@ import {
   ResponsiveSheetHeader,
   ResponsiveSheetTitle,
 } from "@/components/ui/responsive-sheet";
-import { dayOfWeekShortLabels, planItemKindLabels } from "@/content/labels";
-import { cn } from "@/lib/utils";
+import { planItemKindLabels } from "@/content/labels";
 import type { PlanItemKind } from "@/types";
 import { estimateMinutes, type PlannerDefaults } from "../lib/estimate";
 import { KIND_ORDER, KIND_SPECS } from "../lib/kinds";
@@ -39,8 +39,6 @@ export type PlanItemFormState =
   | { mode: "edit"; item: PlanItem }
   | null;
 
-const DAY_CHIPS: (number | null)[] = [1, 2, 3, 4, 5, 6, 7, null];
-
 /** zod hatasını alan → mesaj listesine indirger (istemci tarafı; create-action sunucuya özel). */
 function flattenIssues(error: { issues: { path: PropertyKey[]; message: string }[] }) {
   const out: Record<string, string[]> = {};
@@ -53,7 +51,8 @@ function flattenIssues(error: { issues: { path: PropertyKey[]; message: string }
 
 /**
  * Görev formu (08 §2 Parça 2): tür, ders, konu, hedef, tahmini süre (öneri + düzenlenebilir),
- * bağlantı, başlık (boşsa otomatik), gün çipleri (ekleme modunda birden fazla gün).
+ * bağlantı, başlık (boşsa otomatik), gün çipleri (ekleme modunda birden fazla gün; "Hafta içi /
+ * Hafta sonu / Her gün" hızlı seçimi ortak `DayChips`ten).
  */
 export function PlanItemForm({
   studentId,
@@ -217,39 +216,7 @@ function Fields({
       </ResponsiveSheetHeader>
 
       {!editing ? (
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-micro-lg text-ink-500">Günler</legend>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Günler">
-            {DAY_CHIPS.map((d) => {
-              const selected = days.includes(d);
-              return (
-                <label
-                  key={String(d)}
-                  className={cn(
-                    "flex min-h-[38px] cursor-pointer items-center rounded-xs border px-3 text-small font-medium pointer-coarse:min-h-11",
-                    selected
-                      ? "border-ink-900 bg-ink-900 text-bg-paper"
-                      : "border-line bg-bg-paper text-ink-700 hover:bg-bg-surface",
-                    "has-focus-visible:outline-2 has-focus-visible:outline-focus",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={selected}
-                    onChange={(e) =>
-                      setDays((prev) =>
-                        e.target.checked ? [...prev, d] : prev.filter((x) => x !== d),
-                      )
-                    }
-                  />
-                  {d === null ? "Bu hafta içinde" : dayOfWeekShortLabels[d]}
-                </label>
-              );
-            })}
-          </div>
-          <FieldError message={errors.days?.[0]} />
-        </fieldset>
+        <DayChips value={days} onChange={setDays} withWeekOnly error={errors.days?.[0]} />
       ) : null}
 
       <div>

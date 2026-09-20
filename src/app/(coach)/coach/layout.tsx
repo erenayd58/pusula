@@ -2,6 +2,7 @@ import { CoachSidebar } from "@/components/layout/coach-sidebar";
 import { SurfaceRoot } from "@/components/layout/surface-root";
 import { roleLabels } from "@/content/labels";
 import { LogoutButton } from "@/features/core";
+import { NotificationBell } from "@/features/notifications";
 import { requireRole } from "@/lib/auth";
 import { getCoachNav } from "@/modules/registry";
 
@@ -17,6 +18,7 @@ export default async function Layout({ children }: LayoutProps<"/coach">) {
       <CoachSidebar
         items={getCoachNav()}
         user={{ fullName: profile.full_name, subtitle: roleLabels[profile.role] }}
+        bell={<NotificationBell href="/coach/notifications" />}
         footer={<LogoutButton variant="ghost" iconOnly />}
       />
       <main className="mx-auto flex w-full max-w-[var(--content-max)] flex-1 flex-col gap-6 px-4 py-6 md:px-8 lg:py-8 lg:pr-8 lg:pl-[calc(var(--coach-sidebar)+2rem)]">

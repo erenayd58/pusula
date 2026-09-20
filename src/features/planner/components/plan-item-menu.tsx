@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { PencilIcon, Trash2Icon } from "lucide-react";
+import { CopyIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { DayChips, type DayChoice } from "@/components/shared/day-chips";
 import { FormError } from "@/components/shared/form-error";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,23 +17,27 @@ import {
 } from "@/components/ui/responsive-sheet";
 import { dayOfWeekShortLabels } from "@/content/labels";
 import { cn } from "@/lib/utils";
-import { deletePlanItem, movePlanItem } from "../server/actions";
+import { addPlanItems, deletePlanItem, movePlanItem } from "../server/actions";
 import type { PlanItem } from "../types";
 
 const DAYS: (number | null)[] = [1, 2, 3, 4, 5, 6, 7, null];
 
 /**
  * Görev menüsü (ikincil eylemler, 08 §2 Parça 2): düzenle, başka güne / "bu hafta içinde"ye
- * taşı (gün çipleri), sil (onaylı). Sürükle-bırakın klavye/dokunma alternatifi de budur.
+ * taşı (gün çipleri), başka günlere kopyala (kısayol: aynı görevi her güne tek tek girmek
+ * yerine; gün çipleri + "Hafta içi / Her gün"), sil (onaylı). Sürükle-bırakın klavye/dokunma
+ * alternatifi de budur.
  */
 export function PlanItemMenu({
   item,
   studentId,
+  weekStart,
   onOpenChange,
   onEdit,
 }: {
   item: PlanItem | null;
   studentId: string;
+  weekStart: string;
   onOpenChange: (open: boolean) => void;
   onEdit: (item: PlanItem) => void;
 }) {
@@ -44,6 +49,7 @@ export function PlanItemMenu({
             key={item.id}
             item={item}
             studentId={studentId}
+            weekStart={weekStart}
             onOpenChange={onOpenChange}
             onEdit={onEdit}
           />
@@ -56,18 +62,54 @@ export function PlanItemMenu({
 function Body({
   item,
   studentId,
+  weekStart,
   onOpenChange,
   onEdit,
 }: {
   item: PlanItem;
   studentId: string;
+  weekStart: string;
   onOpenChange: (open: boolean) => void;
   onEdit: (item: PlanItem) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copyDays, setCopyDays] = useState<DayChoice[]>([]);
   const [error, setError] = useState<string>();
+
+  /** Aynı görevi (tamamlanma ve not hariç) seçili günlere yeni satır olarak ekler. */
+  function copy() {
+    if (copyDays.length === 0) return;
+    setError(undefined);
+    startTransition(async () => {
+      const result = await addPlanItems({
+        studentId,
+        weekStart,
+        days: copyDays,
+        kind: item.kind,
+        title: item.title,
+        subjectId: item.subjectId,
+        topicId: item.topicId,
+        url: item.url ?? "",
+        targetValue: item.targetValue,
+        targetUnit: item.targetUnit,
+        estimatedMinutes: item.estimatedMinutes,
+        sectionId: item.sectionId,
+        videoId: item.videoId,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      toast.success(
+        copyDays.length > 1 ? `Görev ${copyDays.length} güne kopyalandı.` : "Görev kopyalandı.",
+      );
+      onOpenChange(false);
+      router.refresh();
+    });
+  }
 
   function move(day: number | null) {
     if (day === item.dayOfWeek) return;
@@ -128,6 +170,16 @@ function Body({
           <Button
             type="button"
             variant="secondary"
+            aria-expanded={copying}
+            onClick={() => setCopying((v) => !v)}
+            disabled={pending}
+          >
+            <CopyIcon aria-hidden="true" />
+            Kopyala
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
             onClick={() => setConfirmDelete(true)}
             disabled={pending}
           >
@@ -135,6 +187,28 @@ function Body({
             Sil
           </Button>
         </div>
+
+        {copying ? (
+          <div className="flex flex-col gap-3 rounded-xs border border-line bg-bg-surface p-3">
+            <DayChips
+              label="Kopyalanacak günler"
+              value={copyDays}
+              onChange={setCopyDays}
+              withWeekOnly
+              disabledDays={[item.dayOfWeek]}
+              disabled={pending}
+            />
+            <div>
+              <Button type="button" onClick={copy} disabled={pending || copyDays.length === 0}>
+                {pending
+                  ? "Kopyalanıyor…"
+                  : copyDays.length > 1
+                    ? `${copyDays.length} güne kopyala`
+                    : "Kopyala"}
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1.5 text-micro-lg text-ink-500">Taşı</legend>

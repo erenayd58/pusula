@@ -111,6 +111,29 @@ describe("getCoachNav / sekmeler / veli menüsü", () => {
     ]);
   });
 
+  it("requiresDetails sekmesi yalnızca detay izni olan velide (Faz 8, E8)", () => {
+    const mistakes = defineModule({
+      id: "mistakes",
+      name: "Yanlışlar",
+      description: "",
+      icon: CircleIcon,
+      defaultEnabled: true,
+      nav: {
+        parent: [{ segment: "mistakes", label: "Yanlışlar", order: 40, requiresDetails: true }],
+      },
+    });
+    const withMistakes = [...modules, mistakes];
+    const enabled = new Set(["mistakes"]);
+    expect(getParentNav(withMistakes, enabled).map((t) => t.segment)).toEqual([""]);
+    expect(getParentNav(withMistakes, enabled, { details: false }).map((t) => t.segment)).toEqual([
+      "",
+    ]);
+    expect(getParentNav(withMistakes, enabled, { details: true }).map((t) => t.segment)).toEqual([
+      "",
+      "mistakes",
+    ]);
+  });
+
   it("href ve segment ile modül bulunur", () => {
     expect(findModuleByHref(modules, "student", "/student/exams")?.id).toBe("exams");
     expect(findModuleByHref(modules, "coach", "/student/exams")).toBeUndefined();

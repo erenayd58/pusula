@@ -1,4 +1,5 @@
 import {
+  deleteE2EAnnouncements,
   deleteE2EMockExams,
   deleteE2EPlaylists,
   deleteE2EResources,
@@ -25,4 +26,7 @@ export default async function globalTeardown() {
   if (playlists > 0) console.log(`globalTeardown: ${playlists} artık "E2E Liste" silindi.`);
   const templates = await deleteE2ETemplates();
   if (templates > 0) console.log(`globalTeardown: ${templates} artık "E2E Şablon" silindi.`);
+  const announcements = await deleteE2EAnnouncements();
+  if (announcements > 0)
+    console.log(`globalTeardown: ${announcements} artık "E2E duyuru" silindi.`);
 }

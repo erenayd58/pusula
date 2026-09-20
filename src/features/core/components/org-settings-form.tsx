@@ -264,6 +264,55 @@ export function OrgSettingsForm({
         />
       </Section>
 
+      <Section
+        title="Öğrenci uyarıları"
+        hint="K1 dikkat listesindeki öğrenci düzeyi uyarılar (01 §7): hareketsizlik, hedef geride, net düşüşü, plan uyumu düşük, birikmiş tekrar."
+      >
+        <NumberField
+          {...field}
+          name="student_alerts.inactivity_days"
+          label="Hareketsizlik (gün)"
+          hint="Son kayıttan bu kadar gün geçince uyarı; cron aynı eşikle koça bildirir"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.inactivity_notify_days"
+          label="Hareketsizlik bildirimi aralığı (gün)"
+          hint="Aynı öğrenci için bildirim en erken bu kadar günde bir"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.goal_behind.from_isodow"
+          label="Hedef geride: haftanın gününden itibaren"
+          hint="1 pazartesi … 7 pazar; bu günden itibaren bakılır"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.goal_behind.min_percent"
+          label="Hedef geride: yüzde"
+          hint="Haftalık hedefin bu yüzdesinin altındaysa"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.net_drop"
+          label="Net düşüşü eşiği"
+          step="0.5"
+          hint="Son genel deneme öncekinden bu kadar net düşükse"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.low_plan_percent"
+          label="Plan uyumu düşük: yüzde"
+          hint="Geçen haftanın yayınlanmış planı bu yüzdenin altındaysa"
+        />
+        <NumberField
+          {...field}
+          name="student_alerts.overdue_reviews_max"
+          label="Birikmiş tekrar üst sınırı"
+          hint="Vadesi geçmiş tekrar sayısı bunu aşarsa"
+        />
+      </Section>
+
       <FormError message={formError} />
       {canEdit ? (
         <div className="flex flex-wrap gap-2">

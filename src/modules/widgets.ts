@@ -1,9 +1,12 @@
 import { analyticsWidgets } from "@/features/analytics";
+import { coachNotesWidgets } from "@/features/coach-notes";
 import { goalsWidgets } from "@/features/goals";
 import { mockExamsWidgets } from "@/features/mock-exams";
 import { plannerWidgets } from "@/features/planner";
 import { questionLogWidgets } from "@/features/question-log";
+import { resourcesWidgets } from "@/features/resources";
 import { topicsWidgets } from "@/features/topics";
+import { videosWidgets } from "@/features/videos";
 import type {
   ModuleWidgets,
   ParentSummaryWidget,
@@ -16,11 +19,14 @@ import type {
  */
 export const widgets: readonly ModuleWidgets[] = [
   analyticsWidgets,
+  coachNotesWidgets,
   goalsWidgets,
   mockExamsWidgets,
   plannerWidgets,
   questionLogWidgets,
+  resourcesWidgets,
   topicsWidgets,
+  videosWidgets,
 ];
 
 export type ResolvedTodayWidget = StudentTodayWidget & {

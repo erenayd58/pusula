@@ -21,6 +21,8 @@
 - **URL Configuration**: Site URL = `https://<uygulama-alan-adi>`; Redirect URLs'e `https://<uygulama-alan-adi>/**` (önizleme için `https://*-<vercel-takim>.vercel.app/**`).
 - Rate limit ve şifre uzunluğu varsayılan kalabilir.
 
+**pg_cron (Faz 8):** `faz8d_cron` migration'ı `create extension if not exists pg_cron with schema pg_catalog` ile eklentiyi açar ve üç işi kaydeder; dashboard'dan ayrıca açmak gerekmez. Kontrol: SQL Editor → `select jobname, schedule, active from cron.job;` (3 satır: `pusula_daily_reminders`, `pusula_detect_inactivity`, `pusula_weekly_summaries`) ve `select * from cron.job_run_details order by start_time desc limit 10;`. Zamanlar UTC'dir (İstanbul −3). Ücretsiz planda proje 7 gün hareketsiz kalırsa duraklar; cron da durur (01 §10 keepalive).
+
 ## 3. Vercel ortam değişkenleri
 
 Supabase → Project Settings → API Keys'ten (yeni anahtarlar):

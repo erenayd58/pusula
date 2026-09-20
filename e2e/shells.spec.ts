@@ -94,7 +94,8 @@ test.describe("uygulama kabukları", () => {
     }
     await nav.getByRole("link", { name: "Notlar" }).click();
     await expect(page).toHaveURL(/\/parent\/[0-9a-f-]{36}\/notes$/);
-    await expect(page.getByText("Notlar: bu bölüm yakında")).toBeVisible();
+    // Faz 8: Notlar gerçek sayfa (koçun veliye açık notları).
+    await expect(page.getByRole("heading", { name: "Koçun notları" })).toBeVisible();
 
     // Başka bir velinin çocuğu RLS ile görünmez → 404
     await page.goto("/parent/b0000000-0000-4000-8000-000000000012");

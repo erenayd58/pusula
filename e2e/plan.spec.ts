@@ -151,12 +151,26 @@ test.describe("haftalık plan", () => {
       await page.getByRole("button", { name: "Görev detayı: Matematik · 20 soru" }).click();
       dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { name: "Yarına ertele" }).click();
-      await expect(page.getByText(/ertelendi\.|taşındı\./)).toBeVisible();
-      // Görev yarına (pazarsa "bu hafta içinde"ye) taşındı; oraya bak
-      if (today < 7) {
-        await page.getByRole("tab", { name: new RegExp(`^${DAY_FULL[(today + 1) % 7]},`) }).click();
+      // Hedef gün sunucuda hesaplanır (yarın; pazarsa "bu hafta içinde"): güne bağlı kalmamak
+      // için toast'tan okunur. Eski kart yenilenmeden önce tıklanmasın: önce sheet kapanır,
+      // sonra görev hedef bölümde görünür.
+      const postponedToast = page.getByText(
+        /^Görev (“bu hafta içinde”ye taşındı|\S+ gününe ertelendi)\.$/,
+      );
+      await expect(postponedToast).toBeVisible();
+      const postponedText = (await postponedToast.textContent()) ?? "";
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      const detailButton = { name: "Görev detayı: Matematik · 20 soru" } as const;
+      if (postponedText.includes("bu hafta içinde")) {
+        const anytime = page.getByRole("region", { name: "Bu hafta içinde" });
+        await expect(anytime.getByRole("button", detailButton)).toBeVisible();
+        await anytime.getByRole("button", detailButton).click();
+      } else {
+        const short = postponedText.match(/^Görev (\S+) gününe/)?.[1] ?? "";
+        const full = DAY_FULL[DAY_SHORT.indexOf(short as (typeof DAY_SHORT)[number])];
+        await page.getByRole("tab", { name: new RegExp(`^${full},`) }).click();
+        await page.getByRole("button", detailButton).click();
       }
-      await page.getByRole("button", { name: "Görev detayı: Matematik · 20 soru" }).click();
       await expect(page.getByText("Bu görev bir kez ertelendi; tekrar ertelenemez.")).toBeVisible();
       await page.keyboard.press("Escape");
       await logout(page);
@@ -180,6 +194,19 @@ test.describe("haftalık plan", () => {
       // Bugüne kadar: bugünün tamamlanan görevi 1/1 → %100; hafta geneli 1/2 → %50.
       await expect(row).toContainText("%100");
       await expect(row).toContainText("hafta %50");
+
+      // Kısayol: görev menüsünden "Kopyala" → "Her gün" (görevin kendi günü devre dışı kalır)
+      await page.goto(`/coach/students/${student.studentId}/plan`);
+      await page.getByRole("button", { name: "Görev menüsü: Kitap oku" }).click();
+      dialog = page.getByRole("dialog");
+      await dialog.getByRole("button", { name: "Kopyala" }).click();
+      const copyChips = dialog.getByRole("group", { name: "Kopyalanacak günler" });
+      await expect(copyChips.getByRole("checkbox", { disabled: true })).toHaveCount(1);
+      await dialog.getByRole("button", { name: "Her gün" }).click();
+      await expect(copyChips.getByRole("checkbox", { checked: true })).toHaveCount(6);
+      await dialog.getByRole("button", { name: "6 güne kopyala" }).click();
+      await expect(page.getByText("Görev 6 güne kopyalandı.")).toBeVisible();
+      await expect(page.getByTestId("plan-item").filter({ hasText: "Kitap oku" })).toHaveCount(7);
     } finally {
       await page.setViewportSize({ width: 1440, height: 900 });
       if (/\/coach\//.test(page.url())) await logout(page);

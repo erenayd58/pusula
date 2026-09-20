@@ -15,6 +15,14 @@ export { ExamDateForm } from "./components/exam-date-form";
 export { listStudents, listCoaches, type StudentListRow, type CoachOption } from "./server/queries";
 export { createStudentSchema, type CreateStudentInput } from "./schemas";
 export { assignCoach, deleteStudent, resetStudentPassword } from "./server/student-admin-actions";
+export { setParentDetails } from "./server/student-actions";
+export { setParentDetailsSchema, type SetParentDetailsInput } from "./schemas";
+export {
+  listStudentParents,
+  getParentDetailsAccess,
+  type StudentParentRow,
+} from "./server/queries";
+export { ParentVisibilityCard } from "./components/parent-visibility-card";
 export { InviteParentDialog } from "./components/invite-parent-dialog";
 export { InviteCodeForm } from "./components/invite-code-form";
 export { RegisterParentForm } from "./components/register-parent-form";
@@ -51,3 +59,4 @@ export { orgSettingsSchema, parseOrgSettings, type OrgSettings } from "./lib/org
 export { OrgSettingsForm } from "./components/org-settings-form";
 export { updateOrgSettings } from "./server/org-settings-actions";
 export { orgSettingsFormSchema, type OrgSettingsFormInput } from "./schemas";
+export { ParentWeekSelector } from "./components/parent-week-selector";

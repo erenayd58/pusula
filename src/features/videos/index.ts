@@ -3,6 +3,7 @@
  * dosyaları da dışa açılır). Planner ve analytics video verisini görünümlerden okur (11 §0).
  */
 export { videosModule } from "./module";
+export { videosWidgets } from "./widgets";
 export { PlaylistForm } from "./components/playlist-form";
 export { VideoEditor } from "./components/video-editor";
 export { VideoCatalog } from "./components/video-catalog";

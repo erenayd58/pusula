@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dateRangeKeys,
   currentSeason,
   daysUntil,
   greetingFor,
@@ -81,5 +82,25 @@ describe("hafta yardımcıları (Faz 4b)", () => {
     expect(weekDates("2026-09-14")[7]).toBe("2026-09-20");
     expect(isoDayOfWeek(new Date("2026-09-20T09:00:00Z"))).toBe(7);
     expect(isoDayOfWeek(new Date("2026-09-14T09:00:00Z"))).toBe(1);
+  });
+});
+
+describe("dateRangeKeys (program istisna aralığı)", () => {
+  it("iki ucu da dahil sayar, ay ve yaz saati sınırını aşar", () => {
+    expect(dateRangeKeys("2026-09-28", "2026-10-02")).toEqual([
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+    ]);
+    expect(dateRangeKeys("2026-03-28", "2026-03-30")).toHaveLength(3);
+    expect(dateRangeKeys("2026-09-28", "2026-09-28")).toEqual(["2026-09-28"]);
+  });
+
+  it("ters aralık ve bozuk tarih boş; limit aşımında limit + 1 anahtar", () => {
+    expect(dateRangeKeys("2026-10-02", "2026-09-28")).toEqual([]);
+    expect(dateRangeKeys("bozuk", "2026-09-28")).toEqual([]);
+    expect(dateRangeKeys("2026-01-01", "2026-12-31", 5)).toHaveLength(6);
   });
 });

@@ -14,6 +14,12 @@ export {
   type AlertThresholds,
 } from "./lib/alerts";
 export { pickStudentNudge, nudgeText } from "./lib/nudge";
+export {
+  evaluateStudentAlerts,
+  studentAlertReason,
+  studentAlertAction,
+  type StudentAlertThresholds,
+} from "./lib/student-alerts";
 export { priorityScore, SCORE_WEIGHTS, PROXIMITY_SWING } from "./lib/priority";
 export {
   buildSuggestions,
@@ -39,12 +45,16 @@ export type {
   SetupFacts,
   SetupAlert,
   SetupAlertKind,
+  StudentAlert,
+  StudentAlertFacts,
+  StudentAlertKind,
   StudentStrategy,
 } from "./types";
 export { AttentionList } from "./components/attention-list";
 export { WeakTopics } from "./components/weak-topics";
 export { SuggestionList } from "./components/suggestion-list";
 export { SetupList } from "./components/setup-list";
+export { StudentAlertList } from "./components/student-alert-list";
 export {
   getTopicAlertFacts,
   getTopicAlerts,
@@ -52,6 +62,8 @@ export {
   getStrategyContext,
   getSetupFacts,
   getSetupAlerts,
+  getStudentAlertFacts,
+  getStudentAlerts,
 } from "./server/queries";
 export { dismissSuggestion } from "./server/actions";
 export { dismissSuggestionSchema, type DismissSuggestionInput } from "./schemas";

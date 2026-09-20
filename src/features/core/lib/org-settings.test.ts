@@ -24,6 +24,14 @@ describe("parseOrgSettings", () => {
       weak_min_mistakes: 3,
       gap_weight: 0.5,
     });
+    expect(s.student_alerts).toEqual({
+      inactivity_days: 3,
+      goal_behind: { from_isodow: 3, min_percent: 40 },
+      net_drop: 5,
+      low_plan_percent: 50,
+      overdue_reviews_max: 15,
+      inactivity_notify_days: 7,
+    });
   });
 
   it("sezon dönemleri veritabanından okunur", () => {

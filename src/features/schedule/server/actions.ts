@@ -1,9 +1,12 @@
 "use server";
 
 import { ActionError, createAction } from "@/lib/actions/create-action";
+import { dateRangeKeys } from "@/lib/dates";
 import {
+  addBusySlotsSchema,
   busySlotSchema,
   deleteScheduleRowSchema,
+  EXCEPTION_RANGE_MAX_DAYS,
   scheduleExceptionSchema,
   setWakeWindowSchema,
 } from "../schemas";
@@ -59,6 +62,32 @@ export const upsertBusySlot = createAction({
   },
 });
 
+/**
+ * Aynı meşguliyeti birden fazla güne ekle (kısayol: "Hafta içi" okul → 5 satır). Tek insert;
+ * her gün bağımsız satır, sonradan tek tek düzenlenir.
+ */
+export const addBusySlots = createAction({
+  name: "addBusySlots",
+  schema: addBusySlotsSchema,
+  roles: ROLES,
+  revalidate: PATHS,
+  handler: async (input, ctx) => {
+    assertOwn(ctx.profile.role, ctx.userId, input.studentId);
+    const rows = input.days.map((day) => ({
+      student_id: input.studentId,
+      created_by: ctx.userId,
+      day_of_week: day,
+      starts_at: input.startsAt,
+      ends_at: input.endsAt,
+      kind: input.kind,
+      note: input.note,
+    }));
+    const { data, error } = await ctx.supabase.from("busy_slots").insert(rows).select("id");
+    if (error) rethrow(error);
+    return { ids: data.map((d) => d.id), count: data.length };
+  },
+});
+
 export const deleteBusySlot = createAction({
   name: "deleteBusySlot",
   schema: deleteScheduleRowSchema,
@@ -78,7 +107,10 @@ export const deleteBusySlot = createAction({
   },
 });
 
-/** Tek seferlik istisna ekle/güncelle; tüm günde saatler boş yazılır. */
+/**
+ * Tek seferlik istisna ekle/güncelle; tüm günde saatler boş yazılır. Eklemede `untilDate`
+ * varsa aralıktaki her güne ayrı satır (kısayol: gezi, hastalık; en fazla 31 gün, tek insert).
+ */
 export const upsertScheduleException = createAction({
   name: "upsertScheduleException",
   schema: scheduleExceptionSchema,
@@ -102,15 +134,23 @@ export const upsertScheduleException = createAction({
         .select("id");
       if (error) rethrow(error);
       if (data.length === 0) throw new ActionError(NOT_FOUND);
-      return { id: input.id };
+      return { id: input.id, count: 1 };
     }
+    const dates = input.untilDate
+      ? dateRangeKeys(input.onDate, input.untilDate, EXCEPTION_RANGE_MAX_DAYS)
+      : [input.onDate];
+    const rows = dates.map((on_date) => ({
+      ...values,
+      on_date,
+      student_id: input.studentId,
+      created_by: ctx.userId,
+    }));
     const { data, error } = await ctx.supabase
       .from("schedule_exceptions")
-      .insert({ ...values, student_id: input.studentId, created_by: ctx.userId })
-      .select("id")
-      .single();
+      .insert(rows)
+      .select("id");
     if (error) rethrow(error);
-    return { id: data.id };
+    return { id: data[0]?.id ?? null, count: data.length };
   },
 });
 

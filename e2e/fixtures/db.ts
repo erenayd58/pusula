@@ -75,6 +75,16 @@ export async function deleteE2ETemplates(): Promise<number> {
   return count ?? 0;
 }
 
+/** Testlerin gönderdiği "E2E duyuru …" satırlarını siler (Faz 8; bildirimler öğrenciyle gider). */
+export async function deleteE2EAnnouncements(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("announcements")
+    .delete({ count: "exact" })
+    .like("title", "E2E duyuru%");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Okul takvimini temizler (Faz 5a e2e): tüm konuların `school_finish_on` alanı boşaltılır. */
 export async function clearSchoolDates(): Promise<number> {
   const { count, error } = await adminClient()

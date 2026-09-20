@@ -4,6 +4,7 @@
  * bu modülü import etmez (11 §0).
  */
 export { resourcesModule } from "./module";
+export { resourcesWidgets } from "./widgets";
 export { ResourceForm } from "./components/resource-form";
 export { SectionEditor } from "./components/section-editor";
 export { ResourceCatalog } from "./components/resource-catalog";
